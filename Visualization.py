@@ -41,16 +41,21 @@ def agent_portrayal2(agent):
         portrayal["r"] = 0.2
     return portrayal
 
-chart = mesa.visualization.ChartModule([{"Label": "Gini",
-                      "Color": "Black"}],
-                    data_collector_name='datacollector')
 gridsize=50
 width=gridsize
 height=gridsize
+
 grid = CanvasGridPrimary(agent_portrayal, width, height, 800, 800)
+
 grid2 = CanvasGridSecondary(agent_portrayal, width, height, 800, 800)
+
+
+chart = mesa.visualization.ChartModule([{"Label": "Total cells",
+                      "Color": "Black"}],
+                    data_collector_name='datacollector')
+
 server = mesa.visualization.ModularServer(
-    CancerModel, [grid, grid2], "Cancer model", {"N": 50, "width": width, "height": height}
+    CancerModel, [grid, grid2, chart], "Cancer model", {"N": 50, "width": width, "height": height}
 )
 server.port = 8521 # The default
 server.launch()

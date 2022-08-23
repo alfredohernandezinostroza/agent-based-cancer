@@ -40,6 +40,7 @@ class CancerCell(mesa.Agent):
         self.phenotype = phenotype
         self.ecm = ecm
         self.mmp2 = mmp2
+        self.agent_type = "cell"
     def step(self): #what will the agent do every time a step is made
         self.move()
 
@@ -91,10 +92,15 @@ class TravelPoint(mesa.Agent):
         self.model = model
         self.ruptured = ruptured
         self.grid = grid
+        self.agent_type = "vessel"
 
     def step(self):
         pass
 
+
+def count_total_cells(model):
+    amount_of_cells = len([1 for agent in model.schedule.agents if agent.agent_type == "cell"])
+    return amount_of_cells
 
 class CancerModel(mesa.Model):
 
@@ -144,7 +150,7 @@ class CancerModel(mesa.Model):
             self.grids[0].place_agent(a, (x, y))
 
         self.datacollector = mesa.DataCollector(
-            # agent_reporters={"Wealth": "wealth"}
+            model_reporters={"Total cells": count_total_cells}#, agent_reporters={"Wealth": "wealth"}
         )
 
     def step(self):
