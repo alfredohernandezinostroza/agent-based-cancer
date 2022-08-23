@@ -18,8 +18,8 @@ theta = 0.195
 Lambda= 0.1
 gamma1= 1
 gamma2= 1
-doublingTimeE=3
-doublingTimeM=2
+doublingTimeE=30
+doublingTimeM=20
 gridsize = 10
 totalTime = 200
 patchsize=3
@@ -30,11 +30,11 @@ E3 = 0.1986
 Ps = 5e-4 #probability of survival for single cells in the vasculature
 Pc = 2.5e-2 #probability of survival for clusters in the vasculature
 Pd = 0.5 #probability of dissagreggation in vasculature
-Q = 4
+carrying_capacity = 4
 
 class CancerCell(mesa.Agent):
 
-    def __init__(self, unique_id, model, grid, phenotype, mmp2, ecm): #constructor
+    def __init__(self, unique_id, model, grid, phenotype, ecm, mmp2): #constructor
         super().__init__(unique_id, model)
         self.grid = grid
         self.phenotype = phenotype
@@ -158,6 +158,29 @@ class CancerModel(mesa.Model):
         self.datacollector.collect(self)
         self.calculateEnvironment(self.mmp2, self.ecm, self.schedule.time)
         self.schedule.step()
+        if (self.schedule.time % doublingTimeM == 0 and self.schedule.time != 0):
+            all_agents = [agent for agent in self.schedule.agents]
+            total_amount_of_agents = len(all_agents)
+            for agent in all_agents:
+                if  agent.agent_type == "cell" and agent.phenotype == "mesenchymal":
+                    x, y = agent.pos
+                    amount_of_cells = len([cell for cell in agent.grid.get_cell_list_contents([(x, y)]) if cell.agent_type == "cell"])
+                    print(amount_of_cells)
+                    if carrying_capacity > amount_of_cells:
+                        new_cell = CancerCell(total_amount_of_agents + 1, self, agent.grid, "mesenchymal", agent.ecm, agent.mmp2)
+                        self.schedule.add(new_cell)
+                        agent.grid.place_agent(new_cell, (x, y))
+                        total_amount_of_agents += 1
+        # if (self.schedule.time % doublingTimeE == 0 and self.schedule.time != 0):
+        #     all_agents = [agent for agent in self.schedule.agents]
+        #     amount_of_agents = len(all_agents)
+        #     for agent in all_agents:
+        #         if agent.agent_type == "cell" and agent.phenotype == "mesenchymal":
+        #             x, y = agent.pos
+        #             new_cell = CancerCell(amount_of_agents, self, agent.grid, "mesenchymal", agent.ecm, agent.mmp2)
+        #             self.schedule.add(new_cell)
+        #             self.grids[1].place_agent(new_cell, (x, y))
+        #             amount_of_agents += 1
 
     def calculateEnvironment(self, mmp2, ecm, time):
         for i in range(len(mmp2)):
