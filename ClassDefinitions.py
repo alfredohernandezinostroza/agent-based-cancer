@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from CustomCanvasGridVisualization import CanvasGridPrimary,CanvasGridSecondary
 
+vasculature_time = 1
 th    = 1e-3
 tha   = th
 xh    = 5e-3
@@ -27,10 +28,12 @@ middlePoint = round(gridsize/2)
 E1 = 0.5461
 E2 = 0.2553
 E3 = 0.1986
-Ps = 5e-4 #probability of survival for single cells in the vasculature
-Pc = 2.5e-2 #probability of survival for clusters in the vasculature
+single_cell_survival = 1#5e-4 #probability of survival for single cells in the vasculature
+cluster_survival = 2.5e-2 #probability of survival for clusters in the vasculature
 Pd = 0.5 #probability of dissagreggation in vasculature
 carrying_capacity = 4
+
+
 
 class CancerCell(mesa.Agent):
 
@@ -75,16 +78,40 @@ class CancerCell(mesa.Agent):
                 weights.append(Pstay)
 
 
+        # new_position = (x,y+1)
         new_position = self.random.choices(possible_steps,weights,k=1)[0]
         isTravelPoint = False
+        isRuptured = False
         for agent in self.grid.get_cell_list_contents([(new_position)]):
             if isinstance(agent, TravelPoint):
+                isRuptured = agent.ruptured
                 isTravelPoint=True
         if isTravelPoint:
-            print(self.grid.get_cell_list_contents([(new_position)]))
-            print("Travelled!")
+            print("Begin travel!")
+            x, y = new_position
+            onLeftBorder = self.grid.out_of_bounds((x-1,y))
+            onRightBorder = self.grid.out_of_bounds((x+1,y))
+            onTopBorder = self.grid.out_of_bounds((x,y-1))
+            onBottomBorder = self.grid.out_of_bounds((x,y+1))
+            ccells_to_travel = [agent for agent in self.grid.get_cell_list_contents([(x,y)]) if agent.agent_type == 'cell']
+            ccells_to_travel += [] if onLeftBorder else [agent for agent in self.grid.get_cell_list_contents([(x-1,y)]) if agent.agent_type == 'cell']
+            ccells_to_travel += [] if onRightBorder else [agent for agent in self.grid.get_cell_list_contents([(x+1,y)]) if agent.agent_type == 'cell']
+            ccells_to_travel += [] if onTopBorder else [agent for agent in self.grid.get_cell_list_contents([(x,y-1)]) if agent.agent_type == 'cell']
+            ccells_to_travel += [] if onBottomBorder else [agent for agent in self.grid.get_cell_list_contents([(x,y+1)]) if agent.agent_type == 'cell']
+            # print(ccells_to_travel)
+            if self.model.vasculature.get(time + vasculature_time,False):
+                self.model.vasculature[time + vasculature_time] += ccells_to_travel
+            else:
+                self.model.vasculature[time + vasculature_time] = ccells_to_travel
+            for ccell in ccells_to_travel:
+                ccell.grid.remove_agent(ccell)
+                ccell.model.schedule.remove(ccell)
+            print(self.model.vasculature)
+            # print(self.grid.get_cell_list_contents([(new_position)]))
+            # print("Travelled!")
             # self.model.grid[1].place_agent(self,(0,5))
-        self.grid.move_agent(self, new_position)
+        else:
+            self.grid.move_agent(self, new_position)
 
 class TravelPoint(mesa.Agent):
     def __init__(self, unique_id, model, ruptured, grid):
@@ -102,10 +129,29 @@ def count_total_cells(model):
     amount_of_cells = len([1 for agent in model.schedule.agents if agent.agent_type == "cell"])
     return amount_of_cells
 
+def count_vasculature_cells(model):
+    amount_of_cells = sum([len(value) for value in model.vasculature.values()])
+    return amount_of_cells
+
+###############################################################################################################
+###############################################################################################################
+###############################################################################################################
+#########################                                                            ##########################
+#########################                                                            ##########################
+#########################                      Begin Model                           ##########################
+#########################                                                            ##########################
+#########################                                                            ##########################
+###############################################################################################################
+###############################################################################################################
+###############################################################################################################
+###############################################################################################################
+
+
 class CancerModel(mesa.Model):
 
     def __init__(self, N, width, height):
         super().__init__()  
+        self.vasculature = {}
         self.num_agents = N
         self.width = width
         self.height = height
@@ -128,11 +174,12 @@ class CancerModel(mesa.Model):
         
             # Add the agent to a random grid cell
             x = self.random.randrange(3,7)
-            y = self.random.randrange(3,7)
+            # y = self.random.randrange(3,7)
+            y = 3
             self.grids[0].place_agent(a, (x, y))
         # Create agents at second grid
-        amount=20
-        for i in range(amount):
+        amount_of_second_grid_CAcells=30
+        for i in range(amount_of_second_grid_CAcells):
             a = CancerCell(i+N+1, self, self.grids[1], "mesenchymal", self.ecm[1], self.mmp2[1])
             self.schedule.add(a)
         
@@ -142,32 +189,54 @@ class CancerModel(mesa.Model):
             self.grids[1].place_agent(a, (x, y))
         
         for i in range(1):
-            a = TravelPoint(i+N+amount+1, self, True, self.grids[0])
+            a = TravelPoint(i+N+amount_of_second_grid_CAcells+1, self, True, self.grids[0])
             self.schedule.add(a)
 
-            x = self.random.randrange(self.width)
-            y = self.random.randrange(self.width)
-            self.grids[0].place_agent(a, (x, y))
+            # x = self.random.randrange(self.width)
+            # y = self.random.randrange(self.width)
+            self.grids[0].place_agent(a, (5, 15))
 
         self.datacollector = mesa.DataCollector(
             model_reporters={"Total cells": count_total_cells}#, agent_reporters={"Wealth": "wealth"}
+            # model_reporters={"Cells in vasculature": count_vasculature_cells}#, agent_reporters={"Wealth": "wealth"}
         )
 
     def step(self):
         """Advance the model by one step."""
         self.datacollector.collect(self)
+        if self.schedule.time in self.vasculature:
+            surviving_cells = [ccell for ccell in self.vasculature[self.schedule.time] if self.random.random() < single_cell_survival]
+            n_cells_in_arriving_point = len([agent for agent in self.grids[1].get_cell_list_contents([(30,30)]) if agent.agent_type == "cell"])
+            for ccell in surviving_cells:
+                if carrying_capacity > n_cells_in_arriving_point:
+                    self.grids[1].place_agent(ccell, (30,30))
+                    self.schedule.add(ccell)
+                elif carrying_capacity > len([agent for agent in self.grids[1].get_cell_list_contents([(30-1,30)]) if agent.agent_type == "cell"]):
+                    self.grids[1].place_agent(ccell, (30-1,30))
+                    self.schedule.add(ccell)
+                elif carrying_capacity > len([agent for agent in self.grids[1].get_cell_list_contents([(30+1,30)]) if agent.agent_type == "cell"]):
+                    self.grids[1].place_agent(ccell, (30+1,30))
+                    self.schedule.add(ccell)
+                elif carrying_capacity > len([agent for agent in self.grids[1].get_cell_list_contents([(30,30-1)]) if agent.agent_type == "cell"]):
+                    self.grids[1].place_agent(ccell, (30,30-1))
+                    self.schedule.add(ccell)
+                elif carrying_capacity > len([agent for agent in self.grids[1].get_cell_list_contents([(30,30+1)]) if agent.agent_type == "cell"]):
+                    self.grids[1].place_agent(ccell, (30,30+1))
+                    self.schedule.add(ccell)
+                    
+
         self.calculateEnvironment(self.mmp2, self.ecm, self.schedule.time)
         self.schedule.step()
         if (self.schedule.time % doublingTimeM == 0 and self.schedule.time != 0):
             all_agents = [agent for agent in self.schedule.agents]
             total_amount_of_agents = len(all_agents)
             for agent in all_agents:
-                if  agent.agent_type == "cell" and agent.phenotype == "mesenchymal":
+                if  agent.agent_type == "cell":
                     x, y = agent.pos
                     amount_of_cells = len([cell for cell in agent.grid.get_cell_list_contents([(x, y)]) if cell.agent_type == "cell"])
-                    print(amount_of_cells)
+                    # print(amount_of_cells)
                     if carrying_capacity > amount_of_cells:
-                        new_cell = CancerCell(total_amount_of_agents + 1, self, agent.grid, "mesenchymal", agent.ecm, agent.mmp2)
+                        new_cell = CancerCell(total_amount_of_agents + 1, self, agent.grid, agent.phenotype, agent.ecm, agent.mmp2)
                         self.schedule.add(new_cell)
                         agent.grid.place_agent(new_cell, (x, y))
                         total_amount_of_agents += 1
