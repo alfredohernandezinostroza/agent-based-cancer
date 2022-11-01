@@ -1,7 +1,8 @@
-from ClassDefinitions import *
+import mesa
+from Classes import *
 
 def agent_portrayal(agent):
-    if False or isinstance(agent, TravelPoint):
+    if False or isinstance(agent, Vessel):
         portrayal = {"Shape": "rect",
                  "Filled": "true",
                  "w": 0.8,
@@ -27,35 +28,22 @@ def agent_portrayal(agent):
             portrayal["r"] = 0.2
     return portrayal
 
-def agent_portrayal2(agent):
-    portrayal = {"Shape": "circle",
-                 "Filled": "true",
-                 "r": 0.5}
+gridsize     = 20
+width        = gridsize
+height       = gridsize
+grids_number = 2
 
-    if agent.phenotype == "mesenchymal":
-        portrayal["Color"] = "red"
-        portrayal["Layer"] = 0
-    else:
-        portrayal["Color"] = "grey"
-        portrayal["Layer"] = 1
-        portrayal["r"] = 0.2
-    return portrayal
+grids = [MultipleCanvasGrid(agent_portrayal, width, height, 402, 402, site=grid_number) for grid_number in range(grids_number)]
 
-gridsize=50
-width=gridsize
-height=gridsize
-
-grid = CanvasGridPrimary(agent_portrayal, width, height, 800, 800)
-
-grid2 = CanvasGridSecondary(agent_portrayal, width, height, 800, 800)
-
-
-chart = mesa.visualization.ChartModule([{"Label": "Total cells",
-                      "Color": "Black"}],
+chart = mesa.visualization.ChartModule([{"Label": "Total cells", "Color": "Black", 'w': 100}],
+                    canvas_height=50, canvas_width=100,
                     data_collector_name='datacollector')
 
+visual_elements = grids + [chart]
+
 server = mesa.visualization.ModularServer(
-    CancerModel, [grid, grid2, chart], "Cancer model", {"N": 50, "width": width, "height": height}
+    CancerModel, visual_elements, "Cancer model", {"N": 10, "width": width, "height": height, "grids_number": grids_number}
 )
-server.port = 8521 # The default
+
+server.port = 8521
 server.launch()
