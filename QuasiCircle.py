@@ -29,36 +29,27 @@ def find_quasi_circle(N, grid_width, grid_height):
 
         n_cells_current = np.count_nonzero(current_grid == 1)
 
-        if n_cells_current == N:
-            last_grid = current_grid
-        
-            # Create a list with possible places
-            possible_places = np.where(last_grid == 1)
-            coords = []
-            for i in range(len(possible_places[0])):
-                coords.append([possible_places[0][i], possible_places[1][i], 0])
+        if n_cells_current >= N:
 
-            return last_grid, coords
+            if n_cells_current == N:
+                last_grid = current_grid
 
-        if n_cells_current > N:
+            if n_cells_current > N:
+                n_cells_to_add = N - n_cells_last
+                circle_border = np.ma.masked_where(last_grid == 1, current_grid)
 
-            n_cells_to_add = N - n_cells_last
-            circle_border = np.ma.masked_where(last_grid == 1, current_grid)
-
-            # Fill the outer cells in a diametrically opposit counter-clocksise way
-            coordinates = np.where(circle_border == 1)
-            sign = 1
-            for i in range(n_cells_to_add):
-                coord_to_add = [coordinates[0][i*sign], coordinates[1][i*sign]]
-                last_grid[coord_to_add[0]][coord_to_add[1]] = 1
-                sign *= -1
+                # Fill the outer cells in a diametrically opposit counter-clocksise way
+                outer_p = np.where(circle_border == 1)
+                coords_outer_p = list(zip(outer_p[0], outer_p[1]))
+                sign = 1
+                for i in range(n_cells_to_add):
+                    coord_to_add = coords_outer_p[i*sign]
+                    last_grid[coord_to_add] = 1
+                    sign *= -1
 
             # Create a list with possible places
             possible_places = np.where(last_grid == 1)
-            coords = []
-            for i in range(len(possible_places[0])):
-                coords.append([possible_places[0][i], possible_places[1][i], 0])
-
+            coords = [list(tup) for tup in zip(possible_places[0], possible_places[1], (0 for i in possible_places[0]))]
             return last_grid, coords
         
         
@@ -70,9 +61,9 @@ def find_quasi_circle(N, grid_width, grid_height):
 # plt.imshow(resulting_quasi_circle, interpolation='none')
 # plt.show()
 
-# width = 20
-# height = 20
-# num_agents = 4
+# width = 7
+# height = 7
+# num_agents = 6
 # array = find_quasi_circle(num_agents, width, height)[0]
 # coords = find_quasi_circle(num_agents, width, height)[1]
 # print(array)
