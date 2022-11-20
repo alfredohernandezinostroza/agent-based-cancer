@@ -85,11 +85,24 @@ class CancerModel(mesa.Model):
 
     def _initialize_grids(self):
 
-        # place all the agents in the quasi-circle area in the center of the grid
+        # Place all the agents in the quasi-circle area in the center of the grid
+
+        # I think we can put these constants in utils.py
         n_center_points = 10
+        mesenchymal_proportion = 0.6
+        epithelial_proportion = 0.4
+        mesenchymal_number = round(self.num_agents * mesenchymal_proportion)
         possible_places = find_quasi_circle(n_center_points, self.width, self.height)[1]
+
         for i in range(self.num_agents):
-            a = CancerCell(i, self, self.grids[0], "mesenchymal", self.ecm[0], self.mmp2[0])
+
+            if mesenchymal_number > 0:
+                cell_type = "mesenchymal"
+                mesenchymal_number -= 1
+            elif mesenchymal_number == 0:
+                cell_type = "epithelial"
+
+            a = CancerCell(i, self, self.grids[0], cell_type, self.ecm[0], self.mmp2[0])
             
             j = self.random.randrange(len(possible_places))
             x = int(possible_places[j][0])
