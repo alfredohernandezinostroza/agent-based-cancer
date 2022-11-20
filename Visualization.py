@@ -42,7 +42,7 @@ chart = mesa.visualization.ChartModule([{"Label": "Total cells", "Color": "Black
 visual_elements = grids + [chart]
 
 server = mesa.visualization.ModularServer(
-    CancerModel, visual_elements, "Cancer model", {"N": 10, "width": width, "height": height, "grids_number": grids_number}
+    CancerModel, visual_elements, "Cancer model", {"N": 33, "width": width, "height": height, "grids_number": grids_number}
 )
 
 server.port = 8521

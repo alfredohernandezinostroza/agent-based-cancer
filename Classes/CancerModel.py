@@ -4,6 +4,7 @@ import numpy as np
 from Classes import *
 from Classes.Vessel import Vessel
 from Classes.utils import *
+from QuasiCircle import find_quasi_circle
 
 def count_total_cells(model):
     amount_of_cells = len([1 for agent in model.schedule.agents if agent.agent_type == "cell"])
@@ -83,13 +84,25 @@ class CancerModel(mesa.Model):
 
 
     def _initialize_grids(self):
+
+        # place all the agents in the quasi-circle area in the center of the grid
+        n_center_points = 10
+        possible_places = find_quasi_circle(n_center_points, self.width, self.height)[1]
         for i in range(self.num_agents):
             a = CancerCell(i, self, self.grids[0], "mesenchymal", self.ecm[0], self.mmp2[0])
+            
+            j = self.random.randrange(len(possible_places))
+            x = int(possible_places[j][0])
+            y = int(possible_places[j][1])
+
             self.schedule.add(a)
-        
-            x = self.random.randrange(3,7)
-            y = 3
             self.grids[0].place_agent(a, (x, y))
+
+            possible_places[j][2] += 1
+            if possible_places[j][2] == 4:
+                possible_places.pop(j)
+                
+            
             
         # Create agents at second grid
         amount_of_second_grid_CAcells=30
