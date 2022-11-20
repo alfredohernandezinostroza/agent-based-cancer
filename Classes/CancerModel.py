@@ -70,30 +70,39 @@ class CancerModel(mesa.Model):
 
         # Reprodução
         if (self.schedule.time % doublingTimeM == 0 and self.schedule.time != 0):
-            all_agents = [agent for agent in self.schedule.agents]
-            total_amount_of_agents = len(all_agents)
-            for agent in all_agents:
-                if  agent.agent_type == "cell":
-                    x, y = agent.pos
-                    amount_of_cells = len([cell for cell in agent.grid.get_cell_list_contents([(x, y)]) if cell.agent_type == "cell"])
-                    if carrying_capacity > amount_of_cells:
-                        new_cell = CancerCell(total_amount_of_agents + 1, self, agent.grid, agent.phenotype, agent.ecm, agent.mmp2)
-                        self.schedule.add(new_cell)
-                        agent.grid.place_agent(new_cell, (x, y))
-                        total_amount_of_agents += 1
+            self.proliferate("mesenchymal")
+
+        if (self.schedule.time % doublingTimeE == 0 and self.schedule.time != 0):
+            self.proliferate("epithelial")
+
+    def proliferate(self, cellType):
+        all_agents = [agent for agent in self.schedule.agents]
+        total_amount_of_agents = len(all_agents)
+        for agent in all_agents:
+            if agent.agent_type == "cell":
+                x, y = agent.pos
+                amount_of_cells = len([cell for cell in agent.grid.get_cell_list_contents([(x, y)]) if cell.agent_type == "cell"])
+                if carrying_capacity > amount_of_cells and agent.phenotype == cellType:
+                    new_cell = CancerCell(total_amount_of_agents + 1, self, agent.grid, agent.phenotype, agent.ecm, agent.mmp2)
+                    self.schedule.add(new_cell)
+                    agent.grid.place_agent(new_cell, (x,y))
+                    total_amount_of_agents +=1
+        
 
 
     def _initialize_grids(self):
 
-        # Place all the agents in the quasi-circle area in the center of the grid
+        
 
         # I think we can put these constants in utils.py
-        n_center_points = 10
         mesenchymal_proportion = 0.6
         epithelial_proportion = 0.4
+
         mesenchymal_number = round(self.num_agents * mesenchymal_proportion)
+        n_center_points = 20
         possible_places = find_quasi_circle(n_center_points, self.width, self.height)[1]
 
+        # Place all the agents in the quasi-circle area in the center of the grid
         for i in range(self.num_agents):
 
             if mesenchymal_number > 0:
@@ -111,14 +120,15 @@ class CancerModel(mesa.Model):
             self.schedule.add(a)
             self.grids[0].place_agent(a, (x, y))
 
+            # Remove the point after it has 4 cells
             possible_places[j][2] += 1
-            if possible_places[j][2] == 4:
+            if possible_places[j][2] == carrying_capacity:
                 possible_places.pop(j)
                 
             
             
         # Create agents at second grid
-        amount_of_second_grid_CAcells=30
+        amount_of_second_grid_CAcells=0
         for i in range(amount_of_second_grid_CAcells):
             a = CancerCell(i+self.num_agents+1, self, self.grids[1], "mesenchymal", self.ecm[1], self.mmp2[1])
             self.schedule.add(a)
