@@ -28,7 +28,7 @@ def agent_portrayal(agent):
             portrayal["r"] = 0.2
     return portrayal
 
-gridsize     = 20
+gridsize     = 100
 width        = gridsize
 height       = gridsize
 grids_number = 2

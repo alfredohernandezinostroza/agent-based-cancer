@@ -28,3 +28,9 @@ single_cell_survival    = 1         # 5e-4 #probability of survival for single c
 cluster_survival        = 2.5e-2    # probability of survival for clusters in the vasculature
 Pd                      = 0.5       # probability of dissagreggation in vasculature
 carrying_capacity       = 4
+
+# These values bellow change according to the simulation we want to recreate
+mesenchymal_proportion = 0.6
+epithelial_proportion = 0.4
+n_center_points_for_tumor = 20
+

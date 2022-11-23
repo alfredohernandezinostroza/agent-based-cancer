@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+#import random
 
 # Returns an array with 1 in the region that contains the N centre-most grid points and 0 on the others
 def find_quasi_circle(N, grid_width, grid_height):
@@ -61,12 +62,53 @@ def find_quasi_circle(N, grid_width, grid_height):
 # plt.imshow(resulting_quasi_circle, interpolation='none')
 # plt.show()
 
-# width = 7
-# height = 7
+
+
+# width = 10
+# height = 10
 # num_agents = 6
 # array = find_quasi_circle(num_agents, width, height)[0]
-# coords = find_quasi_circle(num_agents, width, height)[1]
+# pos_coords = find_quasi_circle(num_agents, width, height)[1]
 # print(array)
-# print(coords)
+# print(pos_coords)
 
 
+
+
+'''
+To see how the vessel creatin is working
+
+not_possible_places = pos_coords
+
+
+not_possible_grid = array
+# remove 2 cell border of the grid
+not_possible_grid[:2,:] = 1
+not_possible_grid[-2:,:] = 1
+not_possible_grid[:,:2] = 1
+not_possible_grid[:,-2:] = 1
+possible_places = np.where(not_possible_grid == 0)
+pos_coords = [list(tup) for tup in zip(possible_places[0], possible_places[1])]
+
+print("possible coords: \n", pos_coords)
+
+print(not_possible_grid)
+
+numCellsToPlace = 7
+numIter = 0
+temp = numCellsToPlace
+while temp > 0:
+    numIter += 1
+    cell_to_place = [random.randrange(width), random.randrange(height)]
+    
+    if cell_to_place in pos_coords:
+        not_possible_grid[cell_to_place[0], cell_to_place[1]] = 1
+        pos_coords.remove(cell_to_place)
+        temp -= 1
+print(f'temp: {temp} e numCellsToPlace: {numCellsToPlace}')
+
+
+print("possible coords: \n", pos_coords)
+print('numIter', numIter)
+print(not_possible_grid)
+'''

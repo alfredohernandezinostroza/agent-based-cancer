@@ -91,20 +91,10 @@ class CancerModel(mesa.Model):
 
 
     def _initialize_grids(self):
-
-        
-
-        # I think we can put these constants in utils.py
-        mesenchymal_proportion = 0.6
-        epithelial_proportion = 0.4
-
         mesenchymal_number = round(self.num_agents * mesenchymal_proportion)
-        n_center_points = 20
-        possible_places = find_quasi_circle(n_center_points, self.width, self.height)[1]
-
+        possible_places = find_quasi_circle(n_center_points_for_tumor, self.width, self.height)[1]
         # Place all the agents in the quasi-circle area in the center of the grid
         for i in range(self.num_agents):
-
             if mesenchymal_number > 0:
                 cell_type = "mesenchymal"
                 mesenchymal_number -= 1
@@ -124,11 +114,10 @@ class CancerModel(mesa.Model):
             possible_places[j][2] += 1
             if possible_places[j][2] == carrying_capacity:
                 possible_places.pop(j)
-                
-            
-            
+
+
         # Create agents at second grid
-        amount_of_second_grid_CAcells=0
+        amount_of_second_grid_CAcells=10
         for i in range(amount_of_second_grid_CAcells):
             a = CancerCell(i+self.num_agents+1, self, self.grids[1], "mesenchymal", self.ecm[1], self.mmp2[1])
             self.schedule.add(a)
@@ -137,11 +126,60 @@ class CancerModel(mesa.Model):
             x = self.random.randrange(3,7)
             y = self.random.randrange(3,7)
             self.grids[1].place_agent(a, (x, y))
-        
-        for i in range(1):
-            a = Vessel(i+self.num_agents+amount_of_second_grid_CAcells+1, self, True, self.grids[0])
-            self.schedule.add(a)
-            self.grids[0].place_agent(a, (5, 15))
+
+
+        # Create vessels
+        numNormalVessels = 8
+        numRupturedVessels = 2
+        numVesselsSecondary = 30
+
+        # bad code, reduce number of for and make a counter to save the index to de put in each vessel
+        #
+        n_center_points_for_Vessels = 400
+        not_possible_array = find_quasi_circle(n_center_points_for_Vessels, self.width, self.height)[0]
+        not_possible_array[:2,:] = 1
+        not_possible_array[-2:,:] = 1
+        not_possible_array[:,:2] = 1
+        not_possible_array[:,-2:] = 1
+        possible_places = np.where(not_possible_array == 0)
+        pos_coords = [list(tup) for tup in zip(possible_places[0], possible_places[1])]
+
+        for i in range(2):
+
+            if i == 0: # primary grid
+                temp = numRupturedVessels
+                while temp > 0:
+                    j = numRupturedVessels - temp
+                    cell_to_place = [self.random.randrange(self.width), self.random.randrange(self.height)]
+                    if cell_to_place in pos_coords:
+                        a = Vessel(j+self.num_agents+amount_of_second_grid_CAcells+1, self, True, self.grids[0])
+                        self.schedule.add(a)
+                        self.grids[0].place_agent(a, (int(cell_to_place[0]), int(cell_to_place[1])))
+                        # tenho que adicionar a cruz de ruptured e remover 5 cells de pos coords
+                        not_possible_array[cell_to_place[0], cell_to_place[1]] = 1
+                        pos_coords.remove(cell_to_place)
+                        temp -= 1
+
+                temp = numNormalVessels
+                while temp > 0:
+                    j = numNormalVessels - temp
+                    cell_to_place = [self.random.randrange(self.width), self.random.randrange(self.height)]
+                    if cell_to_place in pos_coords:
+                        a = Vessel(j+self.num_agents+amount_of_second_grid_CAcells+1+numRupturedVessels, self, False, self.grids[0])
+                        self.schedule.add(a)
+                        self.grids[0].place_agent(a, (int(cell_to_place[0]), int(cell_to_place[1])))
+
+                        not_possible_array[cell_to_place[0], cell_to_place[1]] = 1
+                        pos_coords.remove(cell_to_place)
+                        temp -= 1
+
+
+            if i > 0: # secondary grid
+                for m in range(numVesselsSecondary):
+                    # make if to only create a vessel if given random value of x and y doesnt already has a vessel
+                    a = Vessel(m+self.num_agents+amount_of_second_grid_CAcells+1+numNormalVessels+numRupturedVessels, self, False, self.grids[i])
+                    self.schedule.add(a)
+                    self.grids[i].place_agent(a, (self.random.randrange(self.width), self.random.randrange(self.height)))
 
     def calculateEnvironment(self, mmp2, ecm, time):
         for i in range(len(mmp2)):
