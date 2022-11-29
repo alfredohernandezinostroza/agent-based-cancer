@@ -1,10 +1,11 @@
 import mesa
 import matplotlib.pyplot as plt
 import numpy as np
-from Classes import *
+# from Classes import *
+from Classes.CancerCell import CancerCell
 from Classes.Vessel import Vessel
 from Classes.utils import *
-from QuasiCircle import find_quasi_circle
+from Classes.QuasiCircle import find_quasi_circle
 
 def count_total_cells(model):
     amount_of_cells = len([1 for agent in model.schedule.agents if agent.agent_type == "cell"])
@@ -39,6 +40,7 @@ class CancerModel(mesa.Model):
         self.datacollector = mesa.DataCollector(
             model_reporters={"Total cells": count_total_cells}#, agent_reporters={"Wealth": "wealth"}
             # model_reporters={"Cells in vasculature": count_vasculature_cells}#, agent_reporters={"Wealth": "wealth"}
+            
         )
 
     def step(self):

@@ -1,5 +1,11 @@
 import mesa
-from Classes import *
+# import *
+from Classes.CancerCell import CancerCell
+from Classes.Vessel import Vessel
+from Classes.utils import *
+from Classes.QuasiCircle import find_quasi_circle
+from Classes.MultipleCanvasGrid import MultipleCanvasGrid
+from Classes.CancerModel import CancerModel
 
 def agent_portrayal(agent):
     if False or isinstance(agent, Vessel):
@@ -28,22 +34,27 @@ def agent_portrayal(agent):
             portrayal["r"] = 0.2
     return portrayal
 
-gridsize     = 100
-width        = gridsize
-height       = gridsize
-grids_number = 2
 
-grids = [MultipleCanvasGrid(agent_portrayal, width, height, 402, 402, site=grid_number) for grid_number in range(grids_number)]
+def main():
+    gridsize     = 100 #PDF: 201
+    width        = gridsize
+    height       = gridsize
+    grids_number = 2
 
-chart = mesa.visualization.ChartModule([{"Label": "Total cells", "Color": "Black", 'w': 100}],
-                    canvas_height=50, canvas_width=100,
-                    data_collector_name='datacollector')
+    grids = [MultipleCanvasGrid(agent_portrayal, width, height, 402, 402, site=grid_number) for grid_number in range(grids_number)]
 
-visual_elements = grids + [chart]
+    chart = mesa.visualization.ChartModule([{"Label": "Total cells", "Color": "Black", 'w': 100}],
+                        canvas_height=50, canvas_width=100,
+                        data_collector_name='datacollector')
 
-server = mesa.visualization.ModularServer(
-    CancerModel, visual_elements, "Cancer model", {"N": 33, "width": width, "height": height, "grids_number": grids_number}
-)
+    visual_elements = grids + [chart]
 
-server.port = 8521
-server.launch()
+    server = mesa.visualization.ModularServer(
+        CancerModel, visual_elements, "Cancer model", {"N": 388, "width": width, "height": height, "grids_number": grids_number}
+    )
+
+    server.port = 8521
+    server.launch()
+
+if __name__ == "__main__":
+    main()

@@ -15,10 +15,10 @@ theta                   = 0.195
 Lambda                  = 0.1
 gamma1                  = 1
 gamma2                  = 1
-doublingTimeE           = 30
-doublingTimeM           = 20
+doublingTimeE           = 20 # PDF: 2000
+doublingTimeM           = 30 # PDF: 3000
 gridsize                = 10
-totalTime               = 200
+totalTime               = 5000
 patchsize               = 3
 middlePoint             = round(gridsize/2)
 E1                      = 0.5461
@@ -32,5 +32,5 @@ carrying_capacity       = 4
 # These values bellow change according to the simulation we want to recreate
 mesenchymal_proportion = 0.6
 epithelial_proportion = 0.4
-n_center_points_for_tumor = 20
+n_center_points_for_tumor = 97 #PDF: 97
 
