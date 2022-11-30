@@ -17,30 +17,29 @@ def count_vasculature_cells(model):
 
 class CancerModel(mesa.Model):
 
-    def __init__(self, N, width, height, grids_number):
+    def __init__(self, N, width, height, grids_number, seed=None):
         super().__init__()  
         self.vasculature = {}
         self.num_agents = N
         self.width = width
         self.height = height
         self.phenotypes = ["mesenchymal", "epithelial"]
-        self.mesenchymalCount = [np.zeros((totalTime, width, height), dtype=int) for _ in range(grids_number)]
-        self.epithelialCount = [np.zeros((totalTime, width, height), dtype=int) for _ in range(grids_number)]
+        self.mesenchymalCount = [np.zeros((totalTime, width, height), dtype=np.float16) for _ in range(grids_number)]
+        self.epithelialCount = [np.zeros((totalTime, width, height), dtype=np.float16) for _ in range(grids_number)]
         self.grids_number = grids_number
         
         self.grids = [mesa.space.MultiGrid(width, height, False) for _ in range(self.grids_number)]
         
         self.schedule = mesa.time.RandomActivation(self)
         #list of numpy arrays, representing mmp2 and ecm concentration in each grid
-        self.mmp2 = [np.zeros((totalTime, width, height), dtype=int) for _ in range(grids_number)]
-        self.ecm = [np.zeros((totalTime, width, height), dtype=int) for _ in range(grids_number)]
+        self.mmp2 = [np.zeros((totalTime, width, height), dtype=np.float16) for _ in range(grids_number)]
+        self.ecm = [np.zeros((totalTime, width, height), dtype=np.float16) for _ in range(grids_number)]
 
         self._initialize_grids()
 
         self.datacollector = mesa.DataCollector(
-            model_reporters={"Total cells": count_total_cells}#, agent_reporters={"Wealth": "wealth"}
+            model_reporters={"Total cells": count_total_cells}, agent_reporters={"Position": "pos", "Agent Type": "agent_type", "Phenotype": "phenotype", "Ruptured": "ruptured", "Grid": "grid"}
             # model_reporters={"Cells in vasculature": count_vasculature_cells}#, agent_reporters={"Wealth": "wealth"}
-            
         )
 
     def step(self):
@@ -119,7 +118,7 @@ class CancerModel(mesa.Model):
 
 
         # Create agents at second grid
-        amount_of_second_grid_CAcells=10
+        amount_of_second_grid_CAcells=0
         for i in range(amount_of_second_grid_CAcells):
             a = CancerCell(i+self.num_agents+1, self, self.grids[1], "mesenchymal", self.ecm[1], self.mmp2[1])
             self.schedule.add(a)
@@ -133,11 +132,11 @@ class CancerModel(mesa.Model):
         # Create vessels
         numNormalVessels = 8
         numRupturedVessels = 2
-        numVesselsSecondary = 30
+        numVesselsSecondary = 10
 
         # bad code, reduce number of for and make a counter to save the index to de put in each vessel
         #
-        n_center_points_for_Vessels = 400
+        n_center_points_for_Vessels = 200 # PDF = 200 
         not_possible_array = find_quasi_circle(n_center_points_for_Vessels, self.width, self.height)[0]
         not_possible_array[:2,:] = 1
         not_possible_array[-2:,:] = 1
@@ -183,6 +182,9 @@ class CancerModel(mesa.Model):
                     self.schedule.add(a)
                     self.grids[i].place_agent(a, (self.random.randrange(self.width), self.random.randrange(self.height)))
 
+        
+
+
     def calculateEnvironment(self, mmp2, ecm, time):
         for i in range(len(mmp2)):
             for cell in self.grids[i].coord_iter():
@@ -212,3 +214,5 @@ class CancerModel(mesa.Model):
                         ecm[i][time+1,x,y] = ecm[i][time,x,y]*(1-tha*(gamma1*self.mesenchymalCount[i][time,x,y]+gamma2*mmp2[i][time,x,y]))
 
                     #ahora hay que mover la celula de acuerdo a las posibilidades
+
+    

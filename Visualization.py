@@ -36,7 +36,7 @@ def agent_portrayal(agent):
 
 
 def main():
-    gridsize     = 100 #PDF: 201
+    gridsize     = 201 #PDF: 201
     width        = gridsize
     height       = gridsize
     grids_number = 2
