@@ -6,7 +6,7 @@ from Classes.CancerCell import CancerCell
 from Classes.Vessel import Vessel
 from Classes.utils import *
 from Classes.QuasiCircle import find_quasi_circle
-
+import Classes.Sparse as sparse
 def count_total_cells(model):
     amount_of_cells = len([1 for agent in model.schedule.agents if agent.agent_type == "cell"])
     return amount_of_cells
@@ -24,16 +24,16 @@ class CancerModel(mesa.Model):
         self.width = width
         self.height = height
         self.phenotypes = ["mesenchymal", "epithelial"]
-        self.mesenchymalCount = [np.zeros((totalTime, width, height), dtype=np.float16) for _ in range(grids_number)]
-        self.epithelialCount = [np.zeros((totalTime, width, height), dtype=np.float16) for _ in range(grids_number)]
+        self.mesenchymalCount = [sparse.zeros() for _ in range(grids_number)]
+        self.epithelialCount = [sparse.zeros() for _ in range(grids_number)]
         self.grids_number = grids_number
         
         self.grids = [mesa.space.MultiGrid(width, height, False) for _ in range(self.grids_number)]
         
         self.schedule = mesa.time.RandomActivation(self)
         #list of numpy arrays, representing mmp2 and ecm concentration in each grid
-        self.mmp2 = [np.zeros((totalTime, width, height), dtype=np.float16) for _ in range(grids_number)]
-        self.ecm = [np.zeros((totalTime, width, height), dtype=np.float16) for _ in range(grids_number)]
+        self.mmp2 = [sparse.zeros() for _ in range(grids_number)]
+        self.ecm = [sparse.ones() for _ in range(grids_number)]
 
         self._initialize_grids()
 
@@ -193,10 +193,10 @@ class CancerModel(mesa.Model):
                 for cancerCell in cell_contents:
                     if isinstance(cancerCell, CancerCell):
                         if cancerCell.phenotype == "mesenchymal":
-                            self.mesenchymalCount[i][x][y] += 1
+                            self.mesenchymalCount[i][x,y] += 1
                             diff = dM
                         elif cancerCell.phenotype == "epithelial":
-                            self.epithelialCount[i][x][y] += 1
+                            self.epithelialCount[i][x,y] += 1
                             diff = dE
                         else:
                             raise Exception("Unknown phenotype")
