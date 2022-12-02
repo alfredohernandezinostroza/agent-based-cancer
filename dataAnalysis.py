@@ -1,5 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
 
 def getCoordsForPlot(step):
     df = pd.read_csv("24thousand.csv")
@@ -21,17 +22,56 @@ def getCoordsForPlot(step):
 
     return [Xm, Ym, Xe, Ye]
 
+def plotGrowthData(fig_index):
+    # get data at each step
+    df = pd.read_csv("24thousand.csv")
+    df = df[["Step", "Total cells", "Cell Type"]]
+
+    plt.figure(fig_index)
+
+    # For mesenchymal
+    stepsize = 3000 #doubling rate
+    df_m = df.loc[(df["Step"] % stepsize == 0)]
+    # create arrays with the step number and number of cells
+    steps = np.arange(0, max(df_m["Step"]) + 1, stepsize)
+    numberMesenchymalEachStep = [df_m.loc[(df_m["Step"] == step) & (df_m["Cell Type"] == "mesenchymal")].shape[0] for step in steps]
+    plt.plot(steps*11/24000, numberMesenchymalEachStep, label="Mesenchymal cells")
+
+    # For epithelial
+    stepsize = 2000 #doubling rate
+    df_e = df.loc[(df["Step"] % stepsize == 0)]
+    # create arrays with the step number and number of cells
+    steps = np.arange(0, max(df_e["Step"]) + 1, stepsize)
+    numberEpithelialEachStep = [df_e.loc[(df_e["Step"] == step) & (df_e["Cell Type"] == "epithelial")].shape[0] for step in steps]
+    
+    plt.plot(steps*11/24000, numberEpithelialEachStep, label="Epithelial cells")
+
+    plt.title('Tumor growth')
+    plt.xlabel('Days')
+    plt.ylabel('Number of cells')
+    plt.legend(loc="upper left")
+
+    plt.show()
+
 
 def plotCancer(coordsList,i):
 
     Xm, Ym, Xe, Ye = coordsList[0], coordsList[1], coordsList[2], coordsList[3]
     plt.figure(i, figsize=(6, 5))
     
-    plt.scatter(Xm, Ym, marker='o', alpha=0.25)
-    plt.scatter(Xe, Ye, marker='.', alpha=0.15)
+    plt.scatter(Xm, Ym, marker='o', alpha=0.10, label="Mesenchymal cells")
+    plt.scatter(Xe, Ye, marker='h', alpha=0.05, label="Epithelial cells")
     plt.xlim(0, 201)
     plt.ylim(0, 201)
- 
+
+    xticks = np.arange(0, 201, step=40) # 6 ticks
+    xticklabels = [str(round(i,1)) for i in np.arange(0, 2.1, step = 2/201*40)]
+    plt.xticks(xticks, xticklabels)
+    plt.yticks(xticks, xticklabels)
+    plt.xlabel("mm")
+    plt.ylabel("mm")
+    
+    #plt.style.use("seaborn")
 
 if __name__ == "__main__":
     
@@ -42,7 +82,14 @@ if __name__ == "__main__":
 
     for id, step in enumerate(reversed(range(0,24000+1,2000))):
         plotCancer(getCoordsForPlot(step),id)
-        plt.title(f'Tumor metastasys at {11/24000 * step:.2f} days (step {step}')
+        if step == 0:
+            plt.title(f'Initial Tumor')
+            plt.legend(loc="upper left")
+        else:
+            plt.title(f'Tumor size at {11/24000 * step:.2f} days ({step} steps)')
+    
+    plotGrowthData(id+1)
+      
     
     plt.show()
 
