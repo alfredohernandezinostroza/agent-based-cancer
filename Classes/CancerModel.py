@@ -44,7 +44,7 @@ class CancerModel(mesa.Model):
         )
 
     def step(self):
-        graph_ecm_mmp2(100)
+        self.graph_ecm_mmp2(100)
         """Advance the model by one step."""
         self.datacollector.collect(self)
         if self.schedule.time in self.vasculature: # Add keys
@@ -176,6 +176,7 @@ class CancerModel(mesa.Model):
                     #ahora hay que mover la celula de acuerdo a las posibilidades
     def graph_ecm_mmp2(self, time):
         if self.schedule.time == time:
+            print("SADSADDSA")
             fig = plt.figure(figsize=plt.figaspect(0.5))
             ax = fig.add_subplot(1, 2, 1, projection='3d')
             X = np.arange(0, self.width, 1)
