@@ -96,6 +96,7 @@ class CancerModel(mesa.Model):
                     
         #Calculo do quimico que fomenta haptotaxis e da matriz extracelular
         self.calculateEnvironment(self.mmp2, self.ecm)
+        self.schedule.step()
         # Reprodução
         if (self.schedule.time % doublingTimeM == 0 and self.schedule.time != 0):
             self.proliferate("mesenchymal")
