@@ -158,17 +158,17 @@ class CancerModel(mesa.Model):
                             diff = dE
                         else:
                             raise Exception("Unknown phenotype")
-                        onLeftBorder = self.grids[i].out_of_bounds((x-1,y))
-                        onRightBorder = self.grids[i].out_of_bounds((x+1,y))
-                        onTopBorder = self.grids[i].out_of_bounds((x,y-1))
-                        onBottomBorder = self.grids[i].out_of_bounds((x,y+1))
-                        mmp2[i][time+1,x,y]=dmmp*tha/xha**2*(\
-                                (mmp2[i][time,x+1,y] if not onRightBorder else mmp2[i][time,x-1,y])\
-                                +(mmp2[i][time,x-1,y] if not onLeftBorder else mmp2[i][time,x+1,y])\
-                                +(mmp2[i][time,x,y+1] if not onBottomBorder else mmp2[i][time,x,y-1])\
-                                +(mmp2[i][time,x,y-1] if not onTopBorder else mmp2[i][time,x,y+1])\
-                                )\
-                                +mmp2[i][time,x,y]*(1-4*dmmp*tha/xha**2-th*Lambda)+tha*theta*self.mesenchymalCount[i][time,x,y]
-                        ecm[i][time+1,x,y] = ecm[i][time,x,y]*(1-tha*(gamma1*self.mesenchymalCount[i][time,x,y]+gamma2*mmp2[i][time,x,y]))
+                onLeftBorder = self.grids[i].out_of_bounds((x-1,y))
+                onRightBorder = self.grids[i].out_of_bounds((x+1,y))
+                onTopBorder = self.grids[i].out_of_bounds((x,y-1))
+                onBottomBorder = self.grids[i].out_of_bounds((x,y+1))
+                mmp2[i][time+1,x,y]=dmmp*tha/xha**2*(\
+                        (mmp2[i][time,x+1,y] if not onRightBorder else mmp2[i][time,x-1,y])\
+                        +(mmp2[i][time,x-1,y] if not onLeftBorder else mmp2[i][time,x+1,y])\
+                        +(mmp2[i][time,x,y+1] if not onBottomBorder else mmp2[i][time,x,y-1])\
+                        +(mmp2[i][time,x,y-1] if not onTopBorder else mmp2[i][time,x,y+1])\
+                        )\
+                        +mmp2[i][time,x,y]*(1-4*dmmp*tha/xha**2-th*Lambda)+tha*theta*self.mesenchymalCount[i][time,x,y]
+                ecm[i][time+1,x,y] = ecm[i][time,x,y]*(1-tha*(gamma1*self.mesenchymalCount[i][time,x,y]+gamma2*mmp2[i][time,x,y]))
 
                     #ahora hay que mover la celula de acuerdo a las posibilidades
