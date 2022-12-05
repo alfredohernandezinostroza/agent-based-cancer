@@ -5,6 +5,8 @@ from Classes import *
 from Classes.Vessel import Vessel
 from Classes.utils import *
 from QuasiCircle import find_quasi_circle
+from matplotlib import pyplot as plt
+from matplotlib import cm
 
 def count_total_cells(model):
     amount_of_cells = len([1 for agent in model.schedule.agents if agent.agent_type == "cell"])
