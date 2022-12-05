@@ -42,6 +42,7 @@ class CancerModel(mesa.Model):
         )
 
     def step(self):
+        graph_ecm_mmp2(100)
         """Advance the model by one step."""
         self.datacollector.collect(self)
         if self.schedule.time in self.vasculature: # Add keys
@@ -171,3 +172,28 @@ class CancerModel(mesa.Model):
             mmp2[i][0,:,:] = mmp2[i][1,:,:]
             ecm[i][0,:,:] = ecm[i][1,:,:]
                     #ahora hay que mover la celula de acuerdo a las posibilidades
+    def graph_ecm_mmp2(self, time):
+        if self.schedule.time == time:
+            fig = plt.figure(figsize=plt.figaspect(0.5))
+            ax = fig.add_subplot(1, 2, 1, projection='3d')
+            X = np.arange(0, self.width, 1)
+            Y = np.arange(0, self.height,1)
+            X, Y = np.meshgrid(X, Y)
+            Z = self.mmp2[0][0, :, :]
+            print(Z)
+            # ax.scatter(X, Y, Z, marker='o')
+            surf = ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap=cm.coolwarm,
+                        linewidth=0, antialiased=False)
+            ax.set_zlim(-1.01, 1.01)
+            fig.colorbar(surf, shrink=0.5, aspect=10)
+            
+                        
+            ax = fig.add_subplot(1, 2, 2, projection='3d')
+            Z = self.ecm[0][0, :, :]
+            print(Z)
+            # ax.scatter(X, Y, Z, marker=m)
+            surf = ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap=cm.coolwarm,
+                        linewidth=0, antialiased=False)
+            ax.set_zlim(-1.01, 2.01)
+            fig.colorbar(surf, shrink=0.5, aspect=10)
+                        
