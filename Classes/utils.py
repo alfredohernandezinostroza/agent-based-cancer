@@ -1,0 +1,30 @@
+# Model variables
+
+vasculature_time        = 1
+th                      = 1e-3
+tha                     = th
+xh                      = 5e-3
+xha                     = xh
+yh                      = 1e-4
+dM                      = 1e-4
+dE                      = 5e-5
+phiM                    = 5e-4
+phiE                    = 5e-4
+dmmp                    = 1e-3
+theta                   = 0.195
+Lambda                  = 0.1
+gamma1                  = 1
+gamma2                  = 1
+doublingTimeE           = 30
+doublingTimeM           = 20
+gridsize                = 10
+totalTime               = 200
+patchsize               = 3
+middlePoint             = round(gridsize/2)
+E1                      = 0.5461
+E2                      = 0.2553
+E3                      = 0.1986
+single_cell_survival    = 1         # 5e-4 #probability of survival for single cells in the vasculature
+cluster_survival        = 2.5e-2    # probability of survival for clusters in the vasculature
+Pd                      = 0.5       # probability of dissagreggation in vasculature
+carrying_capacity       = 4
