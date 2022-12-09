@@ -27,10 +27,10 @@ class CancerCell(mesa.Agent):
         onRightBorder = self.grid.out_of_bounds((x+1,y))
         onTopBorder = self.grid.out_of_bounds((x,y-1))
         onBottomBorder = self.grid.out_of_bounds((x,y+1))
-        Pleft = 0 if onLeftBorder else (th/xh**2*(dE-phiE/4*(0 if onRightBorder else self.ecm[time,x+1,y]-self.ecm[time,x-1,y])))
-        Pright = 0 if onRightBorder else (th/xh**2*(dE+phiE/4*(0 if onLeftBorder else self.ecm[time,x+1,y]-self.ecm[time,x-1,y])))
-        Ptop = 0 if onTopBorder else (th/xh**2*(dE+phiE/4*(0 if onBottomBorder else self.ecm[time,x,y+1]-self.ecm[time,x,y-1])))
-        Pbottom = 0 if onBottomBorder else (th/xh**2*(dE-phiE/4*(0 if onTopBorder else self.ecm[time,x,y+1]-self.ecm[time,x,y-1])))
+        Pleft = 0 if onLeftBorder else (th/xh**2*(dE-phiE/4*(0 if onRightBorder else self.ecm[0,x+1,y]-self.ecm[0,x-1,y])))
+        Pright = 0 if onRightBorder else (th/xh**2*(dE+phiE/4*(0 if onLeftBorder else self.ecm[0,x+1,y]-self.ecm[0,x-1,y])))
+        Ptop = 0 if onTopBorder else (th/xh**2*(dE+phiE/4*(0 if onBottomBorder else self.ecm[0,x,y+1]-self.ecm[0,x,y-1])))
+        Pbottom = 0 if onBottomBorder else (th/xh**2*(dE-phiE/4*(0 if onTopBorder else self.ecm[0,x,y+1]-self.ecm[0,x,y-1])))
         Pstay = 1-(Pleft+Pright+Ptop+Pbottom)
 
         weights=[]
