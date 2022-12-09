@@ -1,12 +1,15 @@
 import mesa
 import matplotlib.pyplot as plt
 import numpy as np
-from Classes import *
+# from Classes import *
+from Classes.CancerCell import CancerCell
 from Classes.Vessel import Vessel
 from Classes.utils import *
-from QuasiCircle import find_quasi_circle
+
+from Classes.QuasiCircle import find_quasi_circle
 from matplotlib import pyplot as plt
 from matplotlib import cm
+
 
 def count_total_cells(model):
     amount_of_cells = len([1 for agent in model.schedule.agents if agent.agent_type == "cell"])
@@ -18,28 +21,32 @@ def count_vasculature_cells(model):
 
 class CancerModel(mesa.Model):
 
-    def __init__(self, N, width, height, grids_number):
+    def __init__(self, N, width, height, grids_number, seed=None):
         super().__init__()  
         self.vasculature = {}
         self.num_agents = N
         self.width = width
         self.height = height
         self.phenotypes = ["mesenchymal", "epithelial"]
+
         self.mesenchymalCount = [np.zeros((width, height), dtype=int) for _ in range(grids_number)]
         self.epithelialCount = [np.zeros((width, height), dtype=int) for _ in range(grids_number)]
+
         self.grids_number = grids_number
         
         self.grids = [mesa.space.MultiGrid(width, height, False) for _ in range(self.grids_number)]
         
         self.schedule = mesa.time.RandomActivation(self)
         #list of numpy arrays, representing mmp2 and ecm concentration in each grid
+
         self.mmp2 = [np.zeros((2, width, height), dtype=float) for _ in range(grids_number)]
         self.ecm = [np.ones((2, width, height), dtype=float) for _ in range(grids_number)]
+
 
         self._initialize_grids()
 
         self.datacollector = mesa.DataCollector(
-            model_reporters={"Total cells": count_total_cells}#, agent_reporters={"Wealth": "wealth"}
+            model_reporters={"Total cells": count_total_cells}, agent_reporters={"Position": "pos", "Agent Type": "agent_type", "Phenotype": "phenotype", "Ruptured": "ruptured", "Grid": "grid"}
             # model_reporters={"Cells in vasculature": count_vasculature_cells}#, agent_reporters={"Wealth": "wealth"}
         )
 
@@ -93,20 +100,10 @@ class CancerModel(mesa.Model):
 
 
     def _initialize_grids(self):
-
-        
-
-        # I think we can put these constants in utils.py
-        mesenchymal_proportion = 0.6
-        epithelial_proportion = 0.4
-
         mesenchymal_number = round(self.num_agents * mesenchymal_proportion)
-        n_center_points = 20
-        possible_places = find_quasi_circle(n_center_points, self.width, self.height)[1]
-
+        possible_places = find_quasi_circle(n_center_points_for_tumor, self.width, self.height)[1]
         # Place all the agents in the quasi-circle area in the center of the grid
         for i in range(self.num_agents):
-
             if mesenchymal_number > 0:
                 cell_type = "mesenchymal"
                 mesenchymal_number -= 1
@@ -126,9 +123,8 @@ class CancerModel(mesa.Model):
             possible_places[j][2] += 1
             if possible_places[j][2] == carrying_capacity:
                 possible_places.pop(j)
-                
-            
-            
+
+
         # Create agents at second grid
         amount_of_second_grid_CAcells=0
         for i in range(amount_of_second_grid_CAcells):
@@ -139,11 +135,62 @@ class CancerModel(mesa.Model):
             x = self.random.randrange(3,7)
             y = self.random.randrange(3,7)
             self.grids[1].place_agent(a, (x, y))
-        
-        for i in range(0):
-            a = Vessel(i+self.num_agents+amount_of_second_grid_CAcells+1, self, True, self.grids[0])
-            self.schedule.add(a)
-            self.grids[0].place_agent(a, (5, 15))
+
+
+        # Create vessels
+        numNormalVessels = 8
+        numRupturedVessels = 2
+        numVesselsSecondary = 10
+
+        # bad code, reduce number of for and make a counter to save the index to de put in each vessel
+        #
+        n_center_points_for_Vessels = 200 # PDF = 200 
+        not_possible_array = find_quasi_circle(n_center_points_for_Vessels, self.width, self.height)[0]
+        not_possible_array[:2,:] = 1
+        not_possible_array[-2:,:] = 1
+        not_possible_array[:,:2] = 1
+        not_possible_array[:,-2:] = 1
+        possible_places = np.where(not_possible_array == 0)
+        pos_coords = [list(tup) for tup in zip(possible_places[0], possible_places[1])]
+
+        for i in range(2):
+
+            if i == 0: # primary grid
+                temp = numRupturedVessels
+                while temp > 0:
+                    j = numRupturedVessels - temp
+                    cell_to_place = [self.random.randrange(self.width), self.random.randrange(self.height)]
+                    if cell_to_place in pos_coords:
+                        a = Vessel(j+self.num_agents+amount_of_second_grid_CAcells+1, self, True, self.grids[0])
+                        self.schedule.add(a)
+                        self.grids[0].place_agent(a, (int(cell_to_place[0]), int(cell_to_place[1])))
+                        # tenho que adicionar a cruz de ruptured e remover 5 cells de pos coords
+                        not_possible_array[cell_to_place[0], cell_to_place[1]] = 1
+                        pos_coords.remove(cell_to_place)
+                        temp -= 1
+
+                temp = numNormalVessels
+                while temp > 0:
+                    j = numNormalVessels - temp
+                    cell_to_place = [self.random.randrange(self.width), self.random.randrange(self.height)]
+                    if cell_to_place in pos_coords:
+                        a = Vessel(j+self.num_agents+amount_of_second_grid_CAcells+1+numRupturedVessels, self, False, self.grids[0])
+                        self.schedule.add(a)
+                        self.grids[0].place_agent(a, (int(cell_to_place[0]), int(cell_to_place[1])))
+
+                        not_possible_array[cell_to_place[0], cell_to_place[1]] = 1
+                        pos_coords.remove(cell_to_place)
+                        temp -= 1
+
+
+            if i > 0: # secondary grid
+                for m in range(numVesselsSecondary):
+                    # make if to only create a vessel if given random value of x and y doesnt already has a vessel
+                    a = Vessel(m+self.num_agents+amount_of_second_grid_CAcells+1+numNormalVessels+numRupturedVessels, self, False, self.grids[i])
+                    self.schedule.add(a)
+                    self.grids[i].place_agent(a, (self.random.randrange(self.width), self.random.randrange(self.height)))
+
+
 
     def calculateEnvironment(self, mmp2, ecm):
         for i in range(len(mmp2)):
@@ -175,6 +222,7 @@ class CancerModel(mesa.Model):
             mmp2[i][0,:,:] = mmp2[i][1,:,:]
             ecm[i][0,:,:] = ecm[i][1,:,:]
                     #ahora hay que mover la celula de acuerdo a las posibilidades
+
     def graph_ecm_mmp2(self, time):
         if self.schedule.time == time:
             print("SADSADDSA")
@@ -202,3 +250,4 @@ class CancerModel(mesa.Model):
             fig.colorbar(surf, shrink=0.5, aspect=10)
             
             plt.show()
+

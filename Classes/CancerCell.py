@@ -11,6 +11,7 @@ class CancerCell(mesa.Agent):
         self.ecm = ecm
         self.mmp2 = mmp2
         self.agent_type = "cell"
+        self.ruptured = False #need to be able do use data collector on agents
         
     def step(self): #what will the agent do every time a step is made
         self.move()
@@ -54,7 +55,8 @@ class CancerCell(mesa.Agent):
             if isinstance(agent, Vessel):
                 isRuptured = agent.ruptured
                 isVessel=True
-        if isVessel:
+        if False:
+        #if isVessel:
             print("Begin travel!")
             x, y = new_position
             onLeftBorder = self.grid.out_of_bounds((x-1,y))
