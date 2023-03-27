@@ -51,28 +51,28 @@ class CancerModel(mesa.Model):
         )
 
     def step(self):
-        self.graph_ecm_mmp2(100)
+        # self.graph_ecm_mmp2(100)
         """Advance the model by one step."""
         self.datacollector.collect(self)
-        if self.schedule.time in self.vasculature: # Add keys
-            surviving_cells = [ccell for ccell in self.vasculature[self.schedule.time] if self.random.random() < single_cell_survival]
-            n_cells_in_arriving_point = len([agent for agent in self.grids[1].get_cell_list_contents([(30,30)]) if agent.agent_type == "cell"])
-            for ccell in surviving_cells:
-                if carrying_capacity > n_cells_in_arriving_point:
-                    self.grids[1].place_agent(ccell, (30,30))
-                    self.schedule.add(ccell)
-                elif carrying_capacity > len([agent for agent in self.grids[1].get_cell_list_contents([(30-1,30)]) if agent.agent_type == "cell"]):
-                    self.grids[1].place_agent(ccell, (30-1,30))
-                    self.schedule.add(ccell)
-                elif carrying_capacity > len([agent for agent in self.grids[1].get_cell_list_contents([(30+1,30)]) if agent.agent_type == "cell"]):
-                    self.grids[1].place_agent(ccell, (30+1,30))
-                    self.schedule.add(ccell)
-                elif carrying_capacity > len([agent for agent in self.grids[1].get_cell_list_contents([(30,30-1)]) if agent.agent_type == "cell"]):
-                    self.grids[1].place_agent(ccell, (30,30-1))
-                    self.schedule.add(ccell)
-                elif carrying_capacity > len([agent for agent in self.grids[1].get_cell_list_contents([(30,30+1)]) if agent.agent_type == "cell"]):
-                    self.grids[1].place_agent(ccell, (30,30+1))
-                    self.schedule.add(ccell)
+        # if self.schedule.time in self.vasculature: # Add keys
+        #     surviving_cells = [ccell for ccell in self.vasculature[self.schedule.time] if self.random.random() < single_cell_survival]
+        #     n_cells_in_arriving_point = len([agent for agent in self.grids[1].get_cell_list_contents([(30,30)]) if agent.agent_type == "cell"])
+        #     for ccell in surviving_cells:
+        #         if carrying_capacity > n_cells_in_arriving_point:
+        #             self.grids[1].place_agent(ccell, (30,30))
+        #             self.schedule.add(ccell)
+        #         elif carrying_capacity > len([agent for agent in self.grids[1].get_cell_list_contents([(30-1,30)]) if agent.agent_type == "cell"]):
+        #             self.grids[1].place_agent(ccell, (30-1,30))
+        #             self.schedule.add(ccell)
+        #         elif carrying_capacity > len([agent for agent in self.grids[1].get_cell_list_contents([(30+1,30)]) if agent.agent_type == "cell"]):
+        #             self.grids[1].place_agent(ccell, (30+1,30))
+        #             self.schedule.add(ccell)
+        #         elif carrying_capacity > len([agent for agent in self.grids[1].get_cell_list_contents([(30,30-1)]) if agent.agent_type == "cell"]):
+        #             self.grids[1].place_agent(ccell, (30,30-1))
+        #             self.schedule.add(ccell)
+        #         elif carrying_capacity > len([agent for agent in self.grids[1].get_cell_list_contents([(30,30+1)]) if agent.agent_type == "cell"]):
+        #             self.grids[1].place_agent(ccell, (30,30+1))
+        #             self.schedule.add(ccell)
                     
         #Calculo do quimico que fomenta haptotaxis e da matriz extracelular
         self.calculateEnvironment(self.mmp2, self.ecm)
@@ -138,9 +138,9 @@ class CancerModel(mesa.Model):
 
 
         # Create vessels
-        numNormalVessels = 8
-        numRupturedVessels = 2
-        numVesselsSecondary = 10
+        numNormalVessels = 0
+        numRupturedVessels = 0
+        numVesselsSecondary = 0
 
         # bad code, reduce number of for and make a counter to save the index to de put in each vessel
         #
@@ -197,6 +197,8 @@ class CancerModel(mesa.Model):
             for cell in self.grids[i].coord_iter():
                 cell_contents, x, y = cell
                 diff = 0
+                self.mesenchymalCount[i][x,y] = 0
+                self.epithelialCount[i][x,y] = 0
                 for cancerCell in cell_contents:
                     if isinstance(cancerCell, CancerCell):
                         if cancerCell.phenotype == "mesenchymal":
@@ -219,6 +221,12 @@ class CancerModel(mesa.Model):
                         )\
                         +mmp2[i][0,x,y]*(1-4*dmmp*tha/xha**2-th*Lambda)+tha*theta*self.mesenchymalCount[i][x,y]
                 ecm[i][1,x,y] = ecm[i][0,x,y]*(1-tha*(gamma1*self.mesenchymalCount[i][x,y]+gamma2*mmp2[i][1,x,y]))
+                if ecm[i][1,x,y] < 0:
+                    print(f"<0 ecm in [i][1,{x},{y}] is {ecm[i][1,x,y]}")
+                    print(".")
+                if ecm[i][1,x,y] > 1:
+                    print(f">1 ecm in [i][1,{x},{y}] is {ecm[i][1,x,y]}")
+                    print(".")
             mmp2[i][0,:,:] = mmp2[i][1,:,:]
             ecm[i][0,:,:] = ecm[i][1,:,:]
                     #ahora hay que mover la celula de acuerdo a las posibilidades
@@ -250,4 +258,3 @@ class CancerModel(mesa.Model):
             fig.colorbar(surf, shrink=0.5, aspect=10)
             
             plt.show()
-
