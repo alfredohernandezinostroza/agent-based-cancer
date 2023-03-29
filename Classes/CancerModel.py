@@ -29,8 +29,8 @@ class CancerModel(mesa.Model):
         self.height = height
         self.phenotypes = ["mesenchymal", "epithelial"]
 
-        self.mesenchymalCount = [np.zeros((width, height), dtype=int) for _ in range(grids_number)]
-        self.epithelialCount = [np.zeros((width, height), dtype=int) for _ in range(grids_number)]
+        self.mesenchymalCount = [np.zeros((totalTime, width, height), dtype=np.float16) for _ in range(grids_number)]
+        self.epithelialCount = [np.zeros((totalTime, width, height), dtype=np.float16) for _ in range(grids_number)]
 
         self.grids_number = grids_number
         
@@ -39,43 +39,49 @@ class CancerModel(mesa.Model):
         self.schedule = mesa.time.RandomActivation(self)
         #list of numpy arrays, representing mmp2 and ecm concentration in each grid
 
-        self.mmp2 = [np.zeros((2, width, height), dtype=float) for _ in range(grids_number)]
-        self.ecm = [np.ones((2, width, height), dtype=float) for _ in range(grids_number)]
+        self.mmp2 = [np.zeros((totalTime, width, height), dtype=np.float16) for _ in range(grids_number)]
+        self.ecm = [np.zeros((totalTime, width, height), dtype=np.float16) for _ in range(grids_number)]
 
 
         self._initialize_grids()
 
         self.datacollector = mesa.DataCollector(
-            model_reporters={"Total cells": count_total_cells}, agent_reporters={"Position": "pos", "Agent Type": "agent_type", "Phenotype": "phenotype", "Ruptured": "ruptured", "Grid": "grid"}
+            #model_reporters={"Total cells": count_total_cells, "Mmp2": "mmp2", "Ecm": "ecm"}, agent_reporters={"Position": "pos", "Agent Type": "agent_type", "Phenotype": "phenotype", "Ruptured": "ruptured", "Grid": "grid"}
+            model_reporters={"Total cells": count_total_cells, "Mmp2": "mmp2", "Ecm": "ecm"}, agent_reporters={"Position": "pos", "Agent Type": "agent_type", "Phenotype": "phenotype", "Ruptured": "ruptured", "Grid": "grid"}
             # model_reporters={"Cells in vasculature": count_vasculature_cells}#, agent_reporters={"Wealth": "wealth"}
         )
 
     def step(self):
-        self.graph_ecm_mmp2(100)
+        #self.graph_ecm_mmp2(100)
         """Advance the model by one step."""
         self.datacollector.collect(self)
-        if self.schedule.time in self.vasculature: # Add keys
-            surviving_cells = [ccell for ccell in self.vasculature[self.schedule.time] if self.random.random() < single_cell_survival]
-            n_cells_in_arriving_point = len([agent for agent in self.grids[1].get_cell_list_contents([(30,30)]) if agent.agent_type == "cell"])
-            for ccell in surviving_cells:
-                if carrying_capacity > n_cells_in_arriving_point:
-                    self.grids[1].place_agent(ccell, (30,30))
-                    self.schedule.add(ccell)
-                elif carrying_capacity > len([agent for agent in self.grids[1].get_cell_list_contents([(30-1,30)]) if agent.agent_type == "cell"]):
-                    self.grids[1].place_agent(ccell, (30-1,30))
-                    self.schedule.add(ccell)
-                elif carrying_capacity > len([agent for agent in self.grids[1].get_cell_list_contents([(30+1,30)]) if agent.agent_type == "cell"]):
-                    self.grids[1].place_agent(ccell, (30+1,30))
-                    self.schedule.add(ccell)
-                elif carrying_capacity > len([agent for agent in self.grids[1].get_cell_list_contents([(30,30-1)]) if agent.agent_type == "cell"]):
-                    self.grids[1].place_agent(ccell, (30,30-1))
-                    self.schedule.add(ccell)
-                elif carrying_capacity > len([agent for agent in self.grids[1].get_cell_list_contents([(30,30+1)]) if agent.agent_type == "cell"]):
-                    self.grids[1].place_agent(ccell, (30,30+1))
-                    self.schedule.add(ccell)
+
+
+
+        #commented to test batch run with ecm matrix datacollector
+        ## is this for exiting vasculature?
+        #if self.schedule.time in self.vasculature: # Add keys
+        #    surviving_cells = [ccell for ccell in self.vasculature[self.schedule.time] if self.random.random() < single_cell_survival]
+        #    n_cells_in_arriving_point = len([agent for agent in self.grids[1].get_cell_list_contents([(30,30)]) if agent.agent_type == "cell"])
+        #    for ccell in surviving_cells:
+        #        if carrying_capacity > n_cells_in_arriving_point:
+        #            self.grids[1].place_agent(ccell, (30,30))
+        #            self.schedule.add(ccell)
+        #        elif carrying_capacity > len([agent for agent in self.grids[1].get_cell_list_contents([(30-1,30)]) if agent.agent_type == "cell"]):
+        #            self.grids[1].place_agent(ccell, (30-1,30))
+        #            self.schedule.add(ccell)
+        #        elif carrying_capacity > len([agent for agent in self.grids[1].get_cell_list_contents([(30+1,30)]) if agent.agent_type == "cell"]):
+        #            self.grids[1].place_agent(ccell, (30+1,30))
+        #            self.schedule.add(ccell)
+        #        elif carrying_capacity > len([agent for agent in self.grids[1].get_cell_list_contents([(30,30-1)]) if agent.agent_type == "cell"]):
+        #            self.grids[1].place_agent(ccell, (30,30-1))
+        #            self.schedule.add(ccell)
+        #        elif carrying_capacity > len([agent for agent in self.grids[1].get_cell_list_contents([(30,30+1)]) if agent.agent_type == "cell"]):
+        #            self.grids[1].place_agent(ccell, (30,30+1))
+        #            self.schedule.add(ccell)
                     
         #Calculo do quimico que fomenta haptotaxis e da matriz extracelular
-        self.calculateEnvironment(self.mmp2, self.ecm)
+        self.calculateEnvironment(self.mmp2, self.ecm, self.schedule.time)
         self.schedule.step()
         # Reprodução
         if (self.schedule.time % doublingTimeM == 0 and self.schedule.time != 0):
@@ -83,6 +89,7 @@ class CancerModel(mesa.Model):
 
         if (self.schedule.time % doublingTimeE == 0 and self.schedule.time != 0):
             self.proliferate("epithelial")
+
 
     def proliferate(self, cellType):
         all_agents = [agent for agent in self.schedule.agents]
@@ -153,6 +160,7 @@ class CancerModel(mesa.Model):
         possible_places = np.where(not_possible_array == 0)
         pos_coords = [list(tup) for tup in zip(possible_places[0], possible_places[1])]
 
+        # range(2) for 1 secondary site
         for i in range(2):
 
             if i == 0: # primary grid
@@ -186,13 +194,13 @@ class CancerModel(mesa.Model):
             if i > 0: # secondary grid
                 for m in range(numVesselsSecondary):
                     # make if to only create a vessel if given random value of x and y doesnt already has a vessel
-                    a = Vessel(m+self.num_agents+amount_of_second_grid_CAcells+1+numNormalVessels+numRupturedVessels, self, False, self.grids[i])
+                    a = Vessel(m+1+self.num_agents+amount_of_second_grid_CAcells+numNormalVessels+numRupturedVessels, self, False, self.grids[i])
                     self.schedule.add(a)
                     self.grids[i].place_agent(a, (self.random.randrange(self.width), self.random.randrange(self.height)))
 
 
 
-    def calculateEnvironment(self, mmp2, ecm):
+    def calculateEnvironment(self, mmp2, ecm, time):
         for i in range(len(mmp2)):
             for cell in self.grids[i].coord_iter():
                 cell_contents, x, y = cell
@@ -200,10 +208,10 @@ class CancerModel(mesa.Model):
                 for cancerCell in cell_contents:
                     if isinstance(cancerCell, CancerCell):
                         if cancerCell.phenotype == "mesenchymal":
-                            self.mesenchymalCount[i][x,y] += 1
+                            self.mesenchymalCount[i][x][y] += 1
                             diff = dM
                         elif cancerCell.phenotype == "epithelial":
-                            self.epithelialCount[i][x,y] += 1
+                            self.epithelialCount[i][x][y] += 1
                             diff = dE
                         else:
                             raise Exception("Unknown phenotype")
@@ -211,43 +219,44 @@ class CancerModel(mesa.Model):
                 onRightBorder = self.grids[i].out_of_bounds((x+1,y))
                 onTopBorder = self.grids[i].out_of_bounds((x,y-1))
                 onBottomBorder = self.grids[i].out_of_bounds((x,y+1))
-                mmp2[i][1,x,y]=dmmp*tha/xha**2*(\
-                        (mmp2[i][0,x+1,y] if not onRightBorder else mmp2[i][0,x-1,y])\
-                        +(mmp2[i][0,x-1,y] if not onLeftBorder else mmp2[i][0,x+1,y])\
-                        +(mmp2[i][0,x,y+1] if not onBottomBorder else mmp2[i][0,x,y-1])\
-                        +(mmp2[i][0,x,y-1] if not onTopBorder else mmp2[i][0,x,y+1])\
+                mmp2[i][time+1,x,y]=dmmp*tha/xha**2*(\
+                        (mmp2[i][time,x+1,y] if not onRightBorder else mmp2[i][time,x-1,y])\
+                        +(mmp2[i][time,x-1,y] if not onLeftBorder else mmp2[i][time,x+1,y])\
+                        +(mmp2[i][time,x,y+1] if not onBottomBorder else mmp2[i][time,x,y-1])\
+                        +(mmp2[i][time,x,y-1] if not onTopBorder else mmp2[i][time,x,y+1])\
                         )\
-                        +mmp2[i][0,x,y]*(1-4*dmmp*tha/xha**2-th*Lambda)+tha*theta*self.mesenchymalCount[i][x,y]
-                ecm[i][1,x,y] = ecm[i][0,x,y]*(1-tha*(gamma1*self.mesenchymalCount[i][x,y]+gamma2*mmp2[i][1,x,y]))
-            mmp2[i][0,:,:] = mmp2[i][1,:,:]
-            ecm[i][0,:,:] = ecm[i][1,:,:]
+                        +mmp2[i][time,x,y]*(1-4*dmmp*tha/xha**2-th*Lambda)+tha*theta*self.mesenchymalCount[i][time,x,y]
+                ecm[i][time+1,x,y] = ecm[i][time,x,y]*(1-tha*(gamma1*self.mesenchymalCount[i][time,x,y]+gamma2*mmp2[i][time,x,y]))
                     #ahora hay que mover la celula de acuerdo a las posibilidades
 
-    def graph_ecm_mmp2(self, time):
-        if self.schedule.time == time:
-            print("SADSADDSA")
-            fig = plt.figure(figsize=plt.figaspect(0.5))
-            ax = fig.add_subplot(1, 2, 1, projection='3d')
-            X = np.arange(0, self.width, 1)
-            Y = np.arange(0, self.height,1)
-            X, Y = np.meshgrid(X, Y)
-            Z = self.mmp2[0][0, :, :]
-            print(Z)
-            # ax.scatter(X, Y, Z, marker='o')
-            surf = ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap=cm.coolwarm,
-                        linewidth=0, antialiased=False)
-            ax.set_zlim(-1.01, 1.01)
-            fig.colorbar(surf, shrink=0.5, aspect=10)
-            
-                        
-            ax = fig.add_subplot(1, 2, 2, projection='3d')
-            Z = self.ecm[0][0, :, :]
-            print(Z)
-            # ax.scatter(X, Y, Z, marker=m)
-            surf = ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap=cm.coolwarm,
-                        linewidth=0, antialiased=False)
-            ax.set_zlim(-1.01, 2.01)
-            fig.colorbar(surf, shrink=0.5, aspect=10)
-            
-            plt.show()
 
+
+#
+    #def graph_ecm_mmp2(self, time):
+    #    if self.schedule.time == time:
+    #        print("SADSADDSA")
+    #        fig = plt.figure(figsize=plt.figaspect(0.5))
+    #        ax = fig.add_subplot(1, 2, 1, projection='3d')
+    #        X = np.arange(0, self.width, 1)
+    #        Y = np.arange(0, self.height,1)
+    #        X, Y = np.meshgrid(X, Y)
+    #        Z = self.mmp2[0][0, :, :]
+    #        print(Z)
+    #        # ax.scatter(X, Y, Z, marker='o')
+    #        surf = ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap=cm.coolwarm,
+    #                    linewidth=0, antialiased=False)
+    #        ax.set_zlim(-1.01, 1.01)
+    #        fig.colorbar(surf, shrink=0.5, aspect=10)
+    #        
+    #                    
+    #        ax = fig.add_subplot(1, 2, 2, projection='3d')
+    #        Z = self.ecm[0][0, :, :]
+    #        print(Z)
+    #        # ax.scatter(X, Y, Z, marker=m)
+    #        surf = ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap=cm.coolwarm,
+    #                    linewidth=0, antialiased=False)
+    #        ax.set_zlim(-1.01, 2.01)
+    #        fig.colorbar(surf, shrink=0.5, aspect=10)
+    #        
+    #        plt.show()
+#
