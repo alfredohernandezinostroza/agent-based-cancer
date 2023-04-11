@@ -1,14 +1,18 @@
 import mesa
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
+import os
 # from Classes import *
 from Classes.CancerCell import CancerCell
 from Classes.Vessel import Vessel
 from Classes.utils import *
+from Batch import maxSteps, dataCollectionPeriod, newSimulationFolder # Used to save mmp2 and ecm during runtime
 
 from Classes.QuasiCircle import find_quasi_circle
 from matplotlib import pyplot as plt
 from matplotlib import cm
+
 
 
 def count_total_cells(model):
@@ -29,8 +33,8 @@ class CancerModel(mesa.Model):
         self.height = height
         self.phenotypes = ["mesenchymal", "epithelial"]
 
-        self.mesenchymalCount = [np.zeros((totalTime, width, height), dtype=np.float16) for _ in range(grids_number)]
-        self.epithelialCount = [np.zeros((totalTime, width, height), dtype=np.float16) for _ in range(grids_number)]
+        self.mesenchymalCount = [np.zeros((width, height), dtype=np.float) for _ in range(grids_number)]
+        self.epithelialCount = [np.zeros((width, height), dtype=np.float) for _ in range(grids_number)]
 
         self.grids_number = grids_number
         
@@ -38,25 +42,24 @@ class CancerModel(mesa.Model):
         
         self.schedule = mesa.time.RandomActivation(self)
         #list of numpy arrays, representing mmp2 and ecm concentration in each grid
-
-        self.mmp2 = [np.zeros((totalTime, width, height), dtype=np.float16) for _ in range(grids_number)]
-        self.ecm = [np.zeros((totalTime, width, height), dtype=np.float16) for _ in range(grids_number)]
-
+        self.mmp2 = [np.zeros((2, width, height), dtype=float) for _ in range(grids_number)]
+        self.ecm = [np.ones((2, width, height), dtype=float) for _ in range(grids_number)]
 
         self._initialize_grids()
 
         self.datacollector = mesa.DataCollector(
-            #model_reporters={"Total cells": count_total_cells, "Mmp2": "mmp2", "Ecm": "ecm"}, agent_reporters={"Position": "pos", "Agent Type": "agent_type", "Phenotype": "phenotype", "Ruptured": "ruptured", "Grid": "grid"}
-            model_reporters={"Total cells": count_total_cells, "Mmp2": "mmp2", "Ecm": "ecm"}, agent_reporters={"Position": "pos", "Agent Type": "agent_type", "Phenotype": "phenotype", "Ruptured": "ruptured", "Grid": "grid"}
-            # model_reporters={"Cells in vasculature": count_vasculature_cells}#, agent_reporters={"Wealth": "wealth"}
-        )
+            model_reporters={"Total cells": count_total_cells}, agent_reporters={"Position": "pos", "Agent Type": "agent_type", "Phenotype": "phenotype", "Ruptured": "ruptured", "Grid": "grid"})
+
+        #model_reporters={"Mmp2": "mmp2", "Grid": "grid"},
+
+        self.mmp2Data = np.zeros((1, self.width, self.height), dtype=float)
+        self.ecmData = np.ones((1, self.width, self.height), dtype=float)
 
     def step(self):
         #self.graph_ecm_mmp2(100)
+        print(f'step number: {self.schedule.time}')
         """Advance the model by one step."""
         self.datacollector.collect(self)
-
-
 
         #commented to test batch run with ecm matrix datacollector
         ## is this for exiting vasculature?
@@ -81,14 +84,31 @@ class CancerModel(mesa.Model):
         #            self.schedule.add(ccell)
                     
         #Calculo do quimico que fomenta haptotaxis e da matriz extracelular
-        self.calculateEnvironment(self.mmp2, self.ecm, self.schedule.time)
-        self.schedule.step()
+        self.calculateEnvironment(self.mmp2, self.ecm)
+        
         # Reprodução
         if (self.schedule.time % doublingTimeM == 0 and self.schedule.time != 0):
             self.proliferate("mesenchymal")
 
         if (self.schedule.time % doublingTimeE == 0 and self.schedule.time != 0):
             self.proliferate("epithelial")
+
+
+        # Save data to be used to plot ecm and mmp2
+        if isBatchRun and (self.schedule.time % dataCollectionPeriod == 0):
+            new_mmp2_df = pd.DataFrame(self.mmp2[0][0,:,:])
+            mmp2CsvName = f"Mmp2-{self.schedule.time}step.csv"
+            pathToSave = os.path.join(parent_dir, newSimulationFolder, "Mmp2", mmp2CsvName)
+            new_mmp2_df.to_csv(pathToSave)
+
+
+            new_ecm_df = pd.DataFrame(self.ecm[0][0,:,:])
+            EcmCsvName = f"Ecm2-{self.schedule.time}step.csv"
+            pathToSave = os.path.join(parent_dir, newSimulationFolder, "Ecm", EcmCsvName)
+            new_ecm_df.to_csv(pathToSave)
+
+
+        self.schedule.step()
 
 
     def proliferate(self, cellType):
@@ -200,18 +220,20 @@ class CancerModel(mesa.Model):
 
 
 
-    def calculateEnvironment(self, mmp2, ecm, time):
+    def calculateEnvironment(self, mmp2, ecm):
         for i in range(len(mmp2)):
             for cell in self.grids[i].coord_iter():
                 cell_contents, x, y = cell
                 diff = 0
+                self.mesenchymalCount[i][x,y] = 0
+                self.epithelialCount[i][x,y] = 0
                 for cancerCell in cell_contents:
                     if isinstance(cancerCell, CancerCell):
                         if cancerCell.phenotype == "mesenchymal":
-                            self.mesenchymalCount[i][x][y] += 1
+                            self.mesenchymalCount[i][x,y] += 1
                             diff = dM
                         elif cancerCell.phenotype == "epithelial":
-                            self.epithelialCount[i][x][y] += 1
+                            self.epithelialCount[i][x,y] += 1
                             diff = dE
                         else:
                             raise Exception("Unknown phenotype")
@@ -219,15 +241,24 @@ class CancerModel(mesa.Model):
                 onRightBorder = self.grids[i].out_of_bounds((x+1,y))
                 onTopBorder = self.grids[i].out_of_bounds((x,y-1))
                 onBottomBorder = self.grids[i].out_of_bounds((x,y+1))
-                mmp2[i][time+1,x,y]=dmmp*tha/xha**2*(\
-                        (mmp2[i][time,x+1,y] if not onRightBorder else mmp2[i][time,x-1,y])\
-                        +(mmp2[i][time,x-1,y] if not onLeftBorder else mmp2[i][time,x+1,y])\
-                        +(mmp2[i][time,x,y+1] if not onBottomBorder else mmp2[i][time,x,y-1])\
-                        +(mmp2[i][time,x,y-1] if not onTopBorder else mmp2[i][time,x,y+1])\
+                mmp2[i][1,x,y]=dmmp*tha/xha**2*((mmp2[i][0,x+1,y] if not onRightBorder else mmp2[i][0,x-1,y])\
+                        +(mmp2[i][0,x-1,y] if not onLeftBorder else mmp2[i][0,x+1,y])\
+                        +(mmp2[i][0,x,y+1] if not onBottomBorder else mmp2[i][0,x,y-1])\
+                        +(mmp2[i][0,x,y-1] if not onTopBorder else mmp2[i][0,x,y+1])\
                         )\
-                        +mmp2[i][time,x,y]*(1-4*dmmp*tha/xha**2-th*Lambda)+tha*theta*self.mesenchymalCount[i][time,x,y]
-                ecm[i][time+1,x,y] = ecm[i][time,x,y]*(1-tha*(gamma1*self.mesenchymalCount[i][time,x,y]+gamma2*mmp2[i][time,x,y]))
-                    #ahora hay que mover la celula de acuerdo a las posibilidades
+                        +mmp2[i][0,x,y]*(1-4*dmmp*tha/xha**2-th*Lambda)+tha*theta*self.mesenchymalCount[i][x,y]
+                ecm[i][1,x,y] = ecm[i][0,x,y]*(1-tha*(gamma1*self.mesenchymalCount[i][x,y]+gamma2*mmp2[i][1,x,y]))
+                if ecm[i][1,x,y] < 0:
+                    print(f"<0 ecm in [i][1,{x},{y}] is {ecm[i][1,x,y]}")
+                    print(".")
+                if ecm[i][1,x,y] > 1:
+                    print(f">1 ecm in [i][1,{x},{y}] is {ecm[i][1,x,y]}")
+                    print(".")
+            mmp2[i][0,:,:] = mmp2[i][1,:,:]
+            ecm[i][0,:,:] = ecm[i][1,:,:]
+
+
+                        #ahora hay que mover la celula de acuerdo a las posibilidades
 
 
 
