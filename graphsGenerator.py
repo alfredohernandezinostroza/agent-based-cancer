@@ -28,7 +28,7 @@ def getCoordsForPlot(step, allCellsCsvPath):
 
     return [Xm, Ym, Xe, Ye]
 
-def plotGrowthData(fig_index, allCellsCsvPath, imagesFolder):
+def plotGrowthData(fig_index, allCellsCsvPath, imagesFolder, stepsize):
     # get data at each step
     df = pd.read_csv(allCellsCsvPath)
     df = df[["Step", "Total cells", "Phenotype"]]
@@ -36,7 +36,7 @@ def plotGrowthData(fig_index, allCellsCsvPath, imagesFolder):
     plt.figure(fig_index)
 
     # For mesenchymal
-    stepsize = 3000 #doubling rate
+    #stepsize = 3000 doubling rate, since it is different it will stay horizontal sometimes
     df_m = df.loc[(df["Step"] % stepsize == 0)]
     # create arrays with the step number and number of cells
     steps = np.arange(0, max(df_m["Step"]) + 1, stepsize)
@@ -44,7 +44,7 @@ def plotGrowthData(fig_index, allCellsCsvPath, imagesFolder):
     plt.plot(steps*11/24000, numberMesenchymalEachStep, label="Mesenchymal cells")
 
     # For epithelial
-    stepsize = 2000 #doubling rate
+    #stepsize = 2000 doubling rate
     df_e = df.loc[(df["Step"] % stepsize == 0)]
     # create arrays with the step number and number of cells
     steps = np.arange(0, max(df_e["Step"]) + 1, stepsize)
@@ -127,7 +127,7 @@ def plotMMP2orECM(i, step, files_path, figCounter, type="Mmp2"):
 if __name__ == "__main__":
 
     # CHANGE THIS LINE according to the simulation you want to plot the graphs
-    nameOfTheSimulation = "Sim maxSteps-1000 stepsize-200 N-388 gridsNumber-2"
+    nameOfTheSimulation = "Sim maxSteps-12001 stepsize-2000 N-388 gridsNumber-2"
 
     # Do not change anything below
     SimulationPath = os.path.join(parent_dir, nameOfTheSimulation)
@@ -137,8 +137,8 @@ if __name__ == "__main__":
     
     EcmPath = os.path.join(SimulationPath, "Ecm")
     Mmp2Path = os.path.join(SimulationPath, "Mmp2")
-    ecm_files_name = [f for f in os.listdir(EcmPath) if os.path.isfile(os.path.join(EcmPath, f)) and f.endswith(".csv")]
-    mmp2_files_name = [f for f in os.listdir(Mmp2Path) if os.path.isfile(os.path.join(Mmp2Path, f)) and f.endswith(".csv")]
+    ecm_files_name = [f for f in sorted(os.listdir(EcmPath), key=lambda x: int(re.findall(r'\d+(?=step)', x)[0])) if os.path.isfile(os.path.join(EcmPath, f)) and f.endswith(".csv")]
+    mmp2_files_name = [f for f in sorted(os.listdir(Mmp2Path), key=lambda x: int(re.findall(r'\d+(?=step)', x)[0])) if os.path.isfile(os.path.join(Mmp2Path, f)) and f.endswith(".csv")]
 
 
     if csv_files_name:
@@ -201,17 +201,17 @@ if __name__ == "__main__":
 
     
     # Plot the Mmp2 graphs
-    for id, step in enumerate(reversed(range(0,max_step+1,step_size))):
+    for id, step in enumerate(range(0,max_step+1,step_size)):
         plotMMP2orECM(id, step, mmp2_files_path, figCounter, type="Mmp2")
     figCounter += id + 1
 
     # Plot the Ecm graphs
-    for id, step in enumerate(reversed(range(0,max_step+1,step_size))):
+    for id, step in enumerate(range(0,max_step+1,step_size)):
         plotMMP2orECM(id, step, ecm_files_path, figCounter, type="Ecm")
     figCounter += id + 1
 
     # Plot the growth of ephitelial and mesenchymal cells
-    plotGrowthData(figCounter, first_csv_path, imagesFolder)
+    plotGrowthData(figCounter, first_csv_path, imagesFolder, step_size)
 
     plt.show()
     plt.close()

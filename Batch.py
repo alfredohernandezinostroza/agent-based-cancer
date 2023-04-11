@@ -10,8 +10,8 @@ from Classes.utils import parent_dir, gridsize_utils
 # otherwise it won't save the Mmp2 and Ecm data
 
 # Parameters for this simulation
-maxSteps = 1000
-dataCollectionPeriod = 200
+maxSteps = 12001
+dataCollectionPeriod = 2000
 
 N = 388 # Number of cancer cells
 gridsize     = gridsize_utils #PDF: 201
