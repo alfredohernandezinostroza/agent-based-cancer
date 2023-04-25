@@ -39,6 +39,7 @@ class CancerModel(mesa.Model):
         self.grids_number = grids_number
         
         self.grids = [mesa.space.MultiGrid(width, height, False) for _ in range(self.grids_number)]
+        self.grid_id = [i+1 for i in range(self.grids_number)] # need a number to appear in the data analysis (.csv)
         
         self.schedule = mesa.time.RandomActivation(self)
         #list of numpy arrays, representing mmp2 and ecm concentration in each grid
@@ -48,7 +49,7 @@ class CancerModel(mesa.Model):
         self._initialize_grids()
 
         self.datacollector = mesa.DataCollector(
-            model_reporters={"Total cells": count_total_cells}, agent_reporters={"Position": "pos", "Agent Type": "agent_type", "Phenotype": "phenotype", "Ruptured": "ruptured", "Grid": "grid"})
+            model_reporters={"Total cells": count_total_cells}, agent_reporters={"Position": "pos", "Agent Type": "agent_type", "Phenotype": "phenotype", "Ruptured": "ruptured", "Grid": "grid_id"})
 
         #model_reporters={"Mmp2": "mmp2", "Grid": "grid"},
 
@@ -119,7 +120,7 @@ class CancerModel(mesa.Model):
                 x, y = agent.pos
                 amount_of_cells = len([cell for cell in agent.grid.get_cell_list_contents([(x, y)]) if cell.agent_type == "cell"])
                 if carrying_capacity > amount_of_cells and agent.phenotype == cellType:
-                    new_cell = CancerCell(total_amount_of_agents + 1, self, agent.grid, agent.phenotype, agent.ecm, agent.mmp2)
+                    new_cell = CancerCell(total_amount_of_agents + 1, self, agent.grid, agent.grid_id, agent.phenotype, agent.ecm, agent.mmp2)
                     self.schedule.add(new_cell)
                     agent.grid.place_agent(new_cell, (x,y))
                     total_amount_of_agents +=1
@@ -137,7 +138,7 @@ class CancerModel(mesa.Model):
             elif mesenchymal_number == 0:
                 cell_type = "epithelial"
 
-            a = CancerCell(i, self, self.grids[0], cell_type, self.ecm[0], self.mmp2[0])
+            a = CancerCell(i, self, self.grids[0], self.grid_id[0], cell_type, self.ecm[0], self.mmp2[0])
             
             j = self.random.randrange(len(possible_places))
             x = int(possible_places[j][0])
@@ -155,7 +156,7 @@ class CancerModel(mesa.Model):
         # Create agents at second grid
         amount_of_second_grid_CAcells=0
         for i in range(amount_of_second_grid_CAcells):
-            a = CancerCell(i+self.num_agents+1, self, self.grids[1], "mesenchymal", self.ecm[1], self.mmp2[1])
+            a = CancerCell(i+self.num_agents+1, self, self.grids[1], self.grid_id[1], "mesenchymal", self.ecm[1], self.mmp2[1])
             self.schedule.add(a)
         
             # Add the agent to a random grid cell
@@ -189,7 +190,7 @@ class CancerModel(mesa.Model):
                     j = numRupturedVessels - temp
                     cell_to_place = [self.random.randrange(self.width), self.random.randrange(self.height)]
                     if cell_to_place in pos_coords:
-                        a = Vessel(j+self.num_agents+amount_of_second_grid_CAcells+1, self, True, self.grids[0])
+                        a = Vessel(j+self.num_agents+amount_of_second_grid_CAcells+1, self, True, self.grids[0], self.grid_id[0])
                         self.schedule.add(a)
                         self.grids[0].place_agent(a, (int(cell_to_place[0]), int(cell_to_place[1])))
                         # tenho que adicionar a cruz de ruptured e remover 5 cells de pos coords
@@ -202,7 +203,7 @@ class CancerModel(mesa.Model):
                     j = numNormalVessels - temp
                     cell_to_place = [self.random.randrange(self.width), self.random.randrange(self.height)]
                     if cell_to_place in pos_coords:
-                        a = Vessel(j+self.num_agents+amount_of_second_grid_CAcells+1+numRupturedVessels, self, False, self.grids[0])
+                        a = Vessel(j+self.num_agents+amount_of_second_grid_CAcells+1+numRupturedVessels, self, False, self.grids[0], self.grid_id[0])
                         self.schedule.add(a)
                         self.grids[0].place_agent(a, (int(cell_to_place[0]), int(cell_to_place[1])))
 
@@ -214,7 +215,7 @@ class CancerModel(mesa.Model):
             if i > 0: # secondary grid
                 for m in range(numVesselsSecondary):
                     # make if to only create a vessel if given random value of x and y doesnt already has a vessel
-                    a = Vessel(m+1+self.num_agents+amount_of_second_grid_CAcells+numNormalVessels+numRupturedVessels, self, False, self.grids[i])
+                    a = Vessel(m+1+self.num_agents+amount_of_second_grid_CAcells+numNormalVessels+numRupturedVessels, self, False, self.grids[i], self.grid_id[i])
                     self.schedule.add(a)
                     self.grids[i].place_agent(a, (self.random.randrange(self.width), self.random.randrange(self.height)))
 

@@ -4,9 +4,10 @@ from Classes.Vessel import Vessel
 
 class CancerCell(mesa.Agent):
 
-    def __init__(self, unique_id, model, grid, phenotype, ecm, mmp2): #constructor
+    def __init__(self, unique_id, model, grid, grid_id, phenotype, ecm, mmp2): #constructor
         super().__init__(unique_id, model)
         self.grid = grid
+        self.grid_id = grid_id
         self.phenotype = phenotype
         self.ecm = ecm
         self.mmp2 = mmp2
