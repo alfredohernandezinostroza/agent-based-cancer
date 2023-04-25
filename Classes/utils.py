@@ -34,3 +34,10 @@ mesenchymal_proportion = 0.6 # PDF: 0.6
 epithelial_proportion = 0.4 # PDF: 0.4
 n_center_points_for_tumor = 97 #PDF: 97
 
+# Variable to stop the saving of ecm and mmp2 if it is NOT a Batch run analysis
+isBatchRun = True
+
+# Name of the directorie to save the data
+parent_dir = "Simulations"
+gridsize_utils = 201
+
