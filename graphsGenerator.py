@@ -88,7 +88,7 @@ def plotCancer(coordsList, i, imagesFolder):
     
     #plt.style.use("seaborn")
 
-#NOT WORKING
+
 def plotMMP2orECM(i, step, files_path, figCounter, type="Mmp2"):
     df = pd.read_csv(files_path[i], index_col=0)
     plt.figure(i+figCounter, figsize=(6, 5))
