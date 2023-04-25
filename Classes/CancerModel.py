@@ -56,6 +56,7 @@ class CancerModel(mesa.Model):
         self.ecmData = np.ones((1, self.width, self.height), dtype=float)
 
     def step(self):
+
         #self.graph_ecm_mmp2(100)
         print(f'step number: {self.schedule.time}')
         """Advance the model by one step."""
@@ -82,7 +83,7 @@ class CancerModel(mesa.Model):
         #        elif carrying_capacity > len([agent for agent in self.grids[1].get_cell_list_contents([(30,30+1)]) if agent.agent_type == "cell"]):
         #            self.grids[1].place_agent(ccell, (30,30+1))
         #            self.schedule.add(ccell)
-                    
+          
         #Calculo do quimico que fomenta haptotaxis e da matriz extracelular
         self.calculateEnvironment(self.mmp2, self.ecm)
         
@@ -165,9 +166,9 @@ class CancerModel(mesa.Model):
 
 
         # Create vessels
-        numNormalVessels = 8
-        numRupturedVessels = 2
-        numVesselsSecondary = 10
+        numNormalVessels = 0
+        numRupturedVessels = 0
+        numVesselsSecondary = 0
 
         # bad code, reduce number of for and make a counter to save the index to de put in each vessel
         #
@@ -258,6 +259,7 @@ class CancerModel(mesa.Model):
             ecm[i][0,:,:] = ecm[i][1,:,:]
 
 
+
                         #ahora hay que mover la celula de acuerdo a las posibilidades
 
 
@@ -290,4 +292,4 @@ class CancerModel(mesa.Model):
     #        fig.colorbar(surf, shrink=0.5, aspect=10)
     #        
     #        plt.show()
-#
+
