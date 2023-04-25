@@ -10,14 +10,14 @@ from Classes.utils import parent_dir, gridsize_utils
 # otherwise it won't save the Mmp2 and Ecm data
 
 # Parameters for this simulation
-maxSteps = 48000
-dataCollectionPeriod = 6000
+maxSteps = 70
+dataCollectionPeriod = 70
 
 N = 388 # Number of cancer cells
 gridsize     = gridsize_utils #PDF: 201
 width        = gridsize
 height       = gridsize
-grids_number = 2
+grids_number = 3
 
 # Name of the directories
 simulations_dir = parent_dir
@@ -42,7 +42,7 @@ def main():
     # Create data frames for the cells
     print(cells_df)
 
-    nameOfCsv = f'{maxSteps}steps-{dataCollectionPeriod}stepsize-cells.csv'
+    nameOfCsv = f'CellsData-{maxSteps}steps-{dataCollectionPeriod}stepsize-{grids_number}grids.csv'
     pathToSave = os.path.join(simulations_dir, newSimulationFolder, nameOfCsv)
     cells_df.to_csv(pathToSave)
     
