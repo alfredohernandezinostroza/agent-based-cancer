@@ -10,36 +10,38 @@ import os
 
 def getCoordsForPlot(step, allCellsCsvPath, grid_id):
     df = pd.read_csv(allCellsCsvPath)
-    df = df[["Step", "Total cells", "Position", "Phenotype", "Grid"]]
+    df = df[["Step", "Total cells", "Position", "Phenotype", "Grid", "Agent Type", "Ruptured"]]
 
     # Select the step you want to plot, from 0 to 24000 (~11 days)
     df_step0 = df.loc[(df["Step"] == step) & (df["Grid"] == grid_id)]
-    #print(f'df_step0.shape{df_step0.shape}')
-    #print(df_step0)
 
+    # Save the position data
     mPoints = df_step0.loc[df_step0["Phenotype"] == "mesenchymal"]["Position"] # Series object
     ePoints = df_step0.loc[df_step0["Phenotype"] == "epithelial"]["Position"]
-    #vPoints = df_step0.loc[(df_step0["Agent Type"] == "vessel") & (df_step0["Ruptured"] == False)]
-    #vRupturedPoints = df_step0.loc[(df_step0["Agent Type"] == "vessel") & (df_step0["Ruptured"] == True)]
+    vPoints = df_step0.loc[(df_step0["Agent Type"] == "vessel") & (df_step0["Ruptured"] == False)]["Position"]
+    vRupturedPoints = df_step0.loc[(df_step0["Agent Type"] == "vessel") & (df_step0["Ruptured"] == True)]["Position"]
 
     mPoints = list(mPoints.map(eval)) # [(104, 101), (101, 97), (101, 95)]
     ePoints = list(ePoints.map(eval))
+    vPoints = list(vPoints.map(eval))
+    vRupturedPoints = list(vRupturedPoints.map(eval))
 
     Xm, Ym = [i[0] for i in mPoints], [i[1] for i in mPoints]
     Xe, Ye = [i[0] for i in ePoints], [i[1] for i in ePoints]
-    #print('[Xm, Ym, Xe, Ye]')
-    #print([Xm, Ym, Xe, Ye])
-    return [Xm, Ym, Xe, Ye]
+    Xv, Yv = [i[0] for i in vPoints], [i[1] for i in vPoints]
+    Xvr, Yvr = [i[0] for i in vRupturedPoints], [i[1] for i in vRupturedPoints]
+
+    return [Xm, Ym, Xe, Ye, Xv, Yv, Xvr, Yvr]
 
 def plotCancer(coordsList, figCounter, imagesFolder, grid_id, step):
 
-    Xm, Ym, Xe, Ye = coordsList[0], coordsList[1], coordsList[2], coordsList[3]
-    print('[Xm, Ym, Xe, Ye] in plotCancer')
-    #print([Xm, Ym, Xe, Ye])
+    Xm, Ym, Xe, Ye, Xv, Yv, Xvr, Yvr = coordsList[0], coordsList[1], coordsList[2], coordsList[3], coordsList[4], coordsList[5], coordsList[6], coordsList[7]
     plt.figure(figCounter, figsize=(6, 5))
     
     plt.scatter(Xm, Ym, marker='o', alpha=0.10, label="Mesenchymal cells")
     plt.scatter(Xe, Ye, marker='h', alpha=0.05, label="Epithelial cells")
+    plt.scatter(Xv, Yv, marker='.', color='red', alpha=0.8, label="Vasculature points")
+    plt.scatter(Xvr, Yvr, marker='+', color='darkred', alpha=0.8, label="Ruptured vasculature points")
     plt.xlim(0, gridsize)
     plt.ylim(0, gridsize)
 
@@ -60,7 +62,6 @@ def plotCancer(coordsList, figCounter, imagesFolder, grid_id, step):
     # save the figure
     figure_path = os.path.join(TumorImagesPath, f'Cells-grid{grid_id}-step{step} - Tumor size at {11/24000 * step:.2f} days.png')
     plt.savefig(figure_path)
-    #plt.close()
 
     #plt.style.use("seaborn")
 
@@ -200,37 +201,27 @@ if __name__ == "__main__":
     
 
     figCounter = 1
-    print(f'figCounter: {figCounter}')
     for grid_id in range(1, grids_number+1):
-        print(f'grid_id: {grid_id}')
         # Plot the cells graphs
         for id, step in enumerate(range(0,max_step+1,step_size)):
-            print(f'step: {step}')
             plotCancer(getCoordsForPlot(step, first_csv_path, grid_id), figCounter, imagesFolder, grid_id, step)
             figCounter += 1
-            print(f'figCounter: {figCounter}')
 
-        
         # Plot the Mmp2 graphs
         for id, step in enumerate(range(0,max_step+1,step_size)):
             mmp2_files_path_this_grid = [path for path in mmp2_files_path if f"Mmp2-{grid_id}grid-" in path]
             plotMMP2orECM(id, step, mmp2_files_path_this_grid, figCounter, grid_id, type="Mmp2")
             figCounter += 1
-            print(f'figCounter: {figCounter}')
 
         # Plot the Ecm graphs
         for id, step in enumerate(range(0,max_step+1,step_size)):
             ecm_files_path_this_grid = [path for path in ecm_files_path if f"Ecm-{grid_id}grid-" in path]
             plotMMP2orECM(id, step, ecm_files_path_this_grid, figCounter, grid_id, type="Ecm")
             figCounter += 1
-            print(f'figCounter: {figCounter}')
 
         # Plot the growth of ephitelial and mesenchymal cells
         plotGrowthData(figCounter, first_csv_path, imagesFolder, step_size, grid_id)
         figCounter += 1
-        print(f'figCounter: {figCounter}')
-        
-        
 
     plt.show()
     plt.close()
