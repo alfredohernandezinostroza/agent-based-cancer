@@ -190,7 +190,7 @@ if __name__ == "__main__":
 
     figCounter = 0
     # Plot the cells graphs
-    for id, step in enumerate(reversed(range(0,max_step+1,step_size))):
+    for id, step in enumerate(range(0,max_step+1,step_size)):
         plotCancer(getCoordsForPlot(step, first_csv_path), id, imagesFolder)
         if step == 0:
             plt.title(f'Initial Tumor at {11/24000 * step:.2f} days ({step} steps)')
