@@ -138,7 +138,7 @@ def plotMMP2orECM(i, step, files_path, figCounter, grid_id, type="Mmp2"):
 if __name__ == "__main__":
 
     # CHANGE THIS LINE according to the simulation you want to plot the graphs
-    nameOfTheSimulation = "Sim maxSteps-100 stepsize-10 N-388 gridsNumber-3"
+    nameOfTheSimulation = "Sim maxSteps-200 stepsize-10 N-388 gridsNumber-3"
 
     # Do not change anything below
     SimulationPath = os.path.join(parent_dir, nameOfTheSimulation)
@@ -223,7 +223,7 @@ if __name__ == "__main__":
         plotGrowthData(figCounter, first_csv_path, imagesFolder, step_size, grid_id)
         figCounter += 1
 
-    plt.show()
+    #plt.show() running this makes our RAM cry
     plt.close()
 
 

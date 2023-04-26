@@ -40,7 +40,7 @@ def group_images_by_grid(images_folder_path):
     return images_by_grid_list
 # Have to check in the future that it is always ordered
 
-def create_video_from_images(images_list, video_path):
+def create_video_from_images(images_list, video_path, frameRate):
     """
     creates a video
     showing the evolution of the images over time.
@@ -50,7 +50,8 @@ def create_video_from_images(images_list, video_path):
     img = cv2.imread(images_list[0])
     height, width, channels = img.shape
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    out = cv2.VideoWriter(video_path, fourcc, 1, (width, height), isColor=True)
+    fps = frameRate
+    out = cv2.VideoWriter(video_path, fourcc, fps, (width, height), isColor=True)
 
     # Add each image to the video
     for image_path in images_list:
@@ -66,7 +67,7 @@ def create_video_from_images(images_list, video_path):
 
 
 
-def create_combined_video(images_by_grid_list, video_path):
+def create_combined_video(images_by_grid_list, video_path, frameRate):
     """
     Given a list of lists of (timestep, image_path) tuples, creates a video
     showing the evolution of the images over time, with one row for each grid.
@@ -75,7 +76,8 @@ def create_combined_video(images_by_grid_list, video_path):
     img = cv2.imread(images_by_grid_list[0][0][1])
     height, width, channels = img.shape
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    out = cv2.VideoWriter(video_path, fourcc, 1, (width, height), isColor=True)
+    fps = frameRate
+    out = cv2.VideoWriter(video_path, fourcc, fps, (width, height), isColor=True)
 
     # Add each image to the combined video
     for i in range(len(images_by_grid_list[0])):
@@ -106,7 +108,8 @@ def create_combined_video(images_by_grid_list, video_path):
 if __name__ == "__main__":
 
     # CHANGE THIS LINE according to the simulation you want to plot the graphs
-    nameOfTheSimulation = "Sim maxSteps-14 stepsize-14 N-388 gridsNumber-3"
+    nameOfTheSimulation = "Sim maxSteps-200 stepsize-10 N-388 gridsNumber-3"
+    frameRate = 4
 
     # Path where the folder of images are located
     ImagesFolderPath = os.path.join(parent_dir, nameOfTheSimulation, imagesFolder)
@@ -142,10 +145,10 @@ if __name__ == "__main__":
         #print(f'steps:{steps}')
         #print(f'images:{imagesPath}')
         output_file = os.path.join(VideosFolderPath, f"Ecm Evolution - Grid{i+1}.mp4")
-        create_video_from_images(imagesPath, output_file)
+        create_video_from_images(imagesPath, output_file, frameRate)
     # Create videos for the Ecm for all grids
     output_file = os.path.join(VideosFolderPath, f"Ecm Evolution - All grids.mp4")
-    create_combined_video(EcmImagesByGrid, output_file)
+    create_combined_video(EcmImagesByGrid, output_file, frameRate)
 
 
     # Create videos for the Mmp2 of each grid
@@ -156,10 +159,10 @@ if __name__ == "__main__":
         #print(f'steps:{steps}')
         #print(f'images:{imagesPath}')
         output_file = os.path.join(VideosFolderPath, f"Mmp2 Evolution - Grid{i+1}.mp4")
-        create_video_from_images(imagesPath, output_file)
+        create_video_from_images(imagesPath, output_file, frameRate)
     # Create videos for the Mmp2 for all grids
     output_file = os.path.join(VideosFolderPath, f"Mmp2 Evolution - All grids.mp4")
-    create_combined_video(Mmp2ImagesByGrid, output_file)
+    create_combined_video(Mmp2ImagesByGrid, output_file, frameRate)
 
     
     # Create videos for the Cells of each grid
@@ -170,9 +173,9 @@ if __name__ == "__main__":
         #print(f'steps:{steps}')
         #print(f'images:{imagesPath}')
         output_file = os.path.join(VideosFolderPath, f"Cells Evolution - Grid{i+1}.mp4")
-        create_video_from_images(imagesPath, output_file)
+        create_video_from_images(imagesPath, output_file, frameRate)
     # Create videos for the Mmp2 for all grids
     output_file = os.path.join(VideosFolderPath, f"Cells Evolution - All grids.mp4")
-    create_combined_video(CellsImagesByGrid, output_file)
+    create_combined_video(CellsImagesByGrid, output_file, frameRate)
 
 print('Finished!')
