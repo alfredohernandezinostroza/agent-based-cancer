@@ -1,7 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
-from Classes.utils import parent_dir
+from Classes.utils import parent_dir, imagesFolder
 from Classes.utils import gridsize_utils as gridsize
 import re
 import os
@@ -138,7 +138,7 @@ def plotMMP2orECM(i, step, files_path, figCounter, grid_id, type="Mmp2"):
 if __name__ == "__main__":
 
     # CHANGE THIS LINE according to the simulation you want to plot the graphs
-    nameOfTheSimulation = "Sim maxSteps-70 stepsize-70 N-388 gridsNumber-3"
+    nameOfTheSimulation = "Sim maxSteps-100 stepsize-10 N-388 gridsNumber-3"
 
     # Do not change anything below
     SimulationPath = os.path.join(parent_dir, nameOfTheSimulation)
@@ -179,7 +179,7 @@ if __name__ == "__main__":
     grids_number = int(re.search(r"(\d+)grids", first_csv_name).group(1))
 
     # Path to save all the images:
-    imagesFolder = "Visual analysis"
+    imagesFolder = imagesFolder
     imagesPath = os.path.join(SimulationPath, imagesFolder)
 
     TumorImagesPath = os.path.join(imagesPath, "Tumor growth")

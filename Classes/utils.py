@@ -39,5 +39,6 @@ isBatchRun = True
 
 # Name of the directorie to save the data
 parent_dir = "Simulations"
+imagesFolder = "Visual analysis"
 gridsize_utils = 201
 
