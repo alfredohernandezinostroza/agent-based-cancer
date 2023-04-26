@@ -122,7 +122,7 @@ class CancerModel(mesa.Model):
                 x, y = agent.pos
                 amount_of_cells = len([cell for cell in agent.grid.get_cell_list_contents([(x, y)]) if cell.agent_type == "cell"])
                 if carrying_capacity > amount_of_cells and agent.phenotype == cellType:
-                    new_cell = CancerCell(total_amount_of_agents + 1, self, agent.grid, agent.grid_ids, agent.phenotype, agent.ecm, agent.mmp2)
+                    new_cell = CancerCell(total_amount_of_agents + 1, self, agent.grid, agent.grid_id, agent.phenotype, agent.ecm, agent.mmp2)
                     self.schedule.add(new_cell)
                     agent.grid.place_agent(new_cell, (x,y))
                     total_amount_of_agents +=1
@@ -156,7 +156,7 @@ class CancerModel(mesa.Model):
 
 
         # Create agents at second grid
-        amount_of_second_grid_CAcells=0
+        amount_of_second_grid_CAcells=20
         for i in range(amount_of_second_grid_CAcells):
             a = CancerCell(i+self.num_agents+1, self, self.grids[1], self.grid_ids[1], "mesenchymal", self.ecm[1], self.mmp2[1])
             self.schedule.add(a)
@@ -171,7 +171,7 @@ class CancerModel(mesa.Model):
         numNormalVessels = 8
         numRupturedVessels = 2
         numVesselsSecondary = 10
-        numVesselsThird = 10 # just to test it, final code will not have 1 var to each grid
+        numVesselsThird = 5 # just to test it, final code will not have 1 var to each grid
 
         # bad code, reduce number of for and make a counter to save the index to de put in each vessel
         #
