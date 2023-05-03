@@ -56,25 +56,34 @@ class CancerCell(mesa.Agent):
             if isinstance(agent, Vessel):
                 isRuptured = agent.ruptured
                 isVessel=True
-        if False:
-        #if isVessel:
+        # if False:
+        if isVessel:
             print("Begin travel!")
             x, y = new_position
             onLeftBorder = self.grid.out_of_bounds((x-1,y))
             onRightBorder = self.grid.out_of_bounds((x+1,y))
             onTopBorder = self.grid.out_of_bounds((x,y-1))
             onBottomBorder = self.grid.out_of_bounds((x,y+1))
-            ccells_to_travel = [agent for agent in self.grid.get_cell_list_contents([(x,y)]) if agent.agent_type == 'cell']
-            ccells_to_travel += [] if onLeftBorder else [agent for agent in self.grid.get_cell_list_contents([(x-1,y)]) if agent.agent_type == 'cell']
-            ccells_to_travel += [] if onRightBorder else [agent for agent in self.grid.get_cell_list_contents([(x+1,y)]) if agent.agent_type == 'cell']
-            ccells_to_travel += [] if onTopBorder else [agent for agent in self.grid.get_cell_list_contents([(x,y-1)]) if agent.agent_type == 'cell']
-            ccells_to_travel += [] if onBottomBorder else [agent for agent in self.grid.get_cell_list_contents([(x,y+1)]) if agent.agent_type == 'cell']
-            # print(ccells_to_travel)
+            mesenchymal_ccells_to_travel  = [agent for agent in self.grid.get_cell_list_contents([(x,y)]) if agent.agent_type == 'cell' and agend.cell_type == "mesenchymal"]
+            mesenchymal_ccells_to_travel += [] if onLeftBorder   else [agent for agent in self.grid.get_cell_list_contents([(x-1,y)]) if agent.agent_type == 'cell' and agent_type == "mesenchymal"]
+            mesenchymal_ccells_to_travel += [] if onRightBorder  else [agent for agent in self.grid.get_cell_list_contents([(x+1,y)]) if agent.agent_type == 'cell' and agent_type == "mesenchymal"]
+            mesenchymal_ccells_to_travel += [] if onTopBorder    else [agent for agent in self.grid.get_cell_list_contents([(x,y-1)]) if agent.agent_type == 'cell' and agent_type == "mesenchymal"]
+            mesenchymal_ccells_to_travel += [] if onBottomBorder else [agent for agent in self.grid.get_cell_list_contents([(x,y+1)]) if agent.agent_type == 'cell' and agent_type == "mesenchymal"]
+            epithelial_ccells_to_travel  = [agent for agent in self.grid.get_cell_list_contents([(x,y)]) if agent.agent_type == 'cell' and agend.cell_type == "epithelial"]
+            epithelial_ccells_to_travel += [] if onLeftBorder   else [agent for agent in self.grid.get_cell_list_contents([(x-1,y)]) if agent.agent_type == 'cell' and agent_type == "epithelial"]
+            epithelial_ccells_to_travel += [] if onRightBorder  else [agent for agent in self.grid.get_cell_list_contents([(x+1,y)]) if agent.agent_type == 'cell' and agent_type == "epithelial"]
+            epithelial_ccells_to_travel += [] if onTopBorder    else [agent for agent in self.grid.get_cell_list_contents([(x,y-1)]) if agent.agent_type == 'cell' and agent_type == "epithelial"]
+            epithelial_ccells_to_travel += [] if onBottomBorder else [agent for agent in self.grid.get_cell_list_contents([(x,y+1)]) if agent.agent_type == 'cell' and agent_type == "epithelial"]
+            print(f"Mesenchymal cells to travel: {mesenchymal_ccells_to_travel}")
+            print(f"Epithelial cells to travel: {epithelial_ccells_to_travel}")
+            #if there are not clusters at that time in the vasculature dict, create a new key for that time
+            #and add the tuple
             if self.model.vasculature.get(time + vasculature_time,False):
-                self.model.vasculature[time + vasculature_time] += ccells_to_travel
+                self.model.vasculature[time + vasculature_time] = [(len(mesenchymal_ccells_to_travel), len(epithelial_ccells_to_travel))]
+            # if there are clusters, add the tuple to that key
             else:
-                self.model.vasculature[time + vasculature_time] = ccells_to_travel
-            for ccell in ccells_to_travel:
+                self.model.vasculature[time + vasculature_time] += [(len(mesenchymal_ccells_to_travel), len(epithelial_ccells_to_travel))]
+            for ccell in mesenchymal_ccells_to_travel + epithelial_ccells_to_travel:
                 ccell.grid.remove_agent(ccell)
                 ccell.model.schedule.remove(ccell)
             print(self.model.vasculature)
