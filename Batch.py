@@ -4,20 +4,21 @@ import pandas as pd
 from Classes.CancerModel import *
 import os
 from Classes.utils import parent_dir, gridsize_utils
+from Classes import utils
 
 # To run this code you must be in the parent folder of agent-based-cancer
 # Before running this code always check if isBatchRun = True is in Utils
 # otherwise it won't save the Mmp2 and Ecm data
 
 # Parameters for this simulation
-maxSteps = 48000
-dataCollectionPeriod = 6000
+maxSteps = 24000
+dataCollectionPeriod = 1000
 
 N = 388 # Number of cancer cells
 gridsize     = gridsize_utils #PDF: 201
 width        = gridsize
 height       = gridsize
-grids_number = 2
+grids_number = 3
 
 # Name of the directories
 simulations_dir = parent_dir
@@ -42,9 +43,20 @@ def main():
     # Create data frames for the cells
     print(cells_df)
 
-    nameOfCsv = f'{maxSteps}steps-{dataCollectionPeriod}stepsize-cells.csv'
+    # Saves data analysis
+    nameOfCsv = f'CellsData-{maxSteps}steps-{dataCollectionPeriod}stepsize-{grids_number}grids.csv'
     pathToSave = os.path.join(simulations_dir, newSimulationFolder, nameOfCsv)
     cells_df.to_csv(pathToSave)
+
+    # Saves the simulation configuration
+    var_names = dir(utils) + ['maxSteps', 'dataCollectionPeriod', 'N', 'grids_number', 'simulations_dir']
+
+    # Open the file for writing
+    with open(os.path.join(simulations_dir, newSimulationFolder, 'configs.txt'), 'w') as f:
+        # Write the values of each variable to the file
+        for name, value in globals().items():
+            if name in var_names:
+                f.write(f'{name}: {value}\n')
     
     #print('cells_df df')
     #print(cells_df.head())

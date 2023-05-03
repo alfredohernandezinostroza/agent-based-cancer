@@ -18,7 +18,7 @@ gamma2                  = 1
 doublingTimeE           = 2000 # PDF: 2000
 doublingTimeM           = 3000 # PDF: 3000
 gridsize                = 10
-totalTime               = 24002 # must contain step 0 and final step of batch
+totalTime               = 24002 # must contain step 0 and final step of batch. (I think this is never being used)
 patchsize               = 3
 middlePoint             = round(gridsize/2)
 E1                      = 0.5461
@@ -39,5 +39,6 @@ isBatchRun = True
 
 # Name of the directorie to save the data
 parent_dir = "Simulations"
+imagesFolder = "Visual analysis"
 gridsize_utils = 201
 

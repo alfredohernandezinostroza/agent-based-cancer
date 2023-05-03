@@ -39,6 +39,7 @@ class CancerModel(mesa.Model):
         self.grids_number = grids_number
         
         self.grids = [mesa.space.MultiGrid(width, height, False) for _ in range(self.grids_number)]
+        self.grid_ids = [i+1 for i in range(self.grids_number)] # need a number to appear in the data analysis (.csv)
         
         self.schedule = mesa.time.RandomActivation(self)
         #list of numpy arrays, representing mmp2 and ecm concentration in each grid
@@ -48,7 +49,7 @@ class CancerModel(mesa.Model):
         self._initialize_grids()
 
         self.datacollector = mesa.DataCollector(
-            model_reporters={"Total cells": count_total_cells}, agent_reporters={"Position": "pos", "Agent Type": "agent_type", "Phenotype": "phenotype", "Ruptured": "ruptured", "Grid": "grid"})
+            model_reporters={"Total cells": count_total_cells}, agent_reporters={"Position": "pos", "Agent Type": "agent_type", "Phenotype": "phenotype", "Ruptured": "ruptured", "Grid": "grid_id"})
 
         #model_reporters={"Mmp2": "mmp2", "Grid": "grid"},
 
@@ -97,16 +98,17 @@ class CancerModel(mesa.Model):
 
         # Save data to be used to plot ecm and mmp2
         if isBatchRun and (self.schedule.time % dataCollectionPeriod == 0):
-            new_mmp2_df = pd.DataFrame(self.mmp2[0][0,:,:])
-            mmp2CsvName = f"Mmp2-{self.schedule.time}step.csv"
-            pathToSave = os.path.join(parent_dir, newSimulationFolder, "Mmp2", mmp2CsvName)
-            new_mmp2_df.to_csv(pathToSave)
+            for grid_id in self.grid_ids:
+                new_mmp2_df = pd.DataFrame(self.mmp2[grid_id-1][0,:,:])
+                mmp2CsvName = f"Mmp2-{grid_id}grid-{self.schedule.time}step.csv"
+                pathToSave = os.path.join(parent_dir, newSimulationFolder, "Mmp2", mmp2CsvName)
+                new_mmp2_df.to_csv(pathToSave)
 
 
-            new_ecm_df = pd.DataFrame(self.ecm[0][0,:,:])
-            EcmCsvName = f"Ecm2-{self.schedule.time}step.csv"
-            pathToSave = os.path.join(parent_dir, newSimulationFolder, "Ecm", EcmCsvName)
-            new_ecm_df.to_csv(pathToSave)
+                new_ecm_df = pd.DataFrame(self.ecm[grid_id-1][0,:,:])
+                EcmCsvName = f"Ecm-{grid_id}grid-{self.schedule.time}step.csv"
+                pathToSave = os.path.join(parent_dir, newSimulationFolder, "Ecm", EcmCsvName)
+                new_ecm_df.to_csv(pathToSave)
 
 
         self.schedule.step()
@@ -120,7 +122,7 @@ class CancerModel(mesa.Model):
                 x, y = agent.pos
                 amount_of_cells = len([cell for cell in agent.grid.get_cell_list_contents([(x, y)]) if cell.agent_type == "cell"])
                 if carrying_capacity > amount_of_cells and agent.phenotype == cellType:
-                    new_cell = CancerCell(total_amount_of_agents + 1, self, agent.grid, agent.phenotype, agent.ecm, agent.mmp2)
+                    new_cell = CancerCell(total_amount_of_agents + 1, self, agent.grid, agent.grid_id, agent.phenotype, agent.ecm, agent.mmp2)
                     self.schedule.add(new_cell)
                     agent.grid.place_agent(new_cell, (x,y))
                     total_amount_of_agents +=1
@@ -138,7 +140,7 @@ class CancerModel(mesa.Model):
             elif mesenchymal_number == 0:
                 cell_type = "epithelial"
 
-            a = CancerCell(i, self, self.grids[0], cell_type, self.ecm[0], self.mmp2[0])
+            a = CancerCell(i, self, self.grids[0], self.grid_ids[0], cell_type, self.ecm[0], self.mmp2[0])
             
             j = self.random.randrange(len(possible_places))
             x = int(possible_places[j][0])
@@ -154,9 +156,9 @@ class CancerModel(mesa.Model):
 
 
         # Create agents at second grid
-        amount_of_second_grid_CAcells=0
+        amount_of_second_grid_CAcells=20
         for i in range(amount_of_second_grid_CAcells):
-            a = CancerCell(i+self.num_agents+1, self, self.grids[1], "mesenchymal", self.ecm[1], self.mmp2[1])
+            a = CancerCell(i+self.num_agents+1, self, self.grids[1], self.grid_ids[1], "mesenchymal", self.ecm[1], self.mmp2[1])
             self.schedule.add(a)
         
             # Add the agent to a random grid cell
@@ -166,9 +168,10 @@ class CancerModel(mesa.Model):
 
 
         # Create vessels
-        numNormalVessels = 0
-        numRupturedVessels = 0
-        numVesselsSecondary = 0
+        numNormalVessels = 8
+        numRupturedVessels = 2
+        numVesselsSecondary = 10
+        numVesselsThird = 5 # just to test it, final code will not have 1 var to each grid
 
         # bad code, reduce number of for and make a counter to save the index to de put in each vessel
         #
@@ -182,7 +185,8 @@ class CancerModel(mesa.Model):
         pos_coords = [list(tup) for tup in zip(possible_places[0], possible_places[1])]
 
         # range(2) for 1 secondary site
-        for i in range(2):
+        #for i in range(2):
+        for i in range(len(self.grids)):
 
             if i == 0: # primary grid
                 temp = numRupturedVessels
@@ -190,7 +194,7 @@ class CancerModel(mesa.Model):
                     j = numRupturedVessels - temp
                     cell_to_place = [self.random.randrange(self.width), self.random.randrange(self.height)]
                     if cell_to_place in pos_coords:
-                        a = Vessel(j+self.num_agents+amount_of_second_grid_CAcells+1, self, True, self.grids[0])
+                        a = Vessel(j+self.num_agents+amount_of_second_grid_CAcells+1, self, True, self.grids[0], self.grid_ids[0])
                         self.schedule.add(a)
                         self.grids[0].place_agent(a, (int(cell_to_place[0]), int(cell_to_place[1])))
                         # tenho que adicionar a cruz de ruptured e remover 5 cells de pos coords
@@ -203,7 +207,7 @@ class CancerModel(mesa.Model):
                     j = numNormalVessels - temp
                     cell_to_place = [self.random.randrange(self.width), self.random.randrange(self.height)]
                     if cell_to_place in pos_coords:
-                        a = Vessel(j+self.num_agents+amount_of_second_grid_CAcells+1+numRupturedVessels, self, False, self.grids[0])
+                        a = Vessel(j+self.num_agents+amount_of_second_grid_CAcells+1+numRupturedVessels, self, False, self.grids[0], self.grid_ids[0])
                         self.schedule.add(a)
                         self.grids[0].place_agent(a, (int(cell_to_place[0]), int(cell_to_place[1])))
 
@@ -212,12 +216,20 @@ class CancerModel(mesa.Model):
                         temp -= 1
 
 
-            if i > 0: # secondary grid
-                for m in range(numVesselsSecondary):
-                    # make if to only create a vessel if given random value of x and y doesnt already has a vessel
-                    a = Vessel(m+1+self.num_agents+amount_of_second_grid_CAcells+numNormalVessels+numRupturedVessels, self, False, self.grids[i])
-                    self.schedule.add(a)
-                    self.grids[i].place_agent(a, (self.random.randrange(self.width), self.random.randrange(self.height)))
+            if i > 0: # secondary and third grid
+                if i == 1:
+                    for m in range(numVesselsSecondary):
+                        # make if to only create a vessel if given random value of x and y doesnt already has a vessel
+                        a = Vessel(m+1+self.num_agents+amount_of_second_grid_CAcells+numNormalVessels+numRupturedVessels, self, False, self.grids[i], self.grid_ids[i])
+                        self.schedule.add(a)
+                        self.grids[i].place_agent(a, (self.random.randrange(self.width), self.random.randrange(self.height)))
+
+                if i == 2:  
+                    for m in range(numVesselsThird):
+                        # make if to only create a vessel if given random value of x and y doesnt already has a vessel
+                        a = Vessel(m+1+self.num_agents+amount_of_second_grid_CAcells+numNormalVessels+numRupturedVessels+numVesselsSecondary, self, False, self.grids[i], self.grid_ids[i])
+                        self.schedule.add(a)
+                        self.grids[i].place_agent(a, (self.random.randrange(self.width), self.random.randrange(self.height)))
 
 
 
