@@ -138,7 +138,7 @@ def plotMMP2orECM(i, step, files_path, figCounter, grid_id, type="Mmp2"):
 if __name__ == "__main__":
 
     # CHANGE THIS LINE according to the simulation you want to plot the graphs
-    nameOfTheSimulation = "Sim maxSteps-200 stepsize-10 N-388 gridsNumber-3"
+    nameOfTheSimulation = "Sim maxSteps-10050 stepsize-50 N-700 gridsNumber-3"
 
     # Do not change anything below
     SimulationPath = os.path.join(parent_dir, nameOfTheSimulation)
@@ -206,27 +206,31 @@ if __name__ == "__main__":
         for id, step in enumerate(range(0,max_step+1,step_size)):
             plotCancer(getCoordsForPlot(step, first_csv_path, grid_id), figCounter, imagesFolder, grid_id, step)
             figCounter += 1
-
+            plt.close()
         # Plot the Mmp2 graphs
         for id, step in enumerate(range(0,max_step+1,step_size)):
             mmp2_files_path_this_grid = [path for path in mmp2_files_path if f"Mmp2-{grid_id}grid-" in path]
             plotMMP2orECM(id, step, mmp2_files_path_this_grid, figCounter, grid_id, type="Mmp2")
             figCounter += 1
+            plt.close()
 
         # Plot the Ecm graphs
         for id, step in enumerate(range(0,max_step+1,step_size)):
             ecm_files_path_this_grid = [path for path in ecm_files_path if f"Ecm-{grid_id}grid-" in path]
             plotMMP2orECM(id, step, ecm_files_path_this_grid, figCounter, grid_id, type="Ecm")
             figCounter += 1
+            plt.close()
 
         # Plot the growth of ephitelial and mesenchymal cells
         plotGrowthData(figCounter, first_csv_path, imagesFolder, step_size, grid_id)
         figCounter += 1
-
-    #plt.show() running this makes our RAM cry
+        plt.close()
+    #plt.show() #running this makes our RAM cry
     plt.close()
 
 
 
 
-
+#c:\Users\vinis\Desktop\Pesquisa IST 2022 - modelagem python células cancer\Repositório-Git\agent-based-cancer\graphsGenerator.py:39: RuntimeWarning: More than 20 figures have been opened. Figures created through the pyplot interface (`matplotlib.pyplot.figure`) are retained until explicitly closed and may consume too much memory. (To control this warning, see the rcParam `figure.max_open_warning`). Consider using `matplotlib.pyplot.close()`.
+#  plt.figure(figCounter, figsize=(6, 5))
+#Fail to allocate bitmap

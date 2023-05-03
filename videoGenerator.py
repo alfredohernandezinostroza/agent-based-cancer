@@ -108,8 +108,8 @@ def create_combined_video(images_by_grid_list, video_path, frameRate):
 if __name__ == "__main__":
 
     # CHANGE THIS LINE according to the simulation you want to plot the graphs
-    nameOfTheSimulation = "Sim maxSteps-200 stepsize-10 N-388 gridsNumber-3"
-    frameRate = 4
+    nameOfTheSimulation = "Sim maxSteps-10050 stepsize-50 N-700 gridsNumber-3"
+    frameRate = 20
 
     # Path where the folder of images are located
     ImagesFolderPath = os.path.join(parent_dir, nameOfTheSimulation, imagesFolder)
