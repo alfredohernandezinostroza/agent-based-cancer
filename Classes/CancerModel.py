@@ -11,6 +11,21 @@ from matplotlib import pyplot as plt
 from matplotlib import cm
 
 
+def get_cluster_survival_probability(cluster):
+    if cluster[0] < 0:
+        raise Exception(f"Error! Mesenchymal cells are negative: {cluster[0]}")
+    if cluster[1] < 0:
+        raise Exception(f"Error! Epithelial cells are negative: {cluster[1]}")
+    if sum(cluster) == 1:
+        return (single_cell_survival)
+    elif sum(cluster) > 1:
+        return (cluster_survival)
+    elif sum(cluster) == 0:
+        raise Exception(f"Error, no cells in cluster! Time: {self.schedule.time}")
+    else:
+        raise Exception(f"Error, nothing returned for cluster survival probability, time {self.schedule.time}")
+    
+
 def count_total_cells(model):
     amount_of_cells = len([1 for agent in model.schedule.agents if agent.agent_type == "cell"])
     return amount_of_cells
@@ -54,25 +69,41 @@ class CancerModel(mesa.Model):
         # self.graph_ecm_mmp2(100)
         """Advance the model by one step."""
         self.datacollector.collect(self)
-        # if self.schedule.time in self.vasculature: # Add keys
-        #     surviving_cells = [ccell for ccell in self.vasculature[self.schedule.time] if self.random.random() < single_cell_survival]
-        #     n_cells_in_arriving_point = len([agent for agent in self.grids[1].get_cell_list_contents([(30,30)]) if agent.agent_type == "cell"])
-        #     for ccell in surviving_cells:
-        #         if carrying_capacity > n_cells_in_arriving_point:
-        #             self.grids[1].place_agent(ccell, (30,30))
-        #             self.schedule.add(ccell)
-        #         elif carrying_capacity > len([agent for agent in self.grids[1].get_cell_list_contents([(30-1,30)]) if agent.agent_type == "cell"]):
-        #             self.grids[1].place_agent(ccell, (30-1,30))
-        #             self.schedule.add(ccell)
-        #         elif carrying_capacity > len([agent for agent in self.grids[1].get_cell_list_contents([(30+1,30)]) if agent.agent_type == "cell"]):
-        #             self.grids[1].place_agent(ccell, (30+1,30))
-        #             self.schedule.add(ccell)
-        #         elif carrying_capacity > len([agent for agent in self.grids[1].get_cell_list_contents([(30,30-1)]) if agent.agent_type == "cell"]):
-        #             self.grids[1].place_agent(ccell, (30,30-1))
-        #             self.schedule.add(ccell)
-        #         elif carrying_capacity > len([agent for agent in self.grids[1].get_cell_list_contents([(30,30+1)]) if agent.agent_type == "cell"]):
-        #             self.grids[1].place_agent(ccell, (30,30+1))
-        #             self.schedule.add(ccell)
+        if self.schedule.time in self.vasculature: # Add keys
+            surviving_clusters = [cluster for cluster in self.vasculature[self.schedule.time] if self.random.random() < get_cluster_survival_probability(cluster)]
+            number_of_ccells_in_arriving_point = np.array([[0 ,0],[0, 0]], dtype=np.int8)
+            for x,y in [(30, 30),(30-1, 30),(30+1, 30),(30, 30-1),(30, 30+1)]:
+                number_of_ccells_in_arriving_point[x,y] = len([agent for agent in self.grids[1].get_cell_list_contents([(x,y)]) if agent.agent_type == "cell"])
+            for cluster in surviving_clusters:
+                for tuple_index, ccells_amount in enumerate(cluster):
+                    cell_type = "mesenchymal" if tuple_index == 0 else "epithelial"
+                    while ccells_amount > 0:
+                        if carrying_capacity > number_of_cells_in_arriving_point[30,30]:
+                            ccell = CancerCell(i, self, self.grids[1], cell_type, self.ecm[1], self.mmp2[0])
+                            self.grids[1].place_agent(ccell, (30,30))
+                            number_of_cells_in_arriving_point[30,30] += 1
+                            self.schedule.add(ccell)
+                        elif carrying_capacity > number_of_cells_in_arriving_point[30-1,30]:
+                            ccell = CancerCell(i, self, self.grids[1], cell_type, self.ecm[1], self.mmp2[0])
+                            self.grids[1].place_agent(ccell, (30-1,30))
+                            number_of_cells_in_arriving_point[30-1,30] += 1
+                            self.schedule.add(ccell)
+                        elif carrying_capacity > number_of_cells_in_arriving_point[30+1,30]:
+                            ccell = CancerCell(i, self, self.grids[1], cell_type, self.ecm[1], self.mmp2[0])
+                            self.grids[1].place_agent(ccell, (30+1,30))
+                            number_of_cells_in_arriving_point[30+1,30] += 1
+                            self.schedule.add(ccell)
+                        elif carrying_capacity > number_of_cells_in_arriving_point[30,30-1]:
+                            ccell = CancerCell(i, self, self.grids[1], cell_type, self.ecm[1], self.mmp2[0])
+                            self.grids[1].place_agent(ccell, (30,30-1))
+                            number_of_cells_in_arriving_point[30,30-1] += 1
+                            self.schedule.add(ccell)
+                        elif carrying_capacity > number_of_cells_in_arriving_point[30,30+1]:
+                            ccell = CancerCell(i, self, self.grids[1], cell_type, self.ecm[1], self.mmp2[0])
+                            self.grids[1].place_agent(ccell, (30,30+1))
+                            number_of_cells_in_arriving_point[30,30+1] += 1
+                            self.schedule.add(ccell)
+                        ccells_amount -= 1
                     
         #Calculo do quimico que fomenta haptotaxis e da matriz extracelular
         self.calculateEnvironment(self.mmp2, self.ecm)
@@ -138,7 +169,7 @@ class CancerModel(mesa.Model):
 
 
         # Create vessels
-        numNormalVessels = 0
+        numNormalVessels = 10
         numRupturedVessels = 0
         numVesselsSecondary = 0
 
@@ -258,3 +289,4 @@ class CancerModel(mesa.Model):
             fig.colorbar(surf, shrink=0.5, aspect=10)
             
             plt.show()
+
