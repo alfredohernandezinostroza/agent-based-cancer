@@ -15,8 +15,8 @@ theta                   = 0.195
 Lambda                  = 0.1
 gamma1                  = 1
 gamma2                  = 1
-doublingTimeE           = 2000 # PDF: 2000
-doublingTimeM           = 3000 # PDF: 3000
+doublingTimeE           = 6 # PDF: 2000
+doublingTimeM           = 6 # PDF: 3000
 gridsize                = 10
 totalTime               = 24002 # must contain step 0 and final step of batch. (I think this is never being used)
 patchsize               = 3
@@ -25,8 +25,8 @@ E1                      = 0.5461
 E2                      = 0.2553
 E3                      = 0.1986
 single_cell_survival    = 1         # 5e-4 #probability of survival for single cells in the vasculature
-cluster_survival        = 2.5e-2    # probability of survival for clusters in the vasculature
-Pd                      = 0.5       # probability of dissagreggation in vasculature
+cluster_survival        = 1 #2.5e-2    # probability of survival for clusters in the vasculature
+dissagreggation_prob    = 0.5       # probability of dissagreggation in vasculature
 carrying_capacity       = 4
 
 # These values bellow change according to the simulation we want to recreate

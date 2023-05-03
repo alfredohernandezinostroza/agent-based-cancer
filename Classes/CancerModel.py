@@ -14,6 +14,20 @@ from matplotlib import pyplot as plt
 from matplotlib import cm
 
 
+def get_cluster_survival_probability(cluster):
+    if cluster[0] < 0:
+        raise Exception(f"Error! Mesenchymal cells are negative: {cluster[0]}")
+    if cluster[1] < 0:
+        raise Exception(f"Error! Epithelial cells are negative: {cluster[1]}")
+    if sum(cluster) == 1:
+        return (single_cell_survival)
+    elif sum(cluster) > 1:
+        return (cluster_survival)
+    elif sum(cluster) == 0:
+        raise Exception(f"Error, no cells in cluster! Time: {self.schedule.time}")
+    else:
+        raise Exception(f"Error, nothing returned for cluster survival probability, time {self.schedule.time}")
+    
 
 def count_total_cells(model):
     amount_of_cells = len([1 for agent in model.schedule.agents if agent.agent_type == "cell"])
@@ -32,6 +46,8 @@ class CancerModel(mesa.Model):
         self.width = width
         self.height = height
         self.phenotypes = ["mesenchymal", "epithelial"]
+        self.grid_vessels_positions = [[],[],[]]
+        self.current_agent_id = 0
 
         self.mesenchymalCount = [np.zeros((width, height), dtype=np.float) for _ in range(grids_number)]
         self.epithelialCount = [np.zeros((width, height), dtype=np.float) for _ in range(grids_number)]
@@ -57,34 +73,53 @@ class CancerModel(mesa.Model):
         self.ecmData = np.ones((1, self.width, self.height), dtype=float)
 
     def step(self):
-
         #self.graph_ecm_mmp2(100)
         print(f'step number: {self.schedule.time}')
         """Advance the model by one step."""
         self.datacollector.collect(self)
-
-        #commented to test batch run with ecm matrix datacollector
-        ## is this for exiting vasculature?
-        #if self.schedule.time in self.vasculature: # Add keys
-        #    surviving_cells = [ccell for ccell in self.vasculature[self.schedule.time] if self.random.random() < single_cell_survival]
-        #    n_cells_in_arriving_point = len([agent for agent in self.grids[1].get_cell_list_contents([(30,30)]) if agent.agent_type == "cell"])
-        #    for ccell in surviving_cells:
-        #        if carrying_capacity > n_cells_in_arriving_point:
-        #            self.grids[1].place_agent(ccell, (30,30))
-        #            self.schedule.add(ccell)
-        #        elif carrying_capacity > len([agent for agent in self.grids[1].get_cell_list_contents([(30-1,30)]) if agent.agent_type == "cell"]):
-        #            self.grids[1].place_agent(ccell, (30-1,30))
-        #            self.schedule.add(ccell)
-        #        elif carrying_capacity > len([agent for agent in self.grids[1].get_cell_list_contents([(30+1,30)]) if agent.agent_type == "cell"]):
-        #            self.grids[1].place_agent(ccell, (30+1,30))
-        #            self.schedule.add(ccell)
-        #        elif carrying_capacity > len([agent for agent in self.grids[1].get_cell_list_contents([(30,30-1)]) if agent.agent_type == "cell"]):
-        #            self.grids[1].place_agent(ccell, (30,30-1))
-        #            self.schedule.add(ccell)
-        #        elif carrying_capacity > len([agent for agent in self.grids[1].get_cell_list_contents([(30,30+1)]) if agent.agent_type == "cell"]):
-        #            self.grids[1].place_agent(ccell, (30,30+1))
-        #            self.schedule.add(ccell)
-          
+        if self.schedule.time in self.vasculature: # Add keys
+            self.disaggregate_clusters(self.schedule.time)
+            surviving_clusters = [cluster for cluster in self.vasculature[self.schedule.time] if self.random.random() < get_cluster_survival_probability(cluster)]
+            arriving_point = self.random.choice(self.grid_vessels_positions[1])
+            x,y = arriving_point
+            onLeftBorder    = self.grids[1].out_of_bounds((x-1,y))
+            onRightBorder   = self.grids[1].out_of_bounds((x+1,y))
+            onTopBorder     = self.grids[1].out_of_bounds((x,y+1))
+            onBottomBorder  = self.grids[1].out_of_bounds((x,y-1))
+            possible_places = self.grid.get_neighborhood(arriving_point, moore=False, include_center=False)
+            number_of_ccells_in_arriving_point ={}
+            for x2,y2 in possible_places:
+                number_of_ccells_in_arriving_point[x2,y2] = len([agent for agent in self.grids[1].get_cell_list_contents([(x2,y2)]) if agent.agent_type == "cell"])
+            for cluster in surviving_clusters:
+                for tuple_index, ccells_amount in enumerate(cluster):
+                    cell_type = "mesenchymal" if tuple_index == 0 else "epithelial"
+                    while ccells_amount > 0:
+                        if not onLeftBorder and carrying_capacity > number_of_ccells_in_arriving_point[x-1,y]:
+                            ccell = CancerCell(self.current_agent_id, self, self.grids[1], self.grid_ids[1], cell_type, self.ecm[1], self.mmp2[1])
+                            self.current_agent_id += 1
+                            self.grids[1].place_agent(ccell, (x-1,y))
+                            number_of_ccells_in_arriving_point[x-1,y] += 1
+                            self.schedule.add(ccell)
+                        elif not onRightBorder and carrying_capacity > number_of_ccells_in_arriving_point[x+1,y]:
+                            ccell = CancerCell(self.current_agent_id, self, self.grids[1], self.grid_ids[1], cell_type, self.ecm[1], self.mmp2[1])
+                            self.current_agent_id += 1
+                            self.grids[1].place_agent(ccell, (x+1,y))
+                            number_of_ccells_in_arriving_point[x+1,y] += 1
+                            self.schedule.add(ccell)
+                        elif not onBottomBorder and carrying_capacity > number_of_ccells_in_arriving_point[x,y-1]:
+                            ccell = CancerCell(self.current_agent_id, self, self.grids[1], self.grid_ids[1], cell_type, self.ecm[1], self.mmp2[1])
+                            self.current_agent_id += 1
+                            self.grids[1].place_agent(ccell, (x,y-1))
+                            number_of_ccells_in_arriving_point[x,y-1] += 1
+                            self.schedule.add(ccell)
+                        elif not onTopBorder and carrying_capacity > number_of_ccells_in_arriving_point[x,y+1]:
+                            ccell = CancerCell(self.current_agent_id, self, self.grids[1], self.grid_ids[1], cell_type, self.ecm[1], self.mmp2[1])
+                            self.current_agent_id += 1
+                            self.grids[1].place_agent(ccell, (x,y+1))
+                            number_of_ccells_in_arriving_point[x,y+1] += 1
+                            self.schedule.add(ccell)
+                        ccells_amount -= 1
+                    
         #Calculo do quimico que fomenta haptotaxis e da matriz extracelular
         self.calculateEnvironment(self.mmp2, self.ecm)
         
@@ -122,7 +157,8 @@ class CancerModel(mesa.Model):
                 x, y = agent.pos
                 amount_of_cells = len([cell for cell in agent.grid.get_cell_list_contents([(x, y)]) if cell.agent_type == "cell"])
                 if carrying_capacity > amount_of_cells and agent.phenotype == cellType:
-                    new_cell = CancerCell(total_amount_of_agents + 1, self, agent.grid, agent.grid_id, agent.phenotype, agent.ecm, agent.mmp2)
+                    new_cell = CancerCell(self.current_agent_id, self, agent.grid, agent.grid_id, agent.phenotype, agent.ecm, agent.mmp2)
+                    self.current_agent_id += 1
                     self.schedule.add(new_cell)
                     agent.grid.place_agent(new_cell, (x,y))
                     total_amount_of_agents +=1
@@ -140,8 +176,8 @@ class CancerModel(mesa.Model):
             elif mesenchymal_number == 0:
                 cell_type = "epithelial"
 
-            a = CancerCell(i, self, self.grids[0], self.grid_ids[0], cell_type, self.ecm[0], self.mmp2[0])
-            
+            a = CancerCell(self.current_agent_id, self, self.grids[0], self.grid_ids[0], cell_type, self.ecm[0], self.mmp2[0])
+            self.current_agent_id += 1
             j = self.random.randrange(len(possible_places))
             x = int(possible_places[j][0])
             y = int(possible_places[j][1])
@@ -156,9 +192,10 @@ class CancerModel(mesa.Model):
 
 
         # Create agents at second grid
-        amount_of_second_grid_CAcells=20
+        amount_of_second_grid_CAcells=0
         for i in range(amount_of_second_grid_CAcells):
-            a = CancerCell(i+self.num_agents+1, self, self.grids[1], self.grid_ids[1], "mesenchymal", self.ecm[1], self.mmp2[1])
+            a = CancerCell(self.current_agent_id, self, self.grids[1], self.grid_ids[1], "mesenchymal", self.ecm[1], self.mmp2[1])
+            self.current_agent_id += 1
             self.schedule.add(a)
         
             # Add the agent to a random grid cell
@@ -166,10 +203,13 @@ class CancerModel(mesa.Model):
             y = self.random.randrange(3,7)
             self.grids[1].place_agent(a, (x, y))
 
-
+        a = Vessel(self.current_agent_id, self, True, self.grids[0], self.grid_ids[0])
+        self.current_agent_id += 1
+        self.schedule.add(a)
+        self.grids[0].place_agent(a, (94,100))
         # Create vessels
-        numNormalVessels = 8
-        numRupturedVessels = 2
+        numNormalVessels = 0
+        numRupturedVessels = 0
         numVesselsSecondary = 10
         numVesselsThird = 5 # just to test it, final code will not have 1 var to each grid
 
@@ -194,7 +234,8 @@ class CancerModel(mesa.Model):
                     j = numRupturedVessels - temp
                     cell_to_place = [self.random.randrange(self.width), self.random.randrange(self.height)]
                     if cell_to_place in pos_coords:
-                        a = Vessel(j+self.num_agents+amount_of_second_grid_CAcells+1, self, True, self.grids[0], self.grid_ids[0])
+                        a = Vessel(self.current_agent_id, self, True, self.grids[0], self.grid_ids[0])
+                        self.current_agent_id += 1
                         self.schedule.add(a)
                         self.grids[0].place_agent(a, (int(cell_to_place[0]), int(cell_to_place[1])))
                         # tenho que adicionar a cruz de ruptured e remover 5 cells de pos coords
@@ -207,7 +248,8 @@ class CancerModel(mesa.Model):
                     j = numNormalVessels - temp
                     cell_to_place = [self.random.randrange(self.width), self.random.randrange(self.height)]
                     if cell_to_place in pos_coords:
-                        a = Vessel(j+self.num_agents+amount_of_second_grid_CAcells+1+numRupturedVessels, self, False, self.grids[0], self.grid_ids[0])
+                        a = Vessel(self.current_agent_id, self, False, self.grids[0], self.grid_ids[0])
+                        self.current_agent_id += 1
                         self.schedule.add(a)
                         self.grids[0].place_agent(a, (int(cell_to_place[0]), int(cell_to_place[1])))
 
@@ -220,16 +262,25 @@ class CancerModel(mesa.Model):
                 if i == 1:
                     for m in range(numVesselsSecondary):
                         # make if to only create a vessel if given random value of x and y doesnt already has a vessel
-                        a = Vessel(m+1+self.num_agents+amount_of_second_grid_CAcells+numNormalVessels+numRupturedVessels, self, False, self.grids[i], self.grid_ids[i])
+                        a = Vessel(self.current_agent_id, self, False, self.grids[i], self.grid_ids[i])
+                        self.current_agent_id += 1
                         self.schedule.add(a)
-                        self.grids[i].place_agent(a, (self.random.randrange(self.width), self.random.randrange(self.height)))
+                        x = self.random.randrange(self.width)
+                        y = self.random.randrange(self.height)
+                        self.grids[i].place_agent(a, (x,y))
+                        self.grid_vessels_positions[i] += [(x,y)]
 
                 if i == 2:  
                     for m in range(numVesselsThird):
                         # make if to only create a vessel if given random value of x and y doesnt already has a vessel
-                        a = Vessel(m+1+self.num_agents+amount_of_second_grid_CAcells+numNormalVessels+numRupturedVessels+numVesselsSecondary, self, False, self.grids[i], self.grid_ids[i])
+                        a = Vessel(self.current_agent_id, self, False, self.grids[i], self.grid_ids[i])
+                        self.current_agent_id += 1
                         self.schedule.add(a)
-                        self.grids[i].place_agent(a, (self.random.randrange(self.width), self.random.randrange(self.height)))
+                        x = self.random.randrange(self.width)
+                        y = self.random.randrange(self.height)
+                        self.grids[i].place_agent(a, (x,y))
+                        self.grid_vessels_positions[i] += [(x,y)]
+                
 
 
 
@@ -273,6 +324,24 @@ class CancerModel(mesa.Model):
 
 
                         #ahora hay que mover la celula de acuerdo a las posibilidades
+
+    def disaggregate_clusters(self, time):
+        big_clusters = [cluster for cluster in self.vasculature[time] if sum(cluster) > 1]
+        new_vasculature = [cluster for cluster in self.vasculature[time] if sum(cluster) == 1]
+        for cluster in big_clusters:
+            new_mesenchymal, new_epithelial = cluster
+            for ccell_type, ccells_amount in enumerate(cluster):
+                for i in range(ccells_amount):
+                    if self.random.random() > dissagreggation_prob:
+                        if ccell_type == 0:
+                            new_vasculature += [(1, 0)]
+                            new_mesenchymal -= 1
+                        if ccell_type == 1:
+                            new_vasculature += [(0, 1)]
+                            new_epithelial -= 1
+            if new_mesenchymal + new_epithelial > 0:
+                new_vasculature += [(new_mesenchymal,new_epithelial)]
+        self.vasculature[time] = new_vasculature
 
 
 
