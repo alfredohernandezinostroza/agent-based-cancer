@@ -63,7 +63,6 @@ class CancerModel(mesa.Model):
         self.ecm = [np.ones((2, width, height), dtype=float) for _ in range(grids_number)]
 
         self._initialize_grids()
-        print(self.grid_vessels_positions)
 
         self.datacollector = mesa.DataCollector(
             model_reporters={"Total cells": count_total_cells}, agent_reporters={"Position": "pos", "Agent Type": "agent_type", "Phenotype": "phenotype", "Ruptured": "ruptured", "Grid": "grid_id"})
@@ -79,6 +78,7 @@ class CancerModel(mesa.Model):
         """Advance the model by one step."""
         self.datacollector.collect(self)
         if self.schedule.time in self.vasculature: # Add keys
+            self.disaggregate_clusters(self.schedule.time)
             surviving_clusters = [cluster for cluster in self.vasculature[self.schedule.time] if self.random.random() < get_cluster_survival_probability(cluster)]
             arriving_point = self.random.choice(self.grid_vessels_positions[1])
             x,y = arriving_point
@@ -324,6 +324,24 @@ class CancerModel(mesa.Model):
 
 
                         #ahora hay que mover la celula de acuerdo a las posibilidades
+
+    def disaggregate_clusters(self, time):
+        big_clusters = [cluster for cluster in self.vasculature[time] if sum(cluster) > 1]
+        new_vasculature = [cluster for cluster in self.vasculature[time] if sum(cluster) == 1]
+        for cluster in big_clusters:
+            new_mesenchymal, new_epithelial = cluster
+            for ccell_type, ccells_amount in enumerate(cluster):
+                for i in range(ccells_amount):
+                    if self.random.random() > dissagreggation_prob:
+                        if ccell_type == 0:
+                            new_vasculature += [(1, 0)]
+                            new_mesenchymal -= 1
+                        if ccell_type == 1:
+                            new_vasculature += [(0, 1)]
+                            new_epithelial -= 1
+            if new_mesenchymal + new_epithelial > 0:
+                new_vasculature += [(new_mesenchymal,new_epithelial)]
+        self.vasculature[time] = new_vasculature
 
 
 

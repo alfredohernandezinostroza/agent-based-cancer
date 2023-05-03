@@ -28,7 +28,7 @@ class CancerCell(mesa.Agent):
         onRightBorder   = self.grid.out_of_bounds((x+1,y))
         onTopBorder     = self.grid.out_of_bounds((x,y+1))
         onBottomBorder  = self.grid.out_of_bounds((x,y-1))
-        Pleft = 1#0 if onLeftBorder else (th/xh**2*(dE-phiE/4*(0 if onRightBorder else self.ecm[0,x+1,y]-self.ecm[0,x-1,y])))
+        Pleft = 0 if onLeftBorder else (th/xh**2*(dE-phiE/4*(0 if onRightBorder else self.ecm[0,x+1,y]-self.ecm[0,x-1,y])))
         Pright = 0 if onRightBorder else (th/xh**2*(dE+phiE/4*(0 if onLeftBorder else self.ecm[0,x+1,y]-self.ecm[0,x-1,y])))
         Ptop = 0 if onTopBorder else (th/xh**2*(dE+phiE/4*(0 if onBottomBorder else self.ecm[0,x,y+1]-self.ecm[0,x,y-1])))
         Pbottom = 0 if onBottomBorder else (th/xh**2*(dE-phiE/4*(0 if onTopBorder else self.ecm[0,x,y+1]-self.ecm[0,x,y-1])))
@@ -59,7 +59,6 @@ class CancerCell(mesa.Agent):
                 break
         # if False:
         if isVessel:
-            print("Begin travels!")
             x, y = new_position
             onLeftBorder    = self.grid.out_of_bounds((x-1,y))
             onRightBorder   = self.grid.out_of_bounds((x+1,y))
@@ -75,11 +74,10 @@ class CancerCell(mesa.Agent):
             epithelial_ccells_to_travel += [] if onRightBorder  else [agent for agent in self.grid.get_cell_list_contents([(x+1,y)]) if agent.agent_type == 'cell' and agent.phenotype == "epithelial"]
             epithelial_ccells_to_travel += [] if onTopBorder    else [agent for agent in self.grid.get_cell_list_contents([(x,y-1)]) if agent.agent_type == 'cell' and agent.phenotype == "epithelial"]
             epithelial_ccells_to_travel += [] if onBottomBorder else [agent for agent in self.grid.get_cell_list_contents([(x,y+1)]) if agent.agent_type == 'cell' and agent.phenotype == "epithelial"]
-            print(f"Mesenchymal cells to travel: {mesenchymal_ccells_to_travel}")
-            print(f"Epithelial cells to travel: {epithelial_ccells_to_travel}")
+    
             #if there are not clusters at that time in the vasculature dict, create a new key for that time
             #and add the tuple
-            print(self.model.vasculature)
+
             if self.model.vasculature.get(time + vasculature_time,False):
                 self.model.vasculature[time + vasculature_time] += [(len(mesenchymal_ccells_to_travel), len(epithelial_ccells_to_travel))]
             # if there are clusters, add the tuple to that key
@@ -88,7 +86,7 @@ class CancerCell(mesa.Agent):
             for ccell in mesenchymal_ccells_to_travel + epithelial_ccells_to_travel:
                 ccell.grid.remove_agent(ccell)
                 ccell.model.schedule.remove(ccell)
-            print(self.model.vasculature)
+        
             # print(self.grid.get_cell_list_contents([(new_position)]))
             # print("Travelled!")
             # self.model.grid[1].place_agent(self,(0,5))
