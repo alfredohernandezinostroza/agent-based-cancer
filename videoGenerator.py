@@ -3,6 +3,8 @@ from Classes.utils import gridsize_utils as gridsize
 import cv2
 import os
 
+# To run this code you must be in the parent folder of agent-based-cancer
+
 def group_images_by_grid(images_folder_path):
     """
     Groups all images (.png) on the images_folder_path by grid and returns a list of lists,
@@ -40,13 +42,13 @@ def group_images_by_grid(images_folder_path):
     return images_by_grid_list
 # Have to check in the future that it is always ordered
 
+
 def create_video_from_images(images_list, video_path, frameRate):
     """
     creates a video
     showing the evolution of the images over time.
     """
     # Initialize video writer
-    #frame_width, frame_height = cv2.imread(images_list[0]).shape[:2]
     img = cv2.imread(images_list[0])
     height, width, channels = img.shape
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
@@ -63,7 +65,7 @@ def create_video_from_images(images_list, video_path, frameRate):
 
     # Release video writer
     out.release()
-    print("Generated video: " + video_path)
+    print(f"\tGenerated video: {video_path}")
 
 
 
@@ -102,22 +104,19 @@ def create_combined_video(images_by_grid_list, video_path, frameRate):
 
     # Release video writer
     out.release()
-    print("Generated video: " + video_path)
+    print(f"\tGenerated video: {video_path}")
 
-
-if __name__ == "__main__":
-
-    # CHANGE THIS LINE according to the simulation you want to plot the graphs
-    nameOfTheSimulation = "Sim maxSteps-10050 stepsize-50 N-700 gridsNumber-3"
-    frameRate = 20
-
+def main_video(nameOfTheSimulation, frameRate):
+    
     # Path where the folder of images are located
     ImagesFolderPath = os.path.join(parent_dir, nameOfTheSimulation, imagesFolder)
-    print(f'Analyzing images at {ImagesFolderPath}')
+    print(f'Analyzing images at: {ImagesFolderPath}')
 
     #Path to save the videos
     VideosFolderPath = os.path.join(parent_dir, nameOfTheSimulation, "Videos")
-    print(f'Saving videos at {VideosFolderPath}')
+    print(f'Creating folder to save videos at: {VideosFolderPath}\n')
+
+    print(f'\tFrame rate is: {frameRate}')
 
     # Path of the images (.png)
     EcmImagesPath = os.path.join(ImagesFolderPath, "Ecm evolution")
@@ -139,43 +138,44 @@ if __name__ == "__main__":
 
     # Create videos for the Ecm of each grid
     for i, images_list in enumerate(EcmImagesByGrid):
-        #print(f'i:{i}')
         steps = tuple(image[0] for image in images_list)
         imagesPath = tuple(image[1] for image in images_list)
-        #print(f'steps:{steps}')
-        #print(f'images:{imagesPath}')
         output_file = os.path.join(VideosFolderPath, f"Ecm Evolution - Grid{i+1}.mp4")
         create_video_from_images(imagesPath, output_file, frameRate)
     # Create videos for the Ecm for all grids
     output_file = os.path.join(VideosFolderPath, f"Ecm Evolution - All grids.mp4")
     create_combined_video(EcmImagesByGrid, output_file, frameRate)
 
-
     # Create videos for the Mmp2 of each grid
     for i, images_list in enumerate(Mmp2ImagesByGrid):
-        #print(f'i:{i}')
         steps = tuple(image[0] for image in images_list)
         imagesPath = tuple(image[1] for image in images_list)
-        #print(f'steps:{steps}')
-        #print(f'images:{imagesPath}')
         output_file = os.path.join(VideosFolderPath, f"Mmp2 Evolution - Grid{i+1}.mp4")
         create_video_from_images(imagesPath, output_file, frameRate)
     # Create videos for the Mmp2 for all grids
     output_file = os.path.join(VideosFolderPath, f"Mmp2 Evolution - All grids.mp4")
     create_combined_video(Mmp2ImagesByGrid, output_file, frameRate)
 
-    
-    # Create videos for the Cells of each grid
+    # Create videos for the Tumor of each grid
     for i, images_list in enumerate(CellsImagesByGrid):
-        #print(f'i:{i}')
         steps = tuple(image[0] for image in images_list)
         imagesPath = tuple(image[1] for image in images_list)
-        #print(f'steps:{steps}')
-        #print(f'images:{imagesPath}')
         output_file = os.path.join(VideosFolderPath, f"Cells Evolution - Grid{i+1}.mp4")
         create_video_from_images(imagesPath, output_file, frameRate)
     # Create videos for the Mmp2 for all grids
     output_file = os.path.join(VideosFolderPath, f"Cells Evolution - All grids.mp4")
     create_combined_video(CellsImagesByGrid, output_file, frameRate)
 
-print('Finished!')
+    print(f'\nFinished!')
+
+
+if __name__ == "__main__":
+
+    # CHANGE THIS LINE according to the simulation you want to plot the graphs
+    nameOfTheSimulation = "Sim maxSteps-2000 stepsize-10 N-388 gridsNumber-3"
+    frameRate = 20
+
+    # This runs all the code to generate the videos
+    main_video(nameOfTheSimulation, frameRate)
+
+

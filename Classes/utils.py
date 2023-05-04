@@ -15,8 +15,8 @@ theta                   = 0.195
 Lambda                  = 0.1
 gamma1                  = 1
 gamma2                  = 1
-doublingTimeE           = 6 # PDF: 2000
-doublingTimeM           = 6 # PDF: 3000
+doublingTimeE           = 120 # PDF: 2000
+doublingTimeM           = 60 # PDF: 3000
 gridsize                = 10
 totalTime               = 24002 # must contain step 0 and final step of batch. (I think this is never being used)
 patchsize               = 3
@@ -33,6 +33,7 @@ carrying_capacity       = 4
 mesenchymal_proportion = 0.6 # PDF: 0.6
 epithelial_proportion = 0.4 # PDF: 0.4
 n_center_points_for_tumor = 97 #PDF: 97
+n_center_points_for_Vessels = 200 #PDF 200 # vessels will not be in this center points
 
 # Variable to stop the saving of ecm and mmp2 if it is NOT a Batch run analysis
 isBatchRun = True

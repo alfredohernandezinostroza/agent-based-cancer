@@ -86,7 +86,7 @@ class CancerModel(mesa.Model):
             onRightBorder   = self.grids[1].out_of_bounds((x+1,y))
             onTopBorder     = self.grids[1].out_of_bounds((x,y+1))
             onBottomBorder  = self.grids[1].out_of_bounds((x,y-1))
-            possible_places = self.grid.get_neighborhood(arriving_point, moore=False, include_center=False)
+            possible_places = self.grids[1].get_neighborhood(arriving_point, moore=False, include_center=False)
             number_of_ccells_in_arriving_point ={}
             for x2,y2 in possible_places:
                 number_of_ccells_in_arriving_point[x2,y2] = len([agent for agent in self.grids[1].get_cell_list_contents([(x2,y2)]) if agent.agent_type == "cell"])
@@ -147,6 +147,7 @@ class CancerModel(mesa.Model):
 
 
         self.schedule.step()
+        print(f'step number: {self.schedule.time} and vasculature: {self.vasculature}')
 
 
     def proliferate(self, cellType):
@@ -203,19 +204,21 @@ class CancerModel(mesa.Model):
             y = self.random.randrange(3,7)
             self.grids[1].place_agent(a, (x, y))
 
+        # Testing code
         a = Vessel(self.current_agent_id, self, True, self.grids[0], self.grid_ids[0])
         self.current_agent_id += 1
         self.schedule.add(a)
-        self.grids[0].place_agent(a, (94,100))
+        self.grids[0].place_agent(a, (90,100))
+
         # Create vessels
         numNormalVessels = 0
-        numRupturedVessels = 0
+        numRupturedVessels = 10
         numVesselsSecondary = 10
         numVesselsThird = 5 # just to test it, final code will not have 1 var to each grid
 
         # bad code, reduce number of for and make a counter to save the index to de put in each vessel
-        #
-        n_center_points_for_Vessels = 200 # PDF = 200 
+        # creates grid with 1 where vessels must not be placed
+        # n_center_points_for_Vessels PDF = 200 
         not_possible_array = find_quasi_circle(n_center_points_for_Vessels, self.width, self.height)[0]
         not_possible_array[:2,:] = 1
         not_possible_array[-2:,:] = 1
@@ -374,3 +377,23 @@ class CancerModel(mesa.Model):
     #        
     #        plt.show()
 
+
+
+#step number: 488 and vasculature: {488: [(5, 0)]}
+#step number: 488
+#  0%|                                                                                                    | 0/1 [06:26<?, ?it/s] 
+#Traceback (most recent call last):
+#  File "c:\Users\vinis\Desktop\Pesquisa IST 2022 - modelagem python células cancer\Repositório-Git\agent-based-cancer\Batch.py", line 82, in <module>
+#    main()
+#  File "c:\Users\vinis\Desktop\Pesquisa IST 2022 - modelagem python células cancer\Repositório-Git\agent-based-cancer\Batch.py", line 32, in main
+#    results = mesa.batch_run(
+#  File "C:\Users\vinis\Desktop\Pesquisa IST 2022 - modelagem python células cancer\Repositório-Git\.venv\lib\site-packages\mesa\batchrunner.py", line 87, in batch_run
+#    data = process_func(run)
+#  File "C:\Users\vinis\Desktop\Pesquisa IST 2022 - modelagem python células cancer\Repositório-Git\.venv\lib\site-packages\mesa\batchrunner.py", line 157, in _model_run_func
+#    model.step()
+#  File "c:\Users\vinis\Desktop\Pesquisa IST 2022 - modelagem python células cancer\Repositório-Git\agent-based-cancer\Classes\CancerModel.py", line 89, in step
+#    possible_places = self.grid.get_neighborhood(arriving_point, moore=False, include_center=False)
+#AttributeError: 'CancerModel' object has no attribute 'grid'. Did you mean: 'grids'?
+
+
+#step number: 1998 and vasculature: {437: [(1, 0), (1, 0), (3, 0)], 461: [(1, 0), (0, 1)], 529: [(1, 0), (1, 0), (1, 0), (2, 0)], 539: [(1, 0), (1, 0), (1, 0), (2, 0)], 547: [(1, 0), (1, 0), (1, 0), (1, 0), (1, 0), (0, 1), (1, 1)], 573: [(1, 0), (1, 0), (1, 0), (7, 0)], 575: [(1, 0), (1, 0), (1, 0), (1, 0), (1, 0), (5, 0)],

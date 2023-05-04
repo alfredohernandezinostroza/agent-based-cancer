@@ -106,7 +106,7 @@ def plotMMP2orECM(i, step, files_path, figCounter, grid_id, type="Mmp2"):
     plt.figure(figCounter, figsize=(6, 5))
 
     if type=="Mmp2":
-        plt.imshow(df, vmin=0, vmax=3)
+        plt.imshow(df, vmin=0, vmax=2) #vmax = 3 in PDF
         #print(f'mmp2 max at step {step} is {df.values.max()}')
     elif type == "Ecm":
         plt.imshow(df, vmin=0, vmax=1)
@@ -133,16 +133,11 @@ def plotMMP2orECM(i, step, files_path, figCounter, grid_id, type="Mmp2"):
         figure_path = os.path.join(EcmImagesPath, f'{type}-grid{grid_id}-step{step} - {11/24000 * step:.2f} days.png')
     plt.savefig(figure_path)
 
-###########################################################################################################
 
-if __name__ == "__main__":
 
-    # CHANGE THIS LINE according to the simulation you want to plot the graphs
-    nameOfTheSimulation = "Sim maxSteps-10050 stepsize-50 N-700 gridsNumber-3"
-
-    # Do not change anything below
+def main_graphs():
     SimulationPath = os.path.join(parent_dir, nameOfTheSimulation)
-    print(f'Analyzing data at {SimulationPath}')
+    print(f'\tAnalyzing data in the folder {SimulationPath}')
 
     csv_files_name = [f for f in os.listdir(SimulationPath) if os.path.isfile(os.path.join(SimulationPath, f)) and f.endswith(".csv")]
     
@@ -159,18 +154,21 @@ if __name__ == "__main__":
         print("Using cells data at:", first_csv_path)
     else:
         print("No .csv cell data found in directory:", SimulationPath)
+        return
 
     if ecm_files_name:
         ecm_files_path = [os.path.join(EcmPath, p) for p in ecm_files_name]
-        print("Using Ecm data at:", EcmPath)
+        print("Using Ecm data in the folder:", EcmPath)
     else:
         print("No .csv Ecm data found in directory:", EcmPath)
+        return
 
     if mmp2_files_name:
         mmp2_files_path = [os.path.join(Mmp2Path, p) for p in mmp2_files_name]
-        print("Using Mmp2 data at:", Mmp2Path)
+        print("Using Mmp2 data in the folder:", Mmp2Path)
     else:
         print("No .csv Mmp2 data found in directory:", Mmp2Path)
+        return
 
 
     # use regex to find the values before 'steps', 'stepsize' and 'grids'. Ex: 50steps-10stepsize-cells
@@ -191,46 +189,70 @@ if __name__ == "__main__":
     if not os.path.exists(imagesPath):
         os.makedirs(imagesPath)
         os.makedirs(TumorImagesPath)
-        os.makedirs(CellsImagesPath)
-        os.makedirs(EcmImagesPath)
         os.makedirs(Mmp2ImagesPath)
+        os.makedirs(EcmImagesPath)
+        os.makedirs(CellsImagesPath)
+
+        print("Saving tumor images in the folder:", TumorImagesPath)
+        print("Saving Mmp2 images in the folder:", Mmp2ImagesPath)
+        print("Saving Ecm images in the folder:", EcmImagesPath)
+        print("Saving cells numbers images in the folder:", CellsImagesPath)
 
     # If there the visual analysis is already done, tell the user
     else:
         print("This visual analysis already exists!")
+        return
     
 
     figCounter = 1
     for grid_id in range(1, grids_number+1):
+        print(f'\n\tPlotting for grid {grid_id}')
+
         # Plot the cells graphs
+        print(f'\tPlotting tumor graphs')
         for id, step in enumerate(range(0,max_step+1,step_size)):
             plotCancer(getCoordsForPlot(step, first_csv_path, grid_id), figCounter, imagesFolder, grid_id, step)
-            figCounter += 1
             plt.close()
+            figCounter += 1
+
         # Plot the Mmp2 graphs
+        print(f'\tPlotting Mmp2 graphs')
         for id, step in enumerate(range(0,max_step+1,step_size)):
             mmp2_files_path_this_grid = [path for path in mmp2_files_path if f"Mmp2-{grid_id}grid-" in path]
             plotMMP2orECM(id, step, mmp2_files_path_this_grid, figCounter, grid_id, type="Mmp2")
-            figCounter += 1
             plt.close()
+            figCounter += 1
 
         # Plot the Ecm graphs
+        print(f'\tPlotting Ecm graphs')
         for id, step in enumerate(range(0,max_step+1,step_size)):
             ecm_files_path_this_grid = [path for path in ecm_files_path if f"Ecm-{grid_id}grid-" in path]
             plotMMP2orECM(id, step, ecm_files_path_this_grid, figCounter, grid_id, type="Ecm")
-            figCounter += 1
             plt.close()
+            figCounter += 1
 
         # Plot the growth of ephitelial and mesenchymal cells
+        print(f'\tPlotting cells number')
         plotGrowthData(figCounter, first_csv_path, imagesFolder, step_size, grid_id)
-        figCounter += 1
         plt.close()
-    #plt.show() #running this makes our RAM cry
+        figCounter += 1
+
+    plt.show()
     plt.close()
 
 
+###########################################################################################################
+
+if __name__ == "__main__":
+
+    # CHANGE THIS LINE according to the simulation you want to plot the graphs
+    nameOfTheSimulation = "Sim maxSteps-2000 stepsize-10 N-388 gridsNumber-3"
+
+    # This runs all the code to generate the graphs in the folder
+    main_graphs()
 
 
-#c:\Users\vinis\Desktop\Pesquisa IST 2022 - modelagem python células cancer\Repositório-Git\agent-based-cancer\graphsGenerator.py:39: RuntimeWarning: More than 20 figures have been opened. Figures created through the pyplot interface (`matplotlib.pyplot.figure`) are retained until explicitly closed and may consume too much memory. (To control this warning, see the rcParam `figure.max_open_warning`). Consider using `matplotlib.pyplot.close()`.
-#  plt.figure(figCounter, figsize=(6, 5))
-#Fail to allocate bitmap
+
+
+
+
