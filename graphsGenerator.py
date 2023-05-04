@@ -1,7 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
-from Classes.utils import parent_dir, imagesFolder
+from Classes.utils import parent_dir, imagesFolder_utils
 from Classes.utils import gridsize_utils as gridsize
 import re
 import os
@@ -33,13 +33,13 @@ def getCoordsForPlot(step, allCellsCsvPath, grid_id):
 
     return [Xm, Ym, Xe, Ye, Xv, Yv, Xvr, Yvr]
 
-def plotCancer(coordsList, figCounter, imagesFolder, grid_id, step):
+def plotCancer(coordsList, figCounter, imagesFolder, grid_id, step, TumorImagesPath):
 
     Xm, Ym, Xe, Ye, Xv, Yv, Xvr, Yvr = coordsList[0], coordsList[1], coordsList[2], coordsList[3], coordsList[4], coordsList[5], coordsList[6], coordsList[7]
     plt.figure(figCounter, figsize=(6, 5))
     
-    plt.scatter(Xm, Ym, marker='o', alpha=0.10, label="Mesenchymal cells")
-    plt.scatter(Xe, Ye, marker='h', alpha=0.05, label="Epithelial cells")
+    plt.scatter(Xm, Ym, marker='o', color='blue', alpha=0.10, label="Mesenchymal cells")
+    plt.scatter(Xe, Ye, marker='h', color='orange', alpha=0.05, label="Epithelial cells")
     plt.scatter(Xv, Yv, marker='.', color='red', alpha=0.8, label="Vasculature points")
     plt.scatter(Xvr, Yvr, marker='+', color='darkred', alpha=0.8, label="Ruptured vasculature points")
     plt.xlim(0, gridsize)
@@ -63,10 +63,8 @@ def plotCancer(coordsList, figCounter, imagesFolder, grid_id, step):
     figure_path = os.path.join(TumorImagesPath, f'Cells-grid{grid_id}-step{step} - Tumor size at {11/24000 * step:.2f} days.png')
     plt.savefig(figure_path)
 
-    #plt.style.use("seaborn")
 
-
-def plotGrowthData(fig_index, allCellsCsvPath, imagesFolder, stepsize, grid_id):
+def plotGrowthData(fig_index, allCellsCsvPath, imagesFolder, stepsize, grid_id, CellsImagesPath):
     # get data at each step
     df = pd.read_csv(allCellsCsvPath)
     df = df[["Step", "Total cells", "Phenotype", "Grid"]]
@@ -101,7 +99,7 @@ def plotGrowthData(fig_index, allCellsCsvPath, imagesFolder, stepsize, grid_id):
     
 
 
-def plotMMP2orECM(i, step, files_path, figCounter, grid_id, type="Mmp2"):
+def plotMMP2orECM(i, step, files_path, figCounter, grid_id, pathToSave, type="Mmp2"):
     df = pd.read_csv(files_path[i], index_col=0)
     plt.figure(figCounter, figsize=(6, 5))
 
@@ -123,14 +121,15 @@ def plotMMP2orECM(i, step, files_path, figCounter, grid_id, type="Mmp2"):
     plt.yticks(xticks, xticklabels)
     plt.xlabel("mm")
     plt.ylabel("mm")
+    plt.grid(visible=None)
 
     plt.title(f'{type} at {11/24000 * step:.2f} days ({step} steps) - grid {grid_id}')
     
     # save the figure
     if type=="Mmp2":
-        figure_path = os.path.join(Mmp2ImagesPath, f'{type}-grid{grid_id}-step{step} - {11/24000 * step:.2f} days.png')
+        figure_path = os.path.join(pathToSave, f'{type}-grid{grid_id}-step{step} - {11/24000 * step:.2f} days.png')
     elif type=="Ecm":
-        figure_path = os.path.join(EcmImagesPath, f'{type}-grid{grid_id}-step{step} - {11/24000 * step:.2f} days.png')
+        figure_path = os.path.join(pathToSave, f'{type}-grid{grid_id}-step{step} - {11/24000 * step:.2f} days.png')
     plt.savefig(figure_path)
 
 
@@ -177,7 +176,7 @@ def main_graphs():
     grids_number = int(re.search(r"(\d+)grids", first_csv_name).group(1))
 
     # Path to save all the images:
-    imagesFolder = imagesFolder
+    imagesFolder = imagesFolder_utils
     imagesPath = os.path.join(SimulationPath, imagesFolder)
 
     TumorImagesPath = os.path.join(imagesPath, "Tumor growth")
@@ -203,15 +202,15 @@ def main_graphs():
         print("This visual analysis already exists!")
         return
     
-
+    plt.style.use("Solarize_Light2")
     figCounter = 1
     for grid_id in range(1, grids_number+1):
-        print(f'\n\tPlotting for grid {grid_id}')
+        print(f'\nGrid: {grid_id}')
 
         # Plot the cells graphs
         print(f'\tPlotting tumor graphs')
         for id, step in enumerate(range(0,max_step+1,step_size)):
-            plotCancer(getCoordsForPlot(step, first_csv_path, grid_id), figCounter, imagesFolder, grid_id, step)
+            plotCancer(getCoordsForPlot(step, first_csv_path, grid_id), figCounter, imagesFolder, grid_id, step, TumorImagesPath)
             plt.close()
             figCounter += 1
 
@@ -219,7 +218,7 @@ def main_graphs():
         print(f'\tPlotting Mmp2 graphs')
         for id, step in enumerate(range(0,max_step+1,step_size)):
             mmp2_files_path_this_grid = [path for path in mmp2_files_path if f"Mmp2-{grid_id}grid-" in path]
-            plotMMP2orECM(id, step, mmp2_files_path_this_grid, figCounter, grid_id, type="Mmp2")
+            plotMMP2orECM(id, step, mmp2_files_path_this_grid, figCounter, grid_id, Mmp2ImagesPath, type="Mmp2")
             plt.close()
             figCounter += 1
 
@@ -227,13 +226,13 @@ def main_graphs():
         print(f'\tPlotting Ecm graphs')
         for id, step in enumerate(range(0,max_step+1,step_size)):
             ecm_files_path_this_grid = [path for path in ecm_files_path if f"Ecm-{grid_id}grid-" in path]
-            plotMMP2orECM(id, step, ecm_files_path_this_grid, figCounter, grid_id, type="Ecm")
+            plotMMP2orECM(id, step, ecm_files_path_this_grid, figCounter, grid_id, EcmImagesPath, type="Ecm")
             plt.close()
             figCounter += 1
 
         # Plot the growth of ephitelial and mesenchymal cells
         print(f'\tPlotting cells number')
-        plotGrowthData(figCounter, first_csv_path, imagesFolder, step_size, grid_id)
+        plotGrowthData(figCounter, first_csv_path, imagesFolder, step_size, grid_id , CellsImagesPath)
         plt.close()
         figCounter += 1
 
@@ -246,7 +245,7 @@ def main_graphs():
 if __name__ == "__main__":
 
     # CHANGE THIS LINE according to the simulation you want to plot the graphs
-    nameOfTheSimulation = "Sim maxSteps-2000 stepsize-10 N-388 gridsNumber-3"
+    nameOfTheSimulation = "Sim maxSteps-30 stepsize-10 N-388 gridsNumber-3"
 
     # This runs all the code to generate the graphs in the folder
     main_graphs()

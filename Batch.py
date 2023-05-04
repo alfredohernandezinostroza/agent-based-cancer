@@ -11,8 +11,8 @@ from Classes import utils
 # otherwise it won't save the Mmp2 and Ecm data
 
 # Parameters for this simulation
-maxSteps = 2000
-dataCollectionPeriod = 10
+maxSteps = 18000
+dataCollectionPeriod = 100
 N = 388 # Number of cancer cells
 gridsize     = gridsize_utils #PDF: 201
 width        = gridsize

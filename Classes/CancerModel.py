@@ -204,11 +204,11 @@ class CancerModel(mesa.Model):
             y = self.random.randrange(3,7)
             self.grids[1].place_agent(a, (x, y))
 
-        # Testing code
+        # Testing code - creates a ruptured vessels at a given point
         a = Vessel(self.current_agent_id, self, True, self.grids[0], self.grid_ids[0])
         self.current_agent_id += 1
         self.schedule.add(a)
-        self.grids[0].place_agent(a, (90,100))
+        self.grids[0].place_agent(a, (80,100))
 
         # Create vessels
         numNormalVessels = 0
