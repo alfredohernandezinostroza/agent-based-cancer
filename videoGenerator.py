@@ -1,4 +1,4 @@
-from Classes.utils import parent_dir, imagesFolder
+from Classes.utils import parent_dir, imagesFolder_utils
 from Classes.utils import gridsize_utils as gridsize
 import cv2
 import os
@@ -109,7 +109,7 @@ def create_combined_video(images_by_grid_list, video_path, frameRate):
 def main_video(nameOfTheSimulation, frameRate):
     
     # Path where the folder of images are located
-    ImagesFolderPath = os.path.join(parent_dir, nameOfTheSimulation, imagesFolder)
+    ImagesFolderPath = os.path.join(parent_dir, nameOfTheSimulation, imagesFolder_utils)
     print(f'Analyzing images at: {ImagesFolderPath}')
 
     #Path to save the videos
@@ -122,19 +122,30 @@ def main_video(nameOfTheSimulation, frameRate):
     EcmImagesPath = os.path.join(ImagesFolderPath, "Ecm evolution")
     Mmp2ImagesPath = os.path.join(ImagesFolderPath, "Mmp2 evolution")
     CellsImagesPath = os.path.join(ImagesFolderPath, "Tumor growth")
+    CellsNumberImagesPath = os.path.join(ImagesFolderPath, "Cells growth")
+    VasculatureImagesPath = os.path.join(ImagesFolderPath, "Vasculature evolution")
 
     # Create folder for all the videos
     if not os.path.exists(VideosFolderPath):
         os.makedirs(VideosFolderPath)
     # If there the visual analysis is already done, tell the user
     else:
-        print("This folder already exist! \n\t Videos that already exist will not be overwritten")
+        print(f"(Videos folder already exists)! \n\tVideos that already exist will not be overwritten)")
 
     # Create list of lists. Each list will contain all the path to the Ecm of a given grid
     EcmImagesByGrid = (group_images_by_grid(EcmImagesPath))
     Mmp2ImagesByGrid = (group_images_by_grid(Mmp2ImagesPath))
     CellsImagesByGrid = (group_images_by_grid(CellsImagesPath))
+    CellsNumberImagesByGrid = (group_images_by_grid(CellsNumberImagesPath))
 
+
+
+    # Create video for Vasculature evolution
+    imagesFileNames = [image_filename for image_filename in os.listdir(VasculatureImagesPath)]
+    imagesFileNames = sorted(imagesFileNames, key=lambda x: int(x.split('Vasculature-step')[1].split('.')[0]))
+    imagesPath = [os.path.join(VasculatureImagesPath, file_name) for file_name in imagesFileNames]
+    output_file = os.path.join(VideosFolderPath, f"Vasculature - all grids.mp4")
+    create_video_from_images(imagesPath, output_file, frameRate)
 
     # Create videos for the Ecm of each grid
     for i, images_list in enumerate(EcmImagesByGrid):
@@ -162,9 +173,19 @@ def main_video(nameOfTheSimulation, frameRate):
         imagesPath = tuple(image[1] for image in images_list)
         output_file = os.path.join(VideosFolderPath, f"Cells Evolution - Grid{i+1}.mp4")
         create_video_from_images(imagesPath, output_file, frameRate)
-    # Create videos for the Mmp2 for all grids
+    # Create videos for the Tumor for all grids
     output_file = os.path.join(VideosFolderPath, f"Cells Evolution - All grids.mp4")
     create_combined_video(CellsImagesByGrid, output_file, frameRate)
+
+    # Create video for the cell number growth
+    for i, images_list in enumerate(CellsNumberImagesByGrid):
+        steps = tuple(image[0] for image in images_list)
+        imagesPath = tuple(image[1] for image in images_list)
+        output_file = os.path.join(VideosFolderPath, f"Cells Number - Grid{i+1}.mp4")
+        create_video_from_images(imagesPath, output_file, frameRate)
+    # Create videos for the Tumor for all grids
+    output_file = os.path.join(VideosFolderPath, f"Cells Number - All grids.mp4")
+    create_combined_video(CellsNumberImagesByGrid, output_file, frameRate)
 
     print(f'\nFinished!')
 
@@ -172,7 +193,7 @@ def main_video(nameOfTheSimulation, frameRate):
 if __name__ == "__main__":
 
     # CHANGE THIS LINE according to the simulation you want to plot the graphs
-    nameOfTheSimulation = "Sim maxSteps-2000 stepsize-10 N-388 gridsNumber-3"
+    nameOfTheSimulation = "Sim maxSteps-500 stepsize-10 N-388 gridsNumber-3"
     frameRate = 20
 
     # This runs all the code to generate the videos

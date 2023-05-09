@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import os
+import json
 # from Classes import *
 from Classes.CancerCell import CancerCell
 from Classes.Vessel import Vessel
@@ -73,10 +74,9 @@ class CancerModel(mesa.Model):
         self.ecmData = np.ones((1, self.width, self.height), dtype=float)
 
     def step(self):
-        #self.graph_ecm_mmp2(100)
-        print(f'step number: {self.schedule.time}')
         """Advance the model by one step."""
         self.datacollector.collect(self)
+        
         if self.schedule.time in self.vasculature: # Add keys
             self.disaggregate_clusters(self.schedule.time)
             surviving_clusters = [cluster for cluster in self.vasculature[self.schedule.time] if self.random.random() < get_cluster_survival_probability(cluster)]
@@ -97,7 +97,7 @@ class CancerModel(mesa.Model):
                         if not onLeftBorder and carrying_capacity > number_of_ccells_in_arriving_point[x-1,y]:
                             ccell = CancerCell(self.current_agent_id, self, self.grids[1], self.grid_ids[1], cell_type, self.ecm[1], self.mmp2[1])
                             self.current_agent_id += 1
-                            self.grids[1].place_agent(ccell, (x-1,y))
+                            self.grids[1].place_agent(ccell, (x-1,y)) 
                             number_of_ccells_in_arriving_point[x-1,y] += 1
                             self.schedule.add(ccell)
                         elif not onRightBorder and carrying_capacity > number_of_ccells_in_arriving_point[x+1,y]:
@@ -131,8 +131,9 @@ class CancerModel(mesa.Model):
             self.proliferate("epithelial")
 
 
-        # Save data to be used to plot ecm and mmp2
+        # Saving of non agents data
         if isBatchRun and (self.schedule.time % dataCollectionPeriod == 0):
+            # Saving Mmp2 and Ecm data
             for grid_id in self.grid_ids:
                 new_mmp2_df = pd.DataFrame(self.mmp2[grid_id-1][0,:,:])
                 mmp2CsvName = f"Mmp2-{grid_id}grid-{self.schedule.time}step.csv"
@@ -146,8 +147,20 @@ class CancerModel(mesa.Model):
                 new_ecm_df.to_csv(pathToSave)
 
 
+
+            # Saves vasculature data
+            if self.schedule.time == maxSteps:
+                vasculature_json = json.dumps(self.vasculature)
+                # {key: list of clusters} -> {timestep: [(number of Mcells, number of Ecells), ..., (..., ...)]}
+                
+                vasculatureJsonName = f"Vasculature-{self.schedule.time}step.json"
+                pathToSave = os.path.join(parent_dir, newSimulationFolder, "Vasculature", vasculatureJsonName)
+                
+                with open(pathToSave, 'w') as f:
+                    f.write(vasculature_json)
+
+        print(f'step number: {self.schedule.time}')
         self.schedule.step()
-        print(f'step number: {self.schedule.time} and vasculature: {self.vasculature}')
 
 
     def proliferate(self, cellType):
@@ -208,13 +221,13 @@ class CancerModel(mesa.Model):
         a = Vessel(self.current_agent_id, self, True, self.grids[0], self.grid_ids[0])
         self.current_agent_id += 1
         self.schedule.add(a)
-        self.grids[0].place_agent(a, (80,100))
+        self.grids[0].place_agent(a, (95,100))
 
         # Create vessels
         numNormalVessels = 0
         numRupturedVessels = 10
         numVesselsSecondary = 10
-        numVesselsThird = 5 # just to test it, final code will not have 1 var to each grid
+        numVesselsThird = 2 # just to test it, final code will not have 1 var to each grid
 
         # bad code, reduce number of for and make a counter to save the index to de put in each vessel
         # creates grid with 1 where vessels must not be placed

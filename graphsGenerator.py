@@ -5,6 +5,7 @@ from Classes.utils import parent_dir, imagesFolder_utils
 from Classes.utils import gridsize_utils as gridsize
 import re
 import os
+import json
 
 # To run this code you must be in the parent folder of agent-based-cancer
 
@@ -64,11 +65,11 @@ def plotCancer(coordsList, figCounter, imagesFolder, grid_id, step, TumorImagesP
     plt.savefig(figure_path)
 
 
-def plotGrowthData(fig_index, allCellsCsvPath, imagesFolder, stepsize, grid_id, CellsImagesPath):
+def plotGrowthData(fig_index, allCellsCsvPath, stepsize, grid_id, CellsImagesPath, step_number):
     # get data at each step
     df = pd.read_csv(allCellsCsvPath)
     df = df[["Step", "Total cells", "Phenotype", "Grid"]]
-    df = df.loc[df["Grid"] == grid_id]
+    df = df.loc[(df["Grid"] == grid_id) & (df["Step"] <= step_number)]
     plt.figure(fig_index)
 
     # For mesenchymal
@@ -94,9 +95,8 @@ def plotGrowthData(fig_index, allCellsCsvPath, imagesFolder, stepsize, grid_id, 
     plt.legend(loc="upper left")
 
     # save the figure
-    figure_path = os.path.join(CellsImagesPath, f'CellsGrowth-grid{grid_id}.png')
+    figure_path = os.path.join(CellsImagesPath, f'CellsGrowth-grid{grid_id}-step{step_number} - {11/24000 * step_number:.2f} days.png')
     plt.savefig(figure_path)
-    
 
 
 def plotMMP2orECM(i, step, files_path, figCounter, grid_id, pathToSave, type="Mmp2"):
@@ -132,24 +132,89 @@ def plotMMP2orECM(i, step, files_path, figCounter, grid_id, pathToSave, type="Mm
         figure_path = os.path.join(pathToSave, f'{type}-grid{grid_id}-step{step} - {11/24000 * step:.2f} days.png')
     plt.savefig(figure_path)
 
+def plotVasculatureBarGraph(figCounter, pathToSave, vasculature_json_path, max_step):
+    # Reads the dict in the json file
+    with open(vasculature_json_path, 'r') as f:
+        vasculature_dict = json.load(f)
 
+    # Change keys to int and only add the key-value pair that is before the given max_step
+    new_vasculature_dict = {int(k): v for k, v in vasculature_dict.items() if int(k) <= max_step}
+
+    # Prepare the data for the bar chart
+    mesenchymal_data = []
+    epithelial_data = []
+    cluster_data = []
+    time_steps = sorted(new_vasculature_dict.keys())
+    for time_step in time_steps:
+        clusters = new_vasculature_dict[time_step]
+        mesenchymal_count = 0
+        epithelial_count = 0
+        cluster_count = 0
+        #cluster_count = len(clusters)
+        for cluster in clusters:
+            mesenchymal_count += cluster[0]
+            epithelial_count += cluster[1]
+            if cluster[0] + cluster[1] > 1:
+                cluster_count += 1
+
+        mesenchymal_data.append(mesenchymal_count)
+        epithelial_data.append(epithelial_count)
+        cluster_data.append(cluster_count)
+
+    # Set up the bar chart
+    plt.style.use("Solarize_Light2")
+    fig, ax = plt.subplots()
+    index = time_steps
+
+    # Calculate the bar width based on the number of time steps
+    #if len(time_steps) == 0:
+    #    num_steps = 1
+    #else:
+    #    num_steps = len(time_steps)
+    #total_width = num_steps * 3 + (num_steps - 1) * 0.5
+    #bar_width = total_width / num_steps * 0.9
+
+    bar_width = 3
+
+    # Plot the data for each category
+    ax.bar(index, mesenchymal_data, bar_width, color='tab:blue', label='Mesenchymal Cells')
+    ax.bar([i + bar_width for i in index], epithelial_data, bar_width, color='tab:orange', label='Epithelial Cells')
+    ax.bar([i + 2 * bar_width for i in index], cluster_data, bar_width, color='darkred', label='Clusters')
+
+    # Set the chart labels, title, and legend
+    ax.set_xlabel('Day')
+    ax.set_ylabel('Cell/Cluster Count')
+    ax.set_title('Vasculature Cell and Cluster Counts')
+    ax.set_xticks([i + bar_width for i in index] + [max_step])
+    ax.set_xticklabels([f"{step*11/24000:.3f}" for step in time_steps] + [f"{max_step*11/24000:.3f}"])
+    ax.set_xlim([-0.5, max_step + 0.5])
+    ax.legend()
+
+    # save the figure
+    figure_path = os.path.join(pathToSave, f'Vasculature-step{max_step}.png')
+    plt.savefig(figure_path)
 
 def main_graphs():
     SimulationPath = os.path.join(parent_dir, nameOfTheSimulation)
-    print(f'\tAnalyzing data in the folder {SimulationPath}')
+    print(f'\tAnalyzing data in the folder {SimulationPath}\n')
 
+    # Get the agents' data filename 
     csv_files_name = [f for f in os.listdir(SimulationPath) if os.path.isfile(os.path.join(SimulationPath, f)) and f.endswith(".csv")]
     
+    # Get the Ecm and Mmp2 data filenames 
     EcmPath = os.path.join(SimulationPath, "Ecm")
     Mmp2Path = os.path.join(SimulationPath, "Mmp2")
     ecm_files_name = [f for f in sorted(os.listdir(EcmPath), key=lambda x: int(re.findall(r'\d+(?=step)', x)[0])) if os.path.isfile(os.path.join(EcmPath, f)) and f.endswith(".csv")]
     mmp2_files_name = [f for f in sorted(os.listdir(Mmp2Path), key=lambda x: int(re.findall(r'\d+(?=step)', x)[0])) if os.path.isfile(os.path.join(Mmp2Path, f)) and f.endswith(".csv")]
 
+    # Get the vasculature data filename
+    VasculaturePath = os.path.join(SimulationPath, "Vasculature")
+    vasculature_files_name = [f for f in os.listdir(VasculaturePath) if os.path.isfile(os.path.join(VasculaturePath, f)) and f.endswith(".json")]
 
     if csv_files_name:
         first_csv_name = csv_files_name[0]
         first_csv_path = os.path.join(SimulationPath, first_csv_name)
-        all_cells_analysis_path = os.path.join(parent_dir, SimulationPath, first_csv_path)
+        #all_cells_analysis_path = os.path.join(parent_dir, SimulationPath, first_csv_path)
         print("Using cells data at:", first_csv_path)
     else:
         print("No .csv cell data found in directory:", SimulationPath)
@@ -169,6 +234,14 @@ def main_graphs():
         print("No .csv Mmp2 data found in directory:", Mmp2Path)
         return
 
+    if vasculature_files_name:
+        first_vasculature_name = vasculature_files_name[0]
+        first_vasculature_path = os.path.join(VasculaturePath, first_vasculature_name)
+        print("Using vasculature data at:", first_vasculature_path)
+    else:
+        print("No .json vasculature data found in directory:", SimulationPath)
+        return
+
 
     # use regex to find the values before 'steps', 'stepsize' and 'grids'. Ex: 50steps-10stepsize-cells
     max_step = int(re.search(r"(\d+)steps", first_csv_name).group(1))
@@ -183,6 +256,7 @@ def main_graphs():
     CellsImagesPath = os.path.join(imagesPath, "Cells growth")
     EcmImagesPath = os.path.join(imagesPath, "Ecm evolution")
     Mmp2ImagesPath = os.path.join(imagesPath, "Mmp2 evolution")
+    VasculatureImagesPath = os.path.join(imagesPath, "Vasculature evolution")
 
     # Create folder for all the visual analysis
     if not os.path.exists(imagesPath):
@@ -191,11 +265,13 @@ def main_graphs():
         os.makedirs(Mmp2ImagesPath)
         os.makedirs(EcmImagesPath)
         os.makedirs(CellsImagesPath)
+        os.makedirs(VasculatureImagesPath)
 
-        print("Saving tumor images in the folder:", TumorImagesPath)
+        print(f"\nSaving tumor images in the folder:", TumorImagesPath)
         print("Saving Mmp2 images in the folder:", Mmp2ImagesPath)
         print("Saving Ecm images in the folder:", EcmImagesPath)
         print("Saving cells numbers images in the folder:", CellsImagesPath)
+        print("Saving vasculature images in the folder:", VasculatureImagesPath)
 
     # If there the visual analysis is already done, tell the user
     else:
@@ -208,14 +284,14 @@ def main_graphs():
         print(f'\nGrid: {grid_id}')
 
         # Plot the cells graphs
-        print(f'\tPlotting tumor graphs')
+        print(f'\tPlotting tumor graphs...')
         for id, step in enumerate(range(0,max_step+1,step_size)):
             plotCancer(getCoordsForPlot(step, first_csv_path, grid_id), figCounter, imagesFolder, grid_id, step, TumorImagesPath)
             plt.close()
             figCounter += 1
 
         # Plot the Mmp2 graphs
-        print(f'\tPlotting Mmp2 graphs')
+        print(f'\tPlotting Mmp2 graphs...')
         for id, step in enumerate(range(0,max_step+1,step_size)):
             mmp2_files_path_this_grid = [path for path in mmp2_files_path if f"Mmp2-{grid_id}grid-" in path]
             plotMMP2orECM(id, step, mmp2_files_path_this_grid, figCounter, grid_id, Mmp2ImagesPath, type="Mmp2")
@@ -223,7 +299,7 @@ def main_graphs():
             figCounter += 1
 
         # Plot the Ecm graphs
-        print(f'\tPlotting Ecm graphs')
+        print(f'\tPlotting Ecm graphs...')
         for id, step in enumerate(range(0,max_step+1,step_size)):
             ecm_files_path_this_grid = [path for path in ecm_files_path if f"Ecm-{grid_id}grid-" in path]
             plotMMP2orECM(id, step, ecm_files_path_this_grid, figCounter, grid_id, EcmImagesPath, type="Ecm")
@@ -231,8 +307,16 @@ def main_graphs():
             figCounter += 1
 
         # Plot the growth of ephitelial and mesenchymal cells
-        print(f'\tPlotting cells number')
-        plotGrowthData(figCounter, first_csv_path, imagesFolder, step_size, grid_id , CellsImagesPath)
+        print(f'\tPlotting cells numbers graph...')
+        for id, step in enumerate(range(0,max_step+1,step_size)):
+            plotGrowthData(figCounter, first_csv_path, step_size, grid_id , CellsImagesPath, step)
+            plt.close()
+            figCounter += 1
+
+    # Plot the vasculature data
+    print(f'Plotting vasculature...')
+    for id, step in enumerate(range(0,max_step+1,step_size)):
+        plotVasculatureBarGraph(figCounter, VasculatureImagesPath, first_vasculature_path, step)
         plt.close()
         figCounter += 1
 
@@ -245,7 +329,7 @@ def main_graphs():
 if __name__ == "__main__":
 
     # CHANGE THIS LINE according to the simulation you want to plot the graphs
-    nameOfTheSimulation = "Sim maxSteps-30 stepsize-10 N-388 gridsNumber-3"
+    nameOfTheSimulation = "Sim maxSteps-500 stepsize-10 N-388 gridsNumber-3"
 
     # This runs all the code to generate the graphs in the folder
     main_graphs()

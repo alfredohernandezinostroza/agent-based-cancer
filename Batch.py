@@ -11,8 +11,8 @@ from Classes import utils
 # otherwise it won't save the Mmp2 and Ecm data
 
 # Parameters for this simulation
-maxSteps = 18000
-dataCollectionPeriod = 100
+maxSteps = 20100
+dataCollectionPeriod = 50
 N = 388 # Number of cancer cells
 gridsize     = gridsize_utils #PDF: 201
 width        = gridsize
@@ -77,17 +77,20 @@ def main_Batch():
     path = os.path.join(simulations_dir, newSimulationFolder)
     pathMmp2 = os.path.join(path, "Mmp2")
     pathEcm = os.path.join(path, "Ecm")
+    pathVasculature = os.path.join(path, "Vasculature")
 
     # Create folder for all cells analysis, for Mmp2 matrices and Ecm matrices
     if not os.path.exists(path):
         print(f'\t Folder for this simulation: {path}')
         print(f'\t Saving agents data at: {path}')
         print(f'\t Saving Mmp2 data at: {pathMmp2}')
-        print(f'\t Folder Ecm data at: {pathEcm}')
+        print(f'\t Saving Ecm data at: {pathEcm}')
+        print(f'\t Saving Vasculature data at: {pathVasculature}')
 
         os.makedirs(path)
         os.makedirs(pathMmp2)
         os.makedirs(pathEcm)
+        os.makedirs(pathVasculature)
 
         # Run the simulation and saves the data
         run_simulation()
