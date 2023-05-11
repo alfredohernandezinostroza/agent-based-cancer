@@ -52,13 +52,14 @@ def plotCancer(coordsList, figCounter, imagesFolder, grid_id, step, TumorImagesP
     plt.yticks(xticks, xticklabels)
     plt.xlabel("mm")
     plt.ylabel("mm")
+    plt.grid(False)
 
     
     if step == 0:
-        plt.title(f'Initial Tumor at {11/24000 * step:.2f} days ({step} steps) - grid {grid_id}')
+        plt.title(f'Initial Tumor at {11/24000 * step:.2f} days ({step} steps) - grid {grid_id}', fontsize = 13)
         plt.legend(loc="upper left")
     else:
-        plt.title(f'Tumor size at {11/24000 * step:.2f} days ({step} steps) - grid {grid_id}')
+        plt.title(f'Tumor size at {11/24000 * step:.2f} days ({step} steps) - grid {grid_id}', fontsize = 13)
 
     # save the figure
     figure_path = os.path.join(TumorImagesPath, f'Cells-grid{grid_id}-step{step} - Tumor size at {11/24000 * step:.2f} days.png')
@@ -78,7 +79,7 @@ def plotGrowthData(fig_index, allCellsCsvPath, stepsize, grid_id, CellsImagesPat
     # create arrays with the step number and number of cells
     steps = np.arange(0, max(df_m["Step"]) + 1, stepsize)
     numberMesenchymalEachStep = [df_m.loc[(df_m["Step"] == step) & (df_m["Phenotype"] == "mesenchymal")].shape[0] for step in steps]
-    plt.plot(steps*11/24000, numberMesenchymalEachStep, label="Mesenchymal cells")
+    plt.plot(steps*11/24000, numberMesenchymalEachStep, label="Mesenchymal cells", color='tab:blue')
 
     # For epithelial
     #stepsize = 2000 doubling rate
@@ -87,12 +88,14 @@ def plotGrowthData(fig_index, allCellsCsvPath, stepsize, grid_id, CellsImagesPat
     steps = np.arange(0, max(df_e["Step"]) + 1, stepsize)
     numberEpithelialEachStep = [df_e.loc[(df_e["Step"] == step) & (df_e["Phenotype"] == "epithelial")].shape[0] for step in steps]
     
-    plt.plot(steps*11/24000, numberEpithelialEachStep, label="Epithelial cells")
+    plt.plot(steps*11/24000, numberEpithelialEachStep, label="Epithelial cells", color='tab:orange')
 
-    plt.title(f'Cells growth - grid {grid_id}')
+    plt.title(f'Cells growth - grid {grid_id}', fontsize = 13)
     plt.xlabel('Days')
     plt.ylabel('Number of cells')
     plt.legend(loc="upper left")
+    plt.ylim(0)
+
 
     # save the figure
     figure_path = os.path.join(CellsImagesPath, f'CellsGrowth-grid{grid_id}-step{step_number} - {11/24000 * step_number:.2f} days.png')
@@ -123,7 +126,7 @@ def plotMMP2orECM(i, step, files_path, figCounter, grid_id, pathToSave, type="Mm
     plt.ylabel("mm")
     plt.grid(visible=None)
 
-    plt.title(f'{type} at {11/24000 * step:.2f} days ({step} steps) - grid {grid_id}')
+    plt.title(f'{type} at {11/24000 * step:.2f} days ({step} steps) - grid {grid_id}', fontsize = 13)
     
     # save the figure
     if type=="Mmp2":
@@ -150,7 +153,6 @@ def plotVasculatureBarGraph(figCounter, pathToSave, vasculature_json_path, max_s
         mesenchymal_count = 0
         epithelial_count = 0
         cluster_count = 0
-        #cluster_count = len(clusters)
         for cluster in clusters:
             mesenchymal_count += cluster[0]
             epithelial_count += cluster[1]
@@ -185,10 +187,13 @@ def plotVasculatureBarGraph(figCounter, pathToSave, vasculature_json_path, max_s
     ax.set_xlabel('Day')
     ax.set_ylabel('Cell/Cluster Count')
     ax.set_title('Vasculature Cell and Cluster Counts')
-    ax.set_xticks([i + bar_width for i in index] + [max_step])
-    ax.set_xticklabels([f"{step*11/24000:.3f}" for step in time_steps] + [f"{max_step*11/24000:.3f}"])
+    #ax.set_xticks([i + bar_width for i in index] + [max_step])
+    #ax.set_xticklabels([f"{step*11/24000:.3f}" for step in time_steps] + [f"{max_step*11/24000:.3f}"])
+    ax.set_xticks([0, max_step/2, max_step])
+    ax.set_xticklabels([0, f"{(max_step/2)*11/24000:.2f}"] + [f"{max_step*11/24000:.2f}"])
+
     ax.set_xlim([-0.5, max_step + 0.5])
-    ax.legend()
+    ax.legend(loc="upper left")
 
     # save the figure
     figure_path = os.path.join(pathToSave, f'Vasculature-step{max_step}.png')
@@ -329,7 +334,7 @@ def main_graphs():
 if __name__ == "__main__":
 
     # CHANGE THIS LINE according to the simulation you want to plot the graphs
-    nameOfTheSimulation = "Sim maxSteps-500 stepsize-10 N-388 gridsNumber-3"
+    nameOfTheSimulation = "Sim maxSteps-10 stepsize-1 N-388 gridsNumber-3"
 
     # This runs all the code to generate the graphs in the folder
     main_graphs()

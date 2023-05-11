@@ -221,7 +221,7 @@ class CancerModel(mesa.Model):
         a = Vessel(self.current_agent_id, self, True, self.grids[0], self.grid_ids[0])
         self.current_agent_id += 1
         self.schedule.add(a)
-        self.grids[0].place_agent(a, (95,100))
+        self.grids[0].place_agent(a, (90,100))
 
         # Create vessels
         numNormalVessels = 0
