@@ -16,6 +16,17 @@ from matplotlib import cm
 
 
 def get_cluster_survival_probability(cluster):
+    """
+    Takes in a tuple representing a cluster, returns the survival probabiltiy.
+    
+    Input:
+        Cluster: a tuple representing the cancer cells cluster, where the first 
+        element corresponds to the amount of Mesenchymal cells, and the second
+        corresponds to the amount of Epithelial cells.
+    Returns:
+        The corresponding survival probability, according to if its a songle-cell
+        cluster or a multi-cellular one.
+    """
     if cluster[0] < 0:
         raise Exception(f"Error! Mesenchymal cells are negative: {cluster[0]}")
     if cluster[1] < 0:
@@ -25,18 +36,67 @@ def get_cluster_survival_probability(cluster):
     elif sum(cluster) > 1:
         return (cluster_survival)
     elif sum(cluster) == 0:
-        raise Exception(f"Error, no cells in cluster! Time: {self.schedule.time}")
+        raise Exception(f"Error, no cells in cluster!")
     else:
         raise Exception(f"Error, nothing returned for cluster survival probability, time {self.schedule.time}")
     
 
 def count_total_cells(model):
+    """Counts all the cells present in the model, in all sites.
+
+    Input:
+        model: CancerModel object.
+    Returns:
+        amount_of_cells (int): the total amount of cells in every site,
+        NOT considering the vasculature    
+    """
     amount_of_cells = len([1 for agent in model.schedule.agents if agent.agent_type == "cell"])
     return amount_of_cells
 
 def count_vasculature_cells(model):
+    """"
+    Counts the total amount of cells in the vasculature
+
+    Input: 
+        model: CancerModel object.
+    Returns:
+        amount_of_cells (int): the total amount of cells in the vasculature
+    """
     amount_of_cells = sum([len(value) for value in model.vasculature.values()])
     return amount_of_cells
+
+def get_cluster_radius_and_diameter(model,grid_id):
+    """"
+    Calculates the radius and diameter of the cancer cells in a given site.
+
+    Input:
+        model: CancerModel object.
+        grid_id: the grid number for which the radius and diameter will be calculated.
+    Returns:
+        radius: the maximum of all the distances from each cell to the cell's centroid.
+        diameter: the maximum of all the cell-cell distanes.
+    """
+    ccells_positions = np.array([[agent.pos[0],agent.pos.y[1]] for agent in model.schedule.agents if agent.agent_type == "cell" and agent.grid == grid_id])
+    centroid = ccells_positions.mean(axis=0)
+    #calculating radius
+    radii = np.linalg.norm(a - centroid, axis=1)
+    radius= radii.max()
+    #calculating diameter
+    dist_matrix = get_distance_matrix(ccells_positions)
+    diameter = dist_matrix.max()
+    return (radius, diameter)
+
+def get_distance_matrix(vectors):
+    """
+    Calculates the distance matrix between all the vectors in a list
+
+    Input:
+        vectors (list of numpy 2 by 1 arrays): 
+    """
+    x = np.sum(a**2,axis=1)
+    xx = np.matmul(a,a.T)
+    x2 = x.reshape(-1,1) #transposing the vector
+    return numpy.sqrt(x2-2*xx+x)
 
 class CancerModel(mesa.Model):
 
