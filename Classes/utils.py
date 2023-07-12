@@ -21,14 +21,14 @@ gridsize                = 10
 totalTime               = 24002 # must contain step 0 and final step of batch. (I think this is never being used)
 patchsize               = 3
 middlePoint             = round(gridsize/2)
-E1                      = 0.5461
-E2                      = 0.2553
-E3                      = 0.1986
-single_cell_survival    = 5e-3         # PDF: 5e-4 #probability of survival for single cells in the vasculature
-cluster_survival        = 2.5e-1 #1 #PDF: 2.5e-2   # probability of survival for clusters in the vasculature
+E1                      = 0.5461 #bones
+E2                      = 0.2553 #lungs
+E3                      = 0.1986 #liver
+extravasation_probs = [E1, E2, E3]
+single_cell_survival    = 1#5e-3         # PDF: 5e-4 #probability of survival for single cells in the vasculature
+cluster_survival        = 1#2.5e-1 #1 #PDF: 2.5e-2   # probability of survival for clusters in the vasculature
 dissagreggation_prob    = 0.5       # probability of dissagreggation in vasculature
 carrying_capacity       = 4
-
 # These values bellow change according to the simulation we want to recreate
 mesenchymal_proportion = 0.6 # PDF: 0.6
 epithelial_proportion = 0.4 # PDF: 0.4

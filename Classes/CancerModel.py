@@ -80,42 +80,43 @@ class CancerModel(mesa.Model):
         if self.schedule.time in self.vasculature: # Add keys
             self.disaggregate_clusters(self.schedule.time)
             surviving_clusters = [cluster for cluster in self.vasculature[self.schedule.time] if self.random.random() < get_cluster_survival_probability(cluster)]
-            arriving_point = self.random.choice(self.grid_vessels_positions[1])
-            x,y = arriving_point
-            onLeftBorder    = self.grids[1].out_of_bounds((x-1,y))
-            onRightBorder   = self.grids[1].out_of_bounds((x+1,y))
-            onTopBorder     = self.grids[1].out_of_bounds((x,y+1))
-            onBottomBorder  = self.grids[1].out_of_bounds((x,y-1))
-            possible_places = self.grids[1].get_neighborhood(arriving_point, moore=False, include_center=False)
-            number_of_ccells_in_arriving_point ={}
-            for x2,y2 in possible_places:
-                number_of_ccells_in_arriving_point[x2,y2] = len([agent for agent in self.grids[1].get_cell_list_contents([(x2,y2)]) if agent.agent_type == "cell"])
             for cluster in surviving_clusters:
+                selected_site = self.random.choices(range(1,self.grids_number), weights=extravasation_probs[0:self.grids_number-1])[0]
+                arriving_point = self.random.choice(self.grid_vessels_positions[selected_site])
+                x,y = arriving_point
+                onLeftBorder    = self.grids[selected_site].out_of_bounds((x-1,y))
+                onRightBorder   = self.grids[selected_site].out_of_bounds((x+1,y))
+                onTopBorder     = self.grids[selected_site].out_of_bounds((x,y+1))
+                onBottomBorder  = self.grids[selected_site].out_of_bounds((x,y-1))
+                possible_places = self.grids[selected_site].get_neighborhood(arriving_point, moore=False, include_center=False)
+                number_of_ccells_in_arriving_point ={}
+                for x2,y2 in possible_places:
+                    number_of_ccells_in_arriving_point[x2,y2] = len([agent for agent in self.grids[selected_site].get_cell_list_contents([(x2,y2)]) if agent.agent_type == "cell"])
                 for tuple_index, ccells_amount in enumerate(cluster):
                     cell_type = "mesenchymal" if tuple_index == 0 else "epithelial"
                     while ccells_amount > 0:
                         if not onLeftBorder and carrying_capacity > number_of_ccells_in_arriving_point[x-1,y]:
-                            ccell = CancerCell(self.current_agent_id, self, self.grids[1], self.grid_ids[1], cell_type, self.ecm[1], self.mmp2[1])
+                            ccell = CancerCell(self.current_agent_id, self, self.grids[selected_site], self.grid_ids[selected_site], cell_type, self.ecm[selected_site], self.mmp2[selected_site])
                             self.current_agent_id += 1
-                            self.grids[1].place_agent(ccell, (x-1,y)) 
+                            self.grids[selected_site].place_agent(ccell, (x-1,y)) 
                             number_of_ccells_in_arriving_point[x-1,y] += 1
                             self.schedule.add(ccell)
                         elif not onRightBorder and carrying_capacity > number_of_ccells_in_arriving_point[x+1,y]:
-                            ccell = CancerCell(self.current_agent_id, self, self.grids[1], self.grid_ids[1], cell_type, self.ecm[1], self.mmp2[1])
+                            ccell = CancerCell(self.current_agent_id, self, self.grids[selected_site], self.grid_ids[selected_site], cell_type, self.ecm[selected_site], self.mmp2[selected_site])
                             self.current_agent_id += 1
-                            self.grids[1].place_agent(ccell, (x+1,y))
+                            self.grids[selected_site].place_agent(ccell, (x+1,y))
                             number_of_ccells_in_arriving_point[x+1,y] += 1
                             self.schedule.add(ccell)
                         elif not onBottomBorder and carrying_capacity > number_of_ccells_in_arriving_point[x,y-1]:
-                            ccell = CancerCell(self.current_agent_id, self, self.grids[1], self.grid_ids[1], cell_type, self.ecm[1], self.mmp2[1])
+                            ccell = CancerCell(self.current_agent_id, self, self.grids[selected_site], self.grid_ids[selected_site], cell_type, self.ecm[selected_site], self.mmp2[selected_site])
                             self.current_agent_id += 1
-                            self.grids[1].place_agent(ccell, (x,y-1))
+                            self.grids[selected_site].place_agent(ccell, (x,y-1))
                             number_of_ccells_in_arriving_point[x,y-1] += 1
                             self.schedule.add(ccell)
                         elif not onTopBorder and carrying_capacity > number_of_ccells_in_arriving_point[x,y+1]:
-                            ccell = CancerCell(self.current_agent_id, self, self.grids[1], self.grid_ids[1], cell_type, self.ecm[1], self.mmp2[1])
+                            ccell = CancerCell(self.current_agent_id, self, self.grids[selected_site], self.grid_ids[selected_site], cell_type, self.ecm[selected_site], self.mmp2[selected_site])
                             self.current_agent_id += 1
-                            self.grids[1].place_agent(ccell, (x,y+1))
+                            self.grids[selected_site].place_agent(ccell, (x,y+1))
                             number_of_ccells_in_arriving_point[x,y+1] += 1
                             self.schedule.add(ccell)
                         ccells_amount -= 1
