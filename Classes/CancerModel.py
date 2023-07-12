@@ -92,14 +92,44 @@ def get_distance_matrix(vectors):
 
     Input:
         vectors (list of numpy 2 by 1 arrays): 
+    Returns:
+        distance matrix: len(vectors) by len(Vectors) numpy array with the distances
+        for all vectors.
     """
-    x = np.sum(a**2,axis=1)
-    xx = np.matmul(a,a.T)
+    x = np.sum(vectors**2,axis=1)
+    xx = np.matmul(vectors,vectors.T)
     x2 = x.reshape(-1,1) #transposing the vector
     return numpy.sqrt(x2-2*xx+x)
 
 class CancerModel(mesa.Model):
+    """
+    Class for the model.
 
+    Attributes:
+    ---------------
+    N: int
+        number of initial cancer cells
+    width: int
+        the width of each grid
+    height: int
+        the height of each grid
+    grids_number: int
+        the amount of sites, consideiring the intial tumour site + the secondary sites
+    seed: int
+        the seed used for the random number generation for all the simulation.
+        If None, the random one will be selected by default.
+
+    Methods:
+    ---------------
+    _initialize_grids__()
+        initialize the grid with the initial bessel and cancer cell population
+    proliferate(cellType)
+        Duplicates every cancer cell in the model of the cellType phenotype
+    calculateEnvironments(mmp2, ecm)
+        Calculates the next step for the given arrays of mmp2 and ecm concentrations
+    disaggregate_clusters(time)
+        For a given time, it will dissagregate single cells from clusters
+    """
     def __init__(self, N, width, height, grids_number, seed=None):
         super().__init__()  
         self.vasculature = {}
@@ -134,7 +164,16 @@ class CancerModel(mesa.Model):
         self.ecmData = np.ones((1, self.width, self.height), dtype=float)
 
     def step(self):
-        """Advance the model by one step."""
+        """Advance the model by one step.
+        
+        The step function of the model will be called on each of the siulations steps.
+        It will correctly allocate the cells coming from the vaculature, if any.
+        Then, it will calculate the ECM and MMP2 concentration changes for this step,
+        proliferate the cells if its due, and collect the data if it is the appropiate time.
+
+        Input: none
+        Returns: none
+        """
         self.datacollector.collect(self)
         
         if self.schedule.time in self.vasculature: # Add keys
@@ -225,6 +264,12 @@ class CancerModel(mesa.Model):
 
 
     def proliferate(self, cellType):
+        """"
+        Duplicates every cell of cellType phenotype in every site of the model
+
+        Input: none
+        Returns: none
+        """
         all_agents = [agent for agent in self.schedule.agents]
         total_amount_of_agents = len(all_agents)
         for agent in all_agents:
@@ -241,6 +286,12 @@ class CancerModel(mesa.Model):
 
 
     def _initialize_grids(self):
+        """
+        Places the initial cancer cell and vessel in the initial grid in a circle
+
+        Input: none
+        Returns: none
+        """
         mesenchymal_number = round(self.num_agents * mesenchymal_proportion)
         possible_places = find_quasi_circle(n_center_points_for_tumor, self.width, self.height)[1]
         # Place all the agents in the quasi-circle area in the center of the grid
@@ -403,6 +454,15 @@ class CancerModel(mesa.Model):
                         #ahora hay que mover la celula de acuerdo a las posibilidades
 
     def disaggregate_clusters(self, time):
+        """
+        Dissagregates cells from clusters into single-cell clusters, according to
+        the dissagregation probability
+
+        Input:
+            time: given time for which the dissagreggation will occur
+        Returns: 
+            None
+        """
         big_clusters = [cluster for cluster in self.vasculature[time] if sum(cluster) > 1]
         new_vasculature = [cluster for cluster in self.vasculature[time] if sum(cluster) == 1]
         for cluster in big_clusters:
