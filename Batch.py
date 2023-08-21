@@ -11,9 +11,8 @@ from Classes import utils
 # otherwise it won't save the Mmp2 and Ecm data
 
 # Parameters for this simulation
-maxSteps = 24000
-dataCollectionPeriod = 1000
-
+maxSteps = 20100
+dataCollectionPeriod = 50
 N = 388 # Number of cancer cells
 gridsize     = gridsize_utils #PDF: 201
 width        = gridsize
@@ -24,11 +23,27 @@ grids_number = 3
 simulations_dir = parent_dir
 newSimulationFolder = f"Sim maxSteps-{maxSteps} stepsize-{dataCollectionPeriod} N-{N} gridsNumber-{grids_number}"
 
-def main():
 
-    params = {"N": N, "width": width, "height": height, "grids_number": grids_number} # N=388 pdf
+def run_simulation():
+
+    # Setting parameters for mesa.batch_run
+    params = {"N": N, "width": width, "height": height, "grids_number": grids_number}
+
+
+    # Saves the simulation configuration
+    var_names = dir(utils) + ['maxSteps', 'dataCollectionPeriod', 'N', 'grids_number', 'simulations_dir']
+
+    # Open the file for writing
+    print(f"Saving all the simulations parameters at: {os.path.join(simulations_dir, newSimulationFolder, 'configs.txt')}")
+    with open(os.path.join(simulations_dir, newSimulationFolder, 'configs.txt'), 'w') as f:
+        # Write the values of each variable to the file
+        for name, value in globals().items():
+            if name in var_names:
+                f.write(f'{name}: {value}\n')
+
 
     # The whole simulation occurs here
+    print(f'\n\tStarting the simulation')
     results = mesa.batch_run(
         CancerModel,
         parameters=params,
@@ -39,51 +54,60 @@ def main():
         display_progress=True,
     )
 
-    cells_df = pd.DataFrame(results)
     # Create data frames for the cells
-    print(cells_df)
+    cells_df = pd.DataFrame(results)
+    print(f'Example of data collected: {cells_df.head(10)}')
 
     # Saves data analysis
     nameOfCsv = f'CellsData-{maxSteps}steps-{dataCollectionPeriod}stepsize-{grids_number}grids.csv'
     pathToSave = os.path.join(simulations_dir, newSimulationFolder, nameOfCsv)
     cells_df.to_csv(pathToSave)
-
-    # Saves the simulation configuration
-    var_names = dir(utils) + ['maxSteps', 'dataCollectionPeriod', 'N', 'grids_number', 'simulations_dir']
-
-    # Open the file for writing
-    with open(os.path.join(simulations_dir, newSimulationFolder, 'configs.txt'), 'w') as f:
-        # Write the values of each variable to the file
-        for name, value in globals().items():
-            if name in var_names:
-                f.write(f'{name}: {value}\n')
-    
-    #print('cells_df df')
-    #print(cells_df.head())
-    #print(cells_df.shape)
+    print(f'All data saved')
 
 
-if __name__ == "__main__":
+
+def main_Batch():
 
     # Create parent directory if it doesn't exist
     if not os.path.exists(simulations_dir):
+        print(f'Creating the folder for this simulation at: {simulations_dir}')
         os.makedirs(simulations_dir)
 
     # Creates the path for the new simulation
     path = os.path.join(simulations_dir, newSimulationFolder)
     pathMmp2 = os.path.join(path, "Mmp2")
     pathEcm = os.path.join(path, "Ecm")
+    pathVasculature = os.path.join(path, "Vasculature")
 
     # Create folder for all cells analysis, for Mmp2 matrices and Ecm matrices
     if not os.path.exists(path):
+        print(f'\t Folder for this simulation: {path}')
+        print(f'\t Saving agents data at: {path}')
+        print(f'\t Saving Mmp2 data at: {pathMmp2}')
+        print(f'\t Saving Ecm data at: {pathEcm}')
+        print(f'\t Saving Vasculature data at: {pathVasculature}')
+
         os.makedirs(path)
         os.makedirs(pathMmp2)
         os.makedirs(pathEcm)
-        main()
+        os.makedirs(pathVasculature)
+
+        # Run the simulation and saves the data
+        run_simulation()
 
     # If there is already a simulation you skip it
     else:
-        print("This simulation already exists!")
+        return print("This simulation already exists!")
+
+    return print('Finished the simulation')
+
+
+if __name__ == "__main__":
+
+    # This runs all the code to create folders, run the simulation and save the data
+    main_Batch()
+
+    
 
 
 
