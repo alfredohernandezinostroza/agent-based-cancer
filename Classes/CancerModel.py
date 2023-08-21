@@ -16,6 +16,17 @@ from matplotlib import cm
 
 
 def get_cluster_survival_probability(cluster):
+    """
+    Takes in a tuple representing a cluster, returns the survival probabiltiy.
+    
+    Input:
+        Cluster: a tuple representing the cancer cells cluster, where the first 
+        element corresponds to the amount of Mesenchymal cells, and the second
+        corresponds to the amount of Epithelial cells.
+    Returns:
+        The corresponding survival probability, according to if its a songle-cell
+        cluster or a multi-cellular one.
+    """
     if cluster[0] < 0:
         raise Exception(f"Error! Mesenchymal cells are negative: {cluster[0]}")
     if cluster[1] < 0:
@@ -25,21 +36,100 @@ def get_cluster_survival_probability(cluster):
     elif sum(cluster) > 1:
         return (cluster_survival)
     elif sum(cluster) == 0:
-        raise Exception(f"Error, no cells in cluster! Time: {self.schedule.time}")
+        raise Exception(f"Error, no cells in cluster!")
     else:
         raise Exception(f"Error, nothing returned for cluster survival probability, time {self.schedule.time}")
     
 
 def count_total_cells(model):
+    """Counts all the cells present in the model, in all sites.
+
+    Input:
+        model: CancerModel object.
+    Returns:
+        amount_of_cells (int): the total amount of cells in every site,
+        NOT considering the vasculature    
+    """
     amount_of_cells = len([1 for agent in model.schedule.agents if agent.agent_type == "cell"])
     return amount_of_cells
 
 def count_vasculature_cells(model):
+    """"
+    Counts the total amount of cells in the vasculature
+
+    Input: 
+        model: CancerModel object.
+    Returns:
+        amount_of_cells (int): the total amount of cells in the vasculature
+    """
     amount_of_cells = sum([len(value) for value in model.vasculature.values()])
     return amount_of_cells
 
-class CancerModel(mesa.Model):
+def get_cluster_radius_and_diameter(model,grid_id):
+    """"
+    Calculates the radius and diameter of the cancer cells in a given site.
 
+    Input:
+        model: CancerModel object.
+        grid_id: the grid number for which the radius and diameter will be calculated.
+    Returns:
+        radius: the maximum of all the distances from each cell to the cell's centroid.
+        diameter: the maximum of all the cell-cell distanes.
+    """
+    ccells_positions = np.array([[agent.pos[0],agent.pos.y[1]] for agent in model.schedule.agents if agent.agent_type == "cell" and agent.grid == grid_id])
+    centroid = ccells_positions.mean(axis=0)
+    #calculating radius
+    radii = np.linalg.norm(a - centroid, axis=1)
+    radius= radii.max()
+    #calculating diameter
+    dist_matrix = get_distance_matrix(ccells_positions)
+    diameter = dist_matrix.max()
+    return (radius, diameter)
+
+def get_distance_matrix(vectors):
+    """
+    Calculates the distance matrix between all the vectors in a list
+
+    Input:
+        vectors (list of numpy 2 by 1 arrays): 
+    Returns:
+        distance matrix: len(vectors) by len(Vectors) numpy array with the distances
+        for all vectors.
+    """
+    x = np.sum(vectors**2,axis=1)
+    xx = np.matmul(vectors,vectors.T)
+    x2 = x.reshape(-1,1) #transposing the vector
+    return numpy.sqrt(x2-2*xx+x)
+
+class CancerModel(mesa.Model):
+    """
+    Class for the model.
+
+    Attributes:
+    ---------------
+    N: int
+        number of initial cancer cells
+    width: int
+        the width of each grid
+    height: int
+        the height of each grid
+    grids_number: int
+        the amount of sites, consideiring the intial tumour site + the secondary sites
+    seed: int
+        the seed used for the random number generation for all the simulation.
+        If None, the random one will be selected by default.
+
+    Methods:
+    ---------------
+    _initialize_grids__()
+        initialize the grid with the initial bessel and cancer cell population
+    proliferate(cellType)
+        Duplicates every cancer cell in the model of the cellType phenotype
+    calculateEnvironments(mmp2, ecm)
+        Calculates the next step for the given arrays of mmp2 and ecm concentrations
+    disaggregate_clusters(time)
+        For a given time, it will dissagregate single cells from clusters
+    """
     def __init__(self, N, width, height, grids_number, seed=None):
         super().__init__()  
         self.vasculature = {}
@@ -74,7 +164,16 @@ class CancerModel(mesa.Model):
         self.ecmData = np.ones((1, self.width, self.height), dtype=float)
 
     def step(self):
-        """Advance the model by one step."""
+        """Advance the model by one step.
+        
+        The step function of the model will be called on each of the siulations steps.
+        It will correctly allocate the cells coming from the vaculature, if any.
+        Then, it will calculate the ECM and MMP2 concentration changes for this step,
+        proliferate the cells if its due, and collect the data if it is the appropiate time.
+
+        Input: none
+        Returns: none
+        """
         self.datacollector.collect(self)
         
         if self.schedule.time in self.vasculature: # Add keys
@@ -165,6 +264,12 @@ class CancerModel(mesa.Model):
 
 
     def proliferate(self, cellType):
+        """"
+        Duplicates every cell of cellType phenotype in every site of the model
+
+        Input: none
+        Returns: none
+        """
         all_agents = [agent for agent in self.schedule.agents]
         total_amount_of_agents = len(all_agents)
         for agent in all_agents:
@@ -181,6 +286,12 @@ class CancerModel(mesa.Model):
 
 
     def _initialize_grids(self):
+        """
+        Places the initial cancer cell and vessel in the initial grid in a circle
+
+        Input: none
+        Returns: none
+        """
         mesenchymal_number = round(self.num_agents * mesenchymal_proportion)
         possible_places = find_quasi_circle(n_center_points_for_tumor, self.width, self.height)[1]
         # Place all the agents in the quasi-circle area in the center of the grid
@@ -343,6 +454,15 @@ class CancerModel(mesa.Model):
                         #ahora hay que mover la celula de acuerdo a las posibilidades
 
     def disaggregate_clusters(self, time):
+        """
+        Dissagregates cells from clusters into single-cell clusters, according to
+        the dissagregation probability
+
+        Input:
+            time: given time for which the dissagreggation will occur
+        Returns: 
+            None
+        """
         big_clusters = [cluster for cluster in self.vasculature[time] if sum(cluster) > 1]
         new_vasculature = [cluster for cluster in self.vasculature[time] if sum(cluster) == 1]
         for cluster in big_clusters:
