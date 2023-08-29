@@ -14,7 +14,6 @@ from Classes.QuasiCircle import find_quasi_circle
 from matplotlib import pyplot as plt
 from matplotlib import cm
 
-
 def get_cluster_survival_probability(cluster):
     """
     Takes in a tuple representing a cluster, returns the survival probabiltiy.
@@ -79,8 +78,8 @@ def get_cluster_radius_and_diameter(model,grid_id):
     ccells_positions = np.array([[agent.pos[0],agent.pos.y[1]] for agent in model.schedule.agents if agent.agent_type == "cell" and agent.grid == grid_id])
     centroid = ccells_positions.mean(axis=0)
     #calculating radius
-    radii = np.linalg.norm(a - centroid, axis=1)
-    radius= radii.max()
+    radii  = np.linalg.norm(a - centroid, axis=1)
+    radius = radii.max()
     #calculating diameter
     dist_matrix = get_distance_matrix(ccells_positions)
     diameter = dist_matrix.max()
@@ -173,9 +172,7 @@ class CancerModel(mesa.Model):
 
         Input: none
         Returns: none
-        """
-        self.datacollector.collect(self)
-        
+        """        
         if self.schedule.time in self.vasculature: # Add keys
             self.disaggregate_clusters(self.schedule.time)
             surviving_clusters = [cluster for cluster in self.vasculature[self.schedule.time] if self.random.random() < get_cluster_survival_probability(cluster)]
@@ -230,7 +227,6 @@ class CancerModel(mesa.Model):
         if (self.schedule.time % doublingTimeE == 0 and self.schedule.time != 0):
             self.proliferate("epithelial")
 
-
         # Saving of non agents data
         if isBatchRun and (self.schedule.time % dataCollectionPeriod == 0):
             # Saving Mmp2 and Ecm data
@@ -240,13 +236,10 @@ class CancerModel(mesa.Model):
                 pathToSave = os.path.join(parent_dir, newSimulationFolder, "Mmp2", mmp2CsvName)
                 new_mmp2_df.to_csv(pathToSave)
 
-
                 new_ecm_df = pd.DataFrame(self.ecm[grid_id-1][0,:,:])
                 EcmCsvName = f"Ecm-{grid_id}grid-{self.schedule.time}step.csv"
                 pathToSave = os.path.join(parent_dir, newSimulationFolder, "Ecm", EcmCsvName)
                 new_ecm_df.to_csv(pathToSave)
-
-
 
             # Saves vasculature data
             if self.schedule.time == maxSteps:
@@ -261,6 +254,7 @@ class CancerModel(mesa.Model):
 
         print(f'step number: {self.schedule.time}')
         self.schedule.step()
+        self.datacollector.collect(self)
 
 
     def proliferate(self, cellType):
