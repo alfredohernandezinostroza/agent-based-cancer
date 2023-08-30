@@ -6,13 +6,15 @@ import os
 from Classes.utils import parent_dir, gridsize_utils
 from Classes import utils
 
+print("Testinf")
+
 # To run this code you must be in the parent folder of agent-based-cancer
 # Before running this code always check if isBatchRun = True is in Utils
 # otherwise it won't save the Mmp2 and Ecm data
 
 # Parameters for this simulation
-maxSteps = 20100
-dataCollectionPeriod = 50
+maxSteps = 5
+dataCollectionPeriod = 1
 N = 388 # Number of cancer cells
 gridsize     = gridsize_utils #PDF: 201
 width        = gridsize
@@ -27,7 +29,7 @@ newSimulationFolder = f"Sim maxSteps-{maxSteps} stepsize-{dataCollectionPeriod} 
 def run_simulation():
 
     # Setting parameters for mesa.batch_run
-    params = {"N": N, "width": width, "height": height, "grids_number": grids_number}
+    params = {"N": N, "width": width, "height": height, "grids_number": grids_number, "maxSteps": maxSteps, "dataCollectionPeriod": dataCollectionPeriod, "newSimulationFolder": newSimulationFolder }
 
 
     # Saves the simulation configuration

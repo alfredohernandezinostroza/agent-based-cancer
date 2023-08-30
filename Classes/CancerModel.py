@@ -8,7 +8,6 @@ import json
 from Classes.CancerCell import CancerCell
 from Classes.Vessel import Vessel
 from Classes.utils import *
-from Batch import maxSteps, dataCollectionPeriod, newSimulationFolder # Used to save mmp2 and ecm during runtime
 
 from Classes.QuasiCircle import find_quasi_circle
 from matplotlib import pyplot as plt
@@ -129,7 +128,7 @@ class CancerModel(mesa.Model):
     disaggregate_clusters(time)
         For a given time, it will dissagregate single cells from clusters
     """
-    def __init__(self, N, width, height, grids_number, seed=None):
+    def __init__(self, N, width, height, grids_number, maxSteps, dataCollectionPeriod, newSimulationFolder, seed=None):
         super().__init__()  
         self.vasculature = {}
         self.num_agents = N
@@ -138,27 +137,22 @@ class CancerModel(mesa.Model):
         self.phenotypes = ["mesenchymal", "epithelial"]
         self.grid_vessels_positions = [[],[],[]]
         self.current_agent_id = 0
-
+        self.maxSteps = maxSteps
+        self.dataCollectionPeriod = dataCollectionPeriod
+        self.newSimulationFolder  = newSimulationFolder 
         self.mesenchymalCount = [np.zeros((width, height), dtype=np.float) for _ in range(grids_number)]
         self.epithelialCount = [np.zeros((width, height), dtype=np.float) for _ in range(grids_number)]
-
         self.grids_number = grids_number
-        
         self.grids = [mesa.space.MultiGrid(width, height, False) for _ in range(self.grids_number)]
         self.grid_ids = [i+1 for i in range(self.grids_number)] # need a number to appear in the data analysis (.csv)
-        
         self.schedule = mesa.time.RandomActivation(self)
         #list of numpy arrays, representing mmp2 and ecm concentration in each grid
         self.mmp2 = [np.zeros((2, width, height), dtype=float) for _ in range(grids_number)]
         self.ecm = [np.ones((2, width, height), dtype=float) for _ in range(grids_number)]
-
         self._initialize_grids()
-
         self.datacollector = mesa.DataCollector(
             model_reporters={"Total cells": count_total_cells}, agent_reporters={"Position": "pos", "Agent Type": "agent_type", "Phenotype": "phenotype", "Ruptured": "ruptured", "Grid": "grid_id"})
-
         #model_reporters={"Mmp2": "mmp2", "Grid": "grid"},
-
         self.mmp2Data = np.zeros((1, self.width, self.height), dtype=float)
         self.ecmData = np.ones((1, self.width, self.height), dtype=float)
 
@@ -228,30 +222,32 @@ class CancerModel(mesa.Model):
             self.proliferate("epithelial")
 
         # Saving of non agents data
-        if isBatchRun and (self.schedule.time % dataCollectionPeriod == 0):
+        if isBatchRun and (self.schedule.time % self.dataCollectionPeriod == 0):
             # Saving Mmp2 and Ecm data
             for grid_id in self.grid_ids:
                 new_mmp2_df = pd.DataFrame(self.mmp2[grid_id-1][0,:,:])
                 mmp2CsvName = f"Mmp2-{grid_id}grid-{self.schedule.time}step.csv"
-                pathToSave = os.path.join(parent_dir, newSimulationFolder, "Mmp2", mmp2CsvName)
+                pathToSave = os.path.join(parent_dir, self.newSimulationFolder, "Mmp2", mmp2CsvName)
                 new_mmp2_df.to_csv(pathToSave)
 
                 new_ecm_df = pd.DataFrame(self.ecm[grid_id-1][0,:,:])
                 EcmCsvName = f"Ecm-{grid_id}grid-{self.schedule.time}step.csv"
-                pathToSave = os.path.join(parent_dir, newSimulationFolder, "Ecm", EcmCsvName)
+                pathToSave = os.path.join(parent_dir, self.newSimulationFolder, "Ecm", EcmCsvName)
                 new_ecm_df.to_csv(pathToSave)
 
             # Saves vasculature data
-            if self.schedule.time == maxSteps:
+            if self.schedule.time == self.maxSteps:
                 vasculature_json = json.dumps(self.vasculature)
                 # {key: list of clusters} -> {timestep: [(number of Mcells, number of Ecells), ..., (..., ...)]}
                 
                 vasculatureJsonName = f"Vasculature-{self.schedule.time}step.json"
-                pathToSave = os.path.join(parent_dir, newSimulationFolder, "Vasculature", vasculatureJsonName)
+                pathToSave = os.path.join(parent_dir, self.newSimulationFolder, "Vasculature", vasculatureJsonName)
                 
                 with open(pathToSave, 'w') as f:
                     f.write(vasculature_json)
-
+                    
+            # Saves cancer cells data
+                #dadsa
         print(f'step number: {self.schedule.time}')
         self.schedule.step()
         self.datacollector.collect(self)
