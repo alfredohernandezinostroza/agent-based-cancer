@@ -6,27 +6,58 @@ import os
 from Classes.utils import parent_dir, gridsize_utils
 from Classes import utils
 
-print("Testinf")
-
 # To run this code you must be in the parent folder of agent-based-cancer
 # Before running this code always check if isBatchRun = True is in Utils
 # otherwise it won't save the Mmp2 and Ecm data
 
-# Parameters for this simulation
-maxSteps = 5
-dataCollectionPeriod = 1
-N = 388 # Number of cancer cells
-gridsize     = gridsize_utils #PDF: 201
-width        = gridsize
-height       = gridsize
-grids_number = 3
+def main_Batch(maxSteps, dataCollectionPeriod):
 
-# Name of the directories
-simulations_dir = parent_dir
-newSimulationFolder = f"Sim maxSteps-{maxSteps} stepsize-{dataCollectionPeriod} N-{N} gridsNumber-{grids_number}"
+    # Parameters for this simulation
+    N = 388 # Number of cancer cells
+    gridsize     = gridsize_utils #PDF: 201
+    width        = gridsize
+    height       = gridsize
+    grids_number = 3
+
+    # Name of the directories
+    simulations_dir = parent_dir
+    newSimulationFolder = f"Sim maxSteps-{maxSteps} stepsize-{dataCollectionPeriod} N-{N} gridsNumber-{grids_number}"
+
+    # Create parent directory if it doesn't exist
+    if not os.path.exists(simulations_dir):
+        print(f'Creating the folder for this simulation at: {simulations_dir}')
+        os.makedirs(simulations_dir)
+
+    # Creates the path for the new simulation
+    path = os.path.join(simulations_dir, newSimulationFolder)
+    pathMmp2 = os.path.join(path, "Mmp2")
+    pathEcm = os.path.join(path, "Ecm")
+    pathVasculature = os.path.join(path, "Vasculature")
+
+    # Create folder for all cells analysis, for Mmp2 matrices and Ecm matrices
+    if not os.path.exists(path):
+        print(f'\t Folder for this simulation: {path}')
+        print(f'\t Saving agents data at: {path}')
+        print(f'\t Saving Mmp2 data at: {pathMmp2}')
+        print(f'\t Saving Ecm data at: {pathEcm}')
+        print(f'\t Saving Vasculature data at: {pathVasculature}')
+
+        os.makedirs(path)
+        os.makedirs(pathMmp2)
+        os.makedirs(pathEcm)
+        os.makedirs(pathVasculature)
+
+        # Run the simulation and saves the data
+        run_simulation(N, width, height, grids_number, maxSteps, dataCollectionPeriod, newSimulationFolder, simulations_dir)
+
+    # If there is already a simulation you skip it
+    else:
+        return print("This simulation already exists!")
+
+    return print('Finished the simulation')
 
 
-def run_simulation():
+def run_simulation(N, width, height, grids_number, maxSteps, dataCollectionPeriod, newSimulationFolder, simulations_dir):
 
     # Setting parameters for mesa.batch_run
     params = {"N": N, "width": width, "height": height, "grids_number": grids_number, "maxSteps": maxSteps, "dataCollectionPeriod": dataCollectionPeriod, "newSimulationFolder": newSimulationFolder }
@@ -66,48 +97,11 @@ def run_simulation():
     cells_df.to_csv(pathToSave)
     print(f'All data saved')
 
-
-
-def main_Batch():
-
-    # Create parent directory if it doesn't exist
-    if not os.path.exists(simulations_dir):
-        print(f'Creating the folder for this simulation at: {simulations_dir}')
-        os.makedirs(simulations_dir)
-
-    # Creates the path for the new simulation
-    path = os.path.join(simulations_dir, newSimulationFolder)
-    pathMmp2 = os.path.join(path, "Mmp2")
-    pathEcm = os.path.join(path, "Ecm")
-    pathVasculature = os.path.join(path, "Vasculature")
-
-    # Create folder for all cells analysis, for Mmp2 matrices and Ecm matrices
-    if not os.path.exists(path):
-        print(f'\t Folder for this simulation: {path}')
-        print(f'\t Saving agents data at: {path}')
-        print(f'\t Saving Mmp2 data at: {pathMmp2}')
-        print(f'\t Saving Ecm data at: {pathEcm}')
-        print(f'\t Saving Vasculature data at: {pathVasculature}')
-
-        os.makedirs(path)
-        os.makedirs(pathMmp2)
-        os.makedirs(pathEcm)
-        os.makedirs(pathVasculature)
-
-        # Run the simulation and saves the data
-        run_simulation()
-
-    # If there is already a simulation you skip it
-    else:
-        return print("This simulation already exists!")
-
-    return print('Finished the simulation')
-
-
 if __name__ == "__main__":
-
+    maxSteps = 8
+    dataCollectionPeriod = 1
     # This runs all the code to create folders, run the simulation and save the data
-    main_Batch()
+    main_Batch(maxSteps, dataCollectionPeriod)
 
     
 
