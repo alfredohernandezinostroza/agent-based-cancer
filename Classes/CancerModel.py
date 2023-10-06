@@ -36,7 +36,7 @@ def get_cluster_survival_probability(cluster):
     elif sum(cluster) == 0:
         raise Exception(f"Error, no cells in cluster!")
     else:
-        raise Exception(f"Error, nothing returned for cluster survival probability, time {self.schedule.time}")
+        raise Exception(f"Error, nothing returned for cluster survival probability" )
     
 
 def count_total_cells(model):
@@ -77,7 +77,7 @@ def get_cluster_radius_and_diameter(model,grid_id):
     ccells_positions = np.array([[agent.pos[0],agent.pos.y[1]] for agent in model.schedule.agents if agent.agent_type == "cell" and agent.grid == grid_id])
     centroid = ccells_positions.mean(axis=0)
     #calculating radius
-    radii  = np.linalg.norm(a - centroid, axis=1)
+    radii  = np.linalg.norm(ccells_positions - centroid, axis=1)
     radius = radii.max()
     #calculating diameter
     dist_matrix = get_distance_matrix(ccells_positions)
@@ -97,7 +97,7 @@ def get_distance_matrix(vectors):
     x = np.sum(vectors**2,axis=1)
     xx = np.matmul(vectors,vectors.T)
     x2 = x.reshape(-1,1) #transposing the vector
-    return numpy.sqrt(x2-2*xx+x)
+    return np.sqrt(x2-2*xx+x)
 
 class CancerModel(mesa.Model):
     """
