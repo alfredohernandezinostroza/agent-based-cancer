@@ -199,7 +199,7 @@ def plotVasculatureBarGraph(figCounter, pathToSave, vasculature_json_path, max_s
     figure_path = os.path.join(pathToSave, f'Vasculature-step{max_step}.png')
     plt.savefig(figure_path)
 
-def main_graphs():
+def generate_graphs(nameOfTheSimulation):
     SimulationPath = os.path.join(parent_dir, nameOfTheSimulation)
     print(f'\tAnalyzing data in the folder {SimulationPath}\n')
 
@@ -290,14 +290,14 @@ def main_graphs():
 
         # Plot the cells graphs
         print(f'\tPlotting tumor graphs...')
-        for id, step in enumerate(range(0,max_step+1,step_size)):
+        for id, step in enumerate(range(1,max_step+1,step_size)):
             plotCancer(getCoordsForPlot(step, first_csv_path, grid_id), figCounter, imagesFolder, grid_id, step, TumorImagesPath)
             plt.close()
             figCounter += 1
 
         # Plot the Mmp2 graphs
         print(f'\tPlotting Mmp2 graphs...')
-        for id, step in enumerate(range(0,max_step+1,step_size)):
+        for id, step in enumerate(range(1,max_step+1,step_size)):
             mmp2_files_path_this_grid = [path for path in mmp2_files_path if f"Mmp2-{grid_id}grid-" in path]
             plotMMP2orECM(id, step, mmp2_files_path_this_grid, figCounter, grid_id, Mmp2ImagesPath, type="Mmp2")
             plt.close()
@@ -305,7 +305,7 @@ def main_graphs():
 
         # Plot the Ecm graphs
         print(f'\tPlotting Ecm graphs...')
-        for id, step in enumerate(range(0,max_step+1,step_size)):
+        for id, step in enumerate(range(1,max_step+1,step_size)):
             ecm_files_path_this_grid = [path for path in ecm_files_path if f"Ecm-{grid_id}grid-" in path]
             plotMMP2orECM(id, step, ecm_files_path_this_grid, figCounter, grid_id, EcmImagesPath, type="Ecm")
             plt.close()
@@ -313,7 +313,7 @@ def main_graphs():
 
         # Plot the growth of ephitelial and mesenchymal cells
         print(f'\tPlotting cells numbers graph...')
-        for id, step in enumerate(range(0,max_step+1,step_size)):
+        for id, step in enumerate(range(1,max_step+1,step_size)):
             plotGrowthData(figCounter, first_csv_path, step_size, grid_id , CellsImagesPath, step)
             plt.close()
             figCounter += 1
@@ -334,10 +334,10 @@ def main_graphs():
 if __name__ == "__main__":
 
     # CHANGE THIS LINE according to the simulation you want to plot the graphs
-    nameOfTheSimulation = "Sim maxSteps-10 stepsize-1 N-388 gridsNumber-3"
+    nameOfTheSimulation = "Sim maxSteps-5 stepsize-1 N-388 gridsNumber-3"
 
     # This runs all the code to generate the graphs in the folder
-    main_graphs()
+    generate_graphs(nameOfTheSimulation)
 
 
 

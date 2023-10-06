@@ -106,7 +106,7 @@ def create_combined_video(images_by_grid_list, video_path, frameRate):
     out.release()
     print(f"\tGenerated video: {video_path}")
 
-def main_video(nameOfTheSimulation, frameRate):
+def generate_videos(nameOfTheSimulation, frameRate):
     
     # Path where the folder of images are located
     ImagesFolderPath = os.path.join(parent_dir, nameOfTheSimulation, imagesFolder_utils)
@@ -197,6 +197,6 @@ if __name__ == "__main__":
     frameRate = 20
 
     # This runs all the code to generate the videos
-    main_video(nameOfTheSimulation, frameRate)
+    generate_videos(nameOfTheSimulation, frameRate)
 
 
