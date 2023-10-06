@@ -140,8 +140,8 @@ class CancerModel(mesa.Model):
         self.maxSteps = maxSteps
         self.dataCollectionPeriod = dataCollectionPeriod
         self.newSimulationFolder  = newSimulationFolder 
-        self.mesenchymalCount = [np.zeros((width, height), dtype=np.float) for _ in range(grids_number)]
-        self.epithelialCount = [np.zeros((width, height), dtype=np.float) for _ in range(grids_number)]
+        self.mesenchymalCount = [np.zeros((width, height), dtype=float) for _ in range(grids_number)]
+        self.epithelialCount = [np.zeros((width, height), dtype=float) for _ in range(grids_number)]
         self.grids_number = grids_number
         self.grids = [mesa.space.MultiGrid(width, height, False) for _ in range(self.grids_number)]
         self.grid_ids = [i+1 for i in range(self.grids_number)] # need a number to appear in the data analysis (.csv)
@@ -405,7 +405,7 @@ class CancerModel(mesa.Model):
     def calculateEnvironment(self, mmp2, ecm):
         for i in range(len(mmp2)):
             for cell in self.grids[i].coord_iter():
-                cell_contents, x, y = cell
+                cell_contents, (x, y) = cell
                 diff = 0
                 self.mesenchymalCount[i][x,y] = 0
                 self.epithelialCount[i][x,y] = 0
