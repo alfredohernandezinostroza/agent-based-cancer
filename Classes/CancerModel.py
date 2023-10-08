@@ -500,24 +500,3 @@ class CancerModel(mesa.Model):
     #        fig.colorbar(surf, shrink=0.5, aspect=10)
     #        
     #        plt.show()
-
-
-
-#step number: 488 and vasculature: {488: [(5, 0)]}
-#step number: 488
-#  0%|                                                                                                    | 0/1 [06:26<?, ?it/s] 
-#Traceback (most recent call last):
-#  File "c:\Users\vinis\Desktop\Pesquisa IST 2022 - modelagem python células cancer\Repositório-Git\agent-based-cancer\Batch.py", line 82, in <module>
-#    main()
-#  File "c:\Users\vinis\Desktop\Pesquisa IST 2022 - modelagem python células cancer\Repositório-Git\agent-based-cancer\Batch.py", line 32, in main
-#    results = mesa.batch_run(
-#  File "C:\Users\vinis\Desktop\Pesquisa IST 2022 - modelagem python células cancer\Repositório-Git\.venv\lib\site-packages\mesa\batchrunner.py", line 87, in batch_run
-#    data = process_func(run)
-#  File "C:\Users\vinis\Desktop\Pesquisa IST 2022 - modelagem python células cancer\Repositório-Git\.venv\lib\site-packages\mesa\batchrunner.py", line 157, in _model_run_func
-#    model.step()
-#  File "c:\Users\vinis\Desktop\Pesquisa IST 2022 - modelagem python células cancer\Repositório-Git\agent-based-cancer\Classes\CancerModel.py", line 89, in step
-#    possible_places = self.grid.get_neighborhood(arriving_point, moore=False, include_center=False)
-#AttributeError: 'CancerModel' object has no attribute 'grid'. Did you mean: 'grids'?
-
-
-#step number: 1998 and vasculature: {437: [(1, 0), (1, 0), (3, 0)], 461: [(1, 0), (0, 1)], 529: [(1, 0), (1, 0), (1, 0), (2, 0)], 539: [(1, 0), (1, 0), (1, 0), (2, 0)], 547: [(1, 0), (1, 0), (1, 0), (1, 0), (1, 0), (0, 1), (1, 1)], 573: [(1, 0), (1, 0), (1, 0), (7, 0)], 575: [(1, 0), (1, 0), (1, 0), (1, 0), (1, 0), (5, 0)],
