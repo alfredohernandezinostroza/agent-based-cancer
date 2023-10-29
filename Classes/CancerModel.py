@@ -49,6 +49,7 @@ def count_total_cells(model):
         NOT considering the vasculature    
     """
     amount_of_cells = len([1 for agent in model.schedule.agents if agent.agent_type == "cell"])
+    print(amount_of_cells)
     return amount_of_cells
 
 def count_vasculature_cells(model):
@@ -145,6 +146,7 @@ class CancerModel(mesa.Model):
         self.grids_number = grids_number
         self.grids = [mesa.space.MultiGrid(width, height, False) for _ in range(self.grids_number)]
         self.grid_ids = [i+1 for i in range(self.grids_number)] # need a number to appear in the data analysis (.csv)
+        self.gridHasCells = [(False, 0) for _ in range(self.grids_number)]
         self.schedule = mesa.time.RandomActivation(self)
         #list of numpy arrays, representing mmp2 and ecm concentration in each grid
         self.mmp2 = [np.zeros((2, width, height), dtype=float) for _ in range(grids_number)]
@@ -152,6 +154,8 @@ class CancerModel(mesa.Model):
         self._initialize_grids()
         self.datacollector = mesa.DataCollector(
             model_reporters={"Total cells": count_total_cells}, agent_reporters={"Position": "pos", "Agent Type": "agent_type", "Phenotype": "phenotype", "Ruptured": "ruptured", "Grid": "grid_id"})
+            # model_reporters={"Total cells": count_total_cells, "Cluster radius and diameter": get_cluster_radius_and_diameter,
+            #                   "Amount of vasculature cells": count_vasculature_cells,}, agent_reporters={"Position": "pos", "Agent Type": "agent_type", "Phenotype": "phenotype", "Ruptured": "ruptured", "Grid": "grid_id"})
         #model_reporters={"Mmp2": "mmp2", "Grid": "grid"},
         self.mmp2Data = np.zeros((1, self.width, self.height), dtype=float)
         self.ecmData = np.ones((1, self.width, self.height), dtype=float)
@@ -167,6 +171,7 @@ class CancerModel(mesa.Model):
         Input: none
         Returns: none
         """        
+        print("=========================================")
         if self.schedule.time in self.vasculature: # Add keys
             self.disaggregate_clusters(self.schedule.time)
             surviving_clusters = [cluster for cluster in self.vasculature[self.schedule.time] if self.random.random() < get_cluster_survival_probability(cluster)]
@@ -216,7 +221,9 @@ class CancerModel(mesa.Model):
         
         # Reprodução
         if (self.schedule.time % doublingTimeM == 0 and self.schedule.time != 0):
+            print(f"Before proliferating: {count_total_cells(self)}")
             self.proliferate("mesenchymal")
+            print(f"After proliferating: {count_total_cells(self)}")
 
         if (self.schedule.time % doublingTimeE == 0 and self.schedule.time != 0):
             self.proliferate("epithelial")
@@ -235,6 +242,12 @@ class CancerModel(mesa.Model):
                 pathToSave = os.path.join(parent_dir, self.newSimulationFolder, "Ecm", EcmCsvName)
                 new_ecm_df.to_csv(pathToSave)
 
+                bool_grid_df = pd.DataFrame({'GridHasCell': self.gridHasCells[grid_id-1][1]}, index=[0])
+                BoolCsvName = f"Ecm-{grid_id}grid-{self.schedule.time}step.csv"
+                pathToSave = os.path.join(parent_dir, self.newSimulationFolder, BoolCsvName)
+                bool_grid_df.to_csv(pathToSave)
+
+
             # Saves vasculature data
             if self.schedule.time == self.maxSteps:
                 vasculature_json = json.dumps(self.vasculature)
@@ -252,6 +265,13 @@ class CancerModel(mesa.Model):
         self.schedule.step()
         self.datacollector.collect(self)
 
+        #at the end of each step, check if the grid has been populated, and if it happened, store the time step it did
+        for index, (grid_cell_state, _) in enumerate(self.gridHasCells):
+            if not grid_cell_state:
+                cell_count = len([1 for agent in self.schedule.agents if agent.agent_type == "cell" and agent.grid == index])
+                if cell_count > 0:
+                    self.gridHasCells[index] = (True, self.schedule.time)
+
 
     def proliferate(self, cellType):
         """"
@@ -267,6 +287,7 @@ class CancerModel(mesa.Model):
                 x, y = agent.pos
                 amount_of_cells = len([cell for cell in agent.grid.get_cell_list_contents([(x, y)]) if cell.agent_type == "cell"])
                 if carrying_capacity > amount_of_cells and agent.phenotype == cellType:
+                    print("Created new cell!!")
                     new_cell = CancerCell(self.current_agent_id, self, agent.grid, agent.grid_id, agent.phenotype, agent.ecm, agent.mmp2)
                     self.current_agent_id += 1
                     self.schedule.add(new_cell)
