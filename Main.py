@@ -24,6 +24,8 @@ def simulation_menu():
     print("==================================================================")
     print("New simulation")
     print("==================================================================")
+    input()
+    
     total_steps = input("Select maximum number of steps: ")
     interval_steps = input("Select the size of the intervals for which the information will be collected: ")
     Batch.main_Batch(int(total_steps), int(interval_steps))    
@@ -36,6 +38,11 @@ def load_simulation_menu():
     selected_simulation = menu_loop(folder_names, selected_option, postprocessing_title)
     if selected_simulation == "Exit":
         exit()
+    input()
+    total_steps = input("Select maximum number of steps: ")
+    interval_steps = input("Select the size of the intervals for which the information will be collected: ")
+    Batch.main_Batch(int(total_steps), int(interval_steps))    
+    
 
 
 def postprocessing_menu():
