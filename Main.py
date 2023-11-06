@@ -37,8 +37,8 @@ def simulation_menu():
     # total_steps = input("Select  number of seconds: ") #change this to days, and convert this to steps using the relevant parameter
     
     # input()
-    total_steps = get_input("Select the total timesteps the simulation will take: ") #convert this to time and show, asking if it;s ok instead of the other comments
-    interval_steps = get_input("Select the size of the intervals for which the information will be collected: ")
+    total_steps = get_int_input("Select the total timesteps the simulation will take: ") #convert this to time and show, asking if it;s ok instead of the other comments
+    interval_steps = get_int_input("Select the size of the intervals for which the information will be collected: ")
     Batch.main_Batch(total_steps, interval_steps)
 
 
@@ -55,8 +55,8 @@ def load_simulation_menu():
         listener.join()
         if selected_option == "Exit":
             os._exit(1)
-    total_steps = get_input("Select additional number of steps until the loaded simulation will continue: ")
-    interval_steps = get_input("Select the size of the intervals for which the information will be collected: ")
+    total_steps = get_int_input("Select additional number of steps until the loaded simulation will continue: ")
+    interval_steps = get_int_input("Select the size of the intervals for which the information will be collected: ")
     Batch.main_Batch(total_steps, interval_steps)
 
 def postprocessing_menu():
@@ -130,7 +130,7 @@ def get_folder_names(directory_path):
     folder_names.sort(key=lambda x: os.path.getmtime(f"{directory_path}\{x}"), reverse=True)
     return folder_names
 
-def get_input(text):
+def get_int_input(text):
     result = ''
     while not isinstance(result, int):
         while result == '':
