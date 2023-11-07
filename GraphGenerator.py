@@ -65,7 +65,7 @@ def plotCancer(coordsList, figCounter, imagesFolder, grid_id, step, TumorImagesP
     # save the figure
     figure_path = os.path.join(TumorImagesPath, f'Cells-grid{grid_id}-step{step} - Tumor size at {11/24000 * step:.2f} days.png')
     plt.savefig(figure_path)
-    # df_export = pd.Dataframe([Xm, Ym, Xe, Ye, Xv, Yv, Xvr, Yvr])
+    # df_export = pd.DataFrame([Xm, Ym, Xe, Ye, Xv, Yv, Xvr, Yvr])
     # df_export.save_to_csv("dadsa")
 
 
