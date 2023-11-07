@@ -34,16 +34,21 @@ def getCoordsForPlot(step, allCellsCsvPath, grid_id):
 
     return [Xm, Ym, Xe, Ye, Xv, Yv, Xvr, Yvr]
 
-def plotCancer(coordsList, dataFolder, grid_id, step, TumorDataPath):
+def saveCancer(coordsList, grid_id, step, TumorDataPath):
 
     Xm, Ym, Xe, Ye, Xv, Yv, Xvr, Yvr = coordsList[0], coordsList[1], coordsList[2], coordsList[3], coordsList[4], coordsList[5], coordsList[6], coordsList[7]
 
     # save the data
     df_export = pd.Dataframe([Xm, Ym, Xe, Ye, Xv, Yv, Xvr, Yvr])
-    df_export.save_to_csv(f'Cells-grid{grid_id}-step{step} - Tumor size at {11/24000 * step:.2f} days.csv')
+    path = os.path.join(TumorDataPath, f'Cells-grid{grid_id}-step{step} - Tumor size at {11/24000 * step:.2f} days.csv')
+    df_export.save_to_csv(path)
+
+    #this will return the radius and diameter of the processed tumor
+    df_positions = pd.DataFrame([Xm + Xe, Ym + Ye])
+    return get_cluster_radius_and_diameter(df_positions, grid_id)
 
 
-def plotGrowthData(fig_index, allCellsCsvPath, stepsize, grid_id, CellsDataPath, step_number):
+def saveGrowthData(fig_index, allCellsCsvPath, stepsize, grid_id, CellsDataPath, step_number):
     # get data at each step
     df = pd.read_csv(allCellsCsvPath, converters={"Position": ast.literal_eval})
     df = df[["Step", "Total cells", "Phenotype", "Grid"]]
@@ -73,7 +78,7 @@ def plotGrowthData(fig_index, allCellsCsvPath, stepsize, grid_id, CellsDataPath,
     df_csv = pd.DataFrame({"Number of Epithelial Cells": numberEpithelialEachStep, "Number of Mesenchymal Cells": numberMesenchymalEachStep, "Days": steps*11/24000})
     df_csv.to_csv(path_to_save + ".csv")
 
-def plotVasculatureGraphs(pathToSave, vasculature_json_path, max_step):
+def saveVasculatureData(pathToSave, vasculature_json_path, max_step):
     # Reads the dict in the json file
     with open(vasculature_json_path, 'r') as f:
         vasculature_dict = json.load(f)
@@ -193,21 +198,61 @@ def generate_data(nameOfTheSimulation):
 
         # Plot the cells graphs
         print(f'\tSaving tumor data...')
+        df_radius_diameter_history = pd.DataFrame(columns=['Radius', 'Diameter', 'Step', 'Grid Id'])
         for id, step in enumerate(range(1,max_step+1,step_size)):
-            plotCancer(getCoordsForPlot(step, first_csv_path, grid_id), dataFolder, grid_id, step, TumorDataPath)
+            (radius, diameter) = saveCancer(getCoordsForPlot(step, first_csv_path, grid_id), grid_id, step, TumorDataPath)
+            new_row = {'Radius': radius, 'Diameter': diameter, 'Step': step, 'Grid Id': grid_id}
+            df_radius_diameter_history.append(new_row, ignore_index=True)
+        path = os.path.join(TumorDataPath, f'Tumor radius and diameter history at {11/24000 * step:.2f} days.csv')
+        df_radius_diameter_history.save_to_csv(path)
 
 
         # Plot the growth of ephitelial and mesenchymal cells
         print(f'\tPlotting cells numbers graph...')
         for id, step in enumerate(range(1,max_step+1,step_size)):
-            plotGrowthData(first_csv_path, step_size, grid_id , CellsDataPath, step)
+            saveGrowthData(first_csv_path, step_size, grid_id , CellsDataPath, step)
 
     # Plot the vasculature data
     print(f'Plotting vasculature...')
     for id, step in enumerate(range(0,max_step+1,step_size)):
-        plotVasculatureGraphs(   VasculatureDataPath, first_vasculature_path, step)
+        saveVasculatureData(VasculatureDataPath, first_vasculature_path, step)
 
-###########################################################################################################
+
+def get_cluster_radius_and_diameter(ccells_positions, grid_id):
+    """"
+    Calculates the radius and diameter of the cancer cells in a given site.
+
+    Input:
+        model_dataframe: the dataframe containing al information about the model
+        grid_id: the grid number for which the radius and diameter will be calculated.
+    Returns:
+        radius: the maximum of all the distances from each cell to the cell's centroid.
+        diameter: the maximum of all the cell-cell distanes.
+    """
+
+    centroid = ccells_positions.mean(axis=0)
+    #calculating radius
+    radii  = np.linalg.norm(ccells_positions - centroid, axis=1)
+    radius = radii.max()
+    #calculating diameter
+    dist_matrix = get_distance_matrix(ccells_positions)
+    diameter = dist_matrix.max()
+    return (radius, diameter)
+
+def get_distance_matrix(vectors):
+    """
+    Calculates the distance matrix between all the vectors in a list
+
+    Input:
+        vectors (list of numpy 2 by 1 arrays): 
+    Returns:
+        distance matrix: len(vectors) by len(Vectors) numpy array with the distances
+        for all vectors.
+    """
+    x = np.sum(vectors**2,axis=1)
+    xx = np.matmul(vectors,vectors.T)
+    x2 = x.reshape(-1,1) #transposing the vector
+    return np.sqrt(x2-2*xx+x)
 
 if __name__ == "__main__":
 
