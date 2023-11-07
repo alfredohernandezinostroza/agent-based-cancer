@@ -2,6 +2,7 @@ import csv
 from pynput import keyboard
 import os
 import sys
+import DataGenerator
 import GraphGenerator
 import VideoGenerator
 import time
@@ -72,7 +73,7 @@ def postprocessing_menu():
         listener.join()
         if selected_option == "Exit":
             os._exit(1)
-    options_list = ["Exit", "Run all", "Generate graphs", "Generate videos", "Cell site Histogram", "Position Histogram"]
+    options_list = ["Exit", "Run all", "Generate data", "Generate graphs", "Generate videos", "Cell site Histogram", "Position Histogram"]
     selected_simulation = selected_option
     with keyboard.Listener(on_press = on_press) as listener:
         os.system('cls')
@@ -80,6 +81,9 @@ def postprocessing_menu():
         listener.join()
         if selected_option == "Exit":
             os._exit(1)
+        if selected_option == "Generate data":
+            DataGenerator.generate_data(selected_simulation)
+            time.sleep(3)
         if selected_option == "Generate graphs":
             GraphGenerator.generate_graphs(selected_simulation)
             time.sleep(3)
