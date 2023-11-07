@@ -48,7 +48,7 @@ def load_simulation_menu():
     directory_path = "Simulations"
     folder_names = ["Exit"] + get_folder_names(directory_path)
     options_list = folder_names
-    selected_option = 0
+    selected_option_index = 0
     banner_message = "Load simulation: select simulation"
     with keyboard.Listener(on_press = on_press) as listener:
         os.system('cls')
@@ -65,7 +65,7 @@ def postprocessing_menu():
     directory_path = "Simulations"
     folder_names = ["Exit"] + get_folder_names(directory_path)
     options_list = folder_names
-    selected_option = 0
+    selected_option_index = 0
     banner_message = "Postprocessing: select simulation"
     with keyboard.Listener(on_press = on_press) as listener:
         os.system('cls')
@@ -75,6 +75,7 @@ def postprocessing_menu():
             os._exit(1)
     options_list = ["Exit", "Run all", "Generate data", "Generate graphs", "Generate videos", "Cell site Histogram", "Position Histogram"]
     selected_simulation = selected_option
+    selected_option_index = 0
     with keyboard.Listener(on_press = on_press) as listener:
         os.system('cls')
         print_menu()
