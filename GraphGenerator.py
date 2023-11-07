@@ -1,3 +1,4 @@
+import ast
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
@@ -10,7 +11,7 @@ import json
 # To run this code you must be in the parent folder of agent-based-cancer
 
 def getCoordsForPlot(step, allCellsCsvPath, grid_id):
-    df = pd.read_csv(allCellsCsvPath)
+    df = pd.read_csv(allCellsCsvPath, converters={"Position": ast.literal_eval})
     df = df[["Step", "Total cells", "Position", "Phenotype", "Grid", "Agent Type", "Ruptured"]]
 
     # Select the step you want to plot, from 0 to 24000 (~11 days)
@@ -64,11 +65,13 @@ def plotCancer(coordsList, figCounter, imagesFolder, grid_id, step, TumorImagesP
     # save the figure
     figure_path = os.path.join(TumorImagesPath, f'Cells-grid{grid_id}-step{step} - Tumor size at {11/24000 * step:.2f} days.png')
     plt.savefig(figure_path)
+    # df_export = pd.Dataframe([Xm, Ym, Xe, Ye, Xv, Yv, Xvr, Yvr])
+    # df_export.save_to_csv("dadsa")
 
 
 def plotGrowthData(fig_index, allCellsCsvPath, stepsize, grid_id, CellsImagesPath, step_number):
     # get data at each step
-    df = pd.read_csv(allCellsCsvPath)
+    df = pd.read_csv(allCellsCsvPath, converters={"Position": ast.literal_eval})
     df = df[["Step", "Total cells", "Phenotype", "Grid"]]
     df = df.loc[(df["Grid"] == grid_id) & (df["Step"] <= step_number)]
     plt.figure(fig_index)
@@ -76,6 +79,8 @@ def plotGrowthData(fig_index, allCellsCsvPath, stepsize, grid_id, CellsImagesPat
     # For mesenchymal
     #stepsize = 3000 doubling rate, since it is different it will stay horizontal sometimes
     df_m = df.loc[(df["Step"] % stepsize == 0)]
+    if df_m.empty:
+        return
     # create arrays with the step number and number of cells
     steps = np.arange(0, max(df_m["Step"]) + 1, stepsize)
     numberMesenchymalEachStep = [df_m.loc[(df_m["Step"] == step) & (df_m["Phenotype"] == "mesenchymal")].shape[0] for step in steps]
@@ -84,6 +89,8 @@ def plotGrowthData(fig_index, allCellsCsvPath, stepsize, grid_id, CellsImagesPat
     # For epithelial
     #stepsize = 2000 doubling rate
     df_e = df.loc[(df["Step"] % stepsize == 0)]
+    if df_e.empty:
+        return
     # create arrays with the step number and number of cells
     steps = np.arange(0, max(df_e["Step"]) + 1, stepsize)
     numberEpithelialEachStep = [df_e.loc[(df_e["Step"] == step) & (df_e["Phenotype"] == "epithelial")].shape[0] for step in steps]
@@ -98,8 +105,12 @@ def plotGrowthData(fig_index, allCellsCsvPath, stepsize, grid_id, CellsImagesPat
 
 
     # save the figure
-    figure_path = os.path.join(CellsImagesPath, f'CellsGrowth-grid{grid_id}-step{step_number} - {11/24000 * step_number:.2f} days.png')
-    plt.savefig(figure_path)
+    path_to_save = os.path.join(CellsImagesPath, f'CellsGrowth-grid{grid_id}-step{step_number} - {11/24000 * step_number:.2f} days')
+    plt.savefig(path_to_save + ".png")
+
+    # #save data from plot into csv
+    # df_csv = pd.DataFrame({"Number of Epithelial Cells": numberEpithelialEachStep, "Number of Mesenchymal Cells": numberMesenchymalEachStep, "Days": steps*11/24000})
+    # df_csv.to_csv(path_to_save + ".csv")
 
 
 def plotMMP2orECM(i, step, files_path, figCounter, grid_id, pathToSave, type="Mmp2"):
@@ -135,7 +146,7 @@ def plotMMP2orECM(i, step, files_path, figCounter, grid_id, pathToSave, type="Mm
         figure_path = os.path.join(pathToSave, f'{type}-grid{grid_id}-step{step} - {11/24000 * step:.2f} days.png')
     plt.savefig(figure_path)
 
-def plotVasculatureBarGraph(figCounter, pathToSave, vasculature_json_path, max_step):
+def plotVasculatureGraphs(figCounter, pathToSave, vasculature_json_path, max_step):
     # Reads the dict in the json file
     with open(vasculature_json_path, 'r') as f:
         vasculature_dict = json.load(f)
@@ -199,6 +210,70 @@ def plotVasculatureBarGraph(figCounter, pathToSave, vasculature_json_path, max_s
     figure_path = os.path.join(pathToSave, f'Vasculature-step{max_step}.png')
     plt.savefig(figure_path)
 
+def plotVasculatureBarGraph(figCounter, pathToSave, vasculature_json_path, max_step):
+    # Reads the dict in the json file
+    with open(vasculature_json_path, 'r') as f:
+        vasculature_dict = json.load(f)
+
+    # Change keys to int and only add the key-value pair that is before the given max_step
+    new_vasculature_dict = {int(k): v for k, v in vasculature_dict.items() if int(k) <= max_step}
+
+    # Prepare the data for the bar chart
+    mesenchymal_data = []
+    epithelial_data = []
+    cluster_data = []
+    time_steps = sorted(new_vasculature_dict.keys())
+    for time_step in time_steps:
+        clusters = new_vasculature_dict[time_step]
+        mesenchymal_count = 0
+        epithelial_count = 0
+        cluster_count = 0
+        for cluster in clusters:
+            mesenchymal_count += cluster[0]
+            epithelial_count += cluster[1]
+            if cluster[0] + cluster[1] > 1:
+                cluster_count += 1
+
+        mesenchymal_data.append(mesenchymal_count)
+        epithelial_data.append(epithelial_count)
+        cluster_data.append(cluster_count)
+
+    # Set up the bar chart
+    plt.style.use("Solarize_Light2")
+    fig, ax = plt.subplots()
+    index = time_steps
+
+    # Calculate the bar width based on the number of time steps
+    #if len(time_steps) == 0:
+    #    num_steps = 1
+    #else:
+    #    num_steps = len(time_steps)
+    #total_width = num_steps * 3 + (num_steps - 1) * 0.5
+    #bar_width = total_width / num_steps * 0.9
+
+    bar_width = 3
+
+    # Plot the data for each category
+    ax.bar(index, mesenchymal_data, bar_width, color='tab:blue', label='Mesenchymal Cells')
+    ax.bar([i + bar_width for i in index], epithelial_data, bar_width, color='tab:orange', label='Epithelial Cells')
+    ax.bar([i + 2 * bar_width for i in index], cluster_data, bar_width, color='darkred', label='Clusters')
+
+    # Set the chart labels, title, and legend
+    ax.set_xlabel('Day')
+    ax.set_ylabel('Cell/Cluster Count')
+    ax.set_title('Vasculature Cell and Cluster Counts')
+    #ax.set_xticks([i + bar_width for i in index] + [max_step])
+    #ax.set_xticklabels([f"{step*11/24000:.3f}" for step in time_steps] + [f"{max_step*11/24000:.3f}"])
+    ax.set_xticks([0, max_step/2, max_step])
+    ax.set_xticklabels([0, f"{(max_step/2)*11/24000:.2f}"] + [f"{max_step*11/24000:.2f}"])
+
+    ax.set_xlim([-0.5, max_step + 0.5])
+    ax.legend(loc="upper left")
+
+    # save the figure
+    figure_path = os.path.join(pathToSave, f'VasculatureBar-step{max_step}.png')
+    plt.savefig(figure_path)
+
 def generate_graphs(nameOfTheSimulation):
     SimulationPath = os.path.join(parent_dir, nameOfTheSimulation)
     print(f'\tAnalyzing data in the folder {SimulationPath}\n')
@@ -254,7 +329,7 @@ def generate_graphs(nameOfTheSimulation):
     grids_number = int(re.search(r"(\d+)grids", first_csv_name).group(1))
 
     # Path to save all the images:
-    imagesFolder = imagesFolder_utils
+    imagesFolder = "Visual analysis"
     imagesPath = os.path.join(SimulationPath, imagesFolder)
 
     TumorImagesPath = os.path.join(imagesPath, "Tumor growth")
@@ -321,6 +396,9 @@ def generate_graphs(nameOfTheSimulation):
     # Plot the vasculature data
     print(f'Plotting vasculature...')
     for id, step in enumerate(range(0,max_step+1,step_size)):
+        plotVasculatureGraphs(figCounter, VasculatureImagesPath, first_vasculature_path, step)
+        plt.close()
+        figCounter += 1
         plotVasculatureBarGraph(figCounter, VasculatureImagesPath, first_vasculature_path, step)
         plt.close()
         figCounter += 1
@@ -334,7 +412,7 @@ def generate_graphs(nameOfTheSimulation):
 if __name__ == "__main__":
 
     # CHANGE THIS LINE according to the simulation you want to plot the graphs
-    nameOfTheSimulation = "Sim maxSteps-5 stepsize-1 N-388 gridsNumber-3"
+    nameOfTheSimulation = "Sim maxSteps-1100 stepsize-100 N-388 gridsNumber-3"
 
     # This runs all the code to generate the graphs in the folder
     generate_graphs(nameOfTheSimulation)
