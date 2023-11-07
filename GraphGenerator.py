@@ -2,7 +2,7 @@ import ast
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
-from Classes.utils import parent_dir, imagesFolder_utils
+from Classes.utils import parent_dir
 from Classes.utils import gridsize_utils as gridsize
 import re
 import os
