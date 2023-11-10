@@ -223,70 +223,6 @@ def plotVasculatureGraphs(figCounter, pathToSave, vasculature_json_path, max_ste
     figure_path = os.path.join(pathToSave, f'Vasculature-step{max_step}.png')
     plt.savefig(figure_path)
 
-def plotVasculatureBarGraph(figCounter, pathToSave, vasculature_json_path, max_step):
-    # Reads the dict in the json file
-    with open(vasculature_json_path, 'r') as f:
-        vasculature_dict = json.load(f)
-
-    # Change keys to int and only add the key-value pair that is before the given max_step
-    new_vasculature_dict = {int(k): v for k, v in vasculature_dict.items() if int(k) <= max_step}
-
-    # Prepare the data for the bar chart
-    mesenchymal_data = []
-    epithelial_data = []
-    cluster_data = []
-    time_steps = sorted(new_vasculature_dict.keys())
-    for time_step in time_steps:
-        clusters = new_vasculature_dict[time_step]
-        mesenchymal_count = 0
-        epithelial_count = 0
-        cluster_count = 0
-        for cluster in clusters:
-            mesenchymal_count += cluster[0]
-            epithelial_count += cluster[1]
-            if cluster[0] + cluster[1] > 1:
-                cluster_count += 1
-
-        mesenchymal_data.append(mesenchymal_count)
-        epithelial_data.append(epithelial_count)
-        cluster_data.append(cluster_count)
-
-    # Set up the bar chart
-    plt.style.use("Solarize_Light2")
-    fig, ax = plt.subplots()
-    index = time_steps
-
-    # Calculate the bar width based on the number of time steps
-    #if len(time_steps) == 0:
-    #    num_steps = 1
-    #else:
-    #    num_steps = len(time_steps)
-    #total_width = num_steps * 3 + (num_steps - 1) * 0.5
-    #bar_width = total_width / num_steps * 0.9
-
-    bar_width = 3
-
-    # Plot the data for each category
-    ax.bar(index, mesenchymal_data, bar_width, color='tab:blue', label='Mesenchymal Cells')
-    ax.bar([i + bar_width for i in index], epithelial_data, bar_width, color='tab:orange', label='Epithelial Cells')
-    ax.bar([i + 2 * bar_width for i in index], cluster_data, bar_width, color='darkred', label='Clusters')
-
-    # Set the chart labels, title, and legend
-    ax.set_xlabel('Day')
-    ax.set_ylabel('Cell/Cluster Count')
-    ax.set_title('Vasculature Cell and Cluster Counts')
-    #ax.set_xticks([i + bar_width for i in index] + [max_step])
-    #ax.set_xticklabels([f"{step*11/24000:.3f}" for step in time_steps] + [f"{max_step*11/24000:.3f}"])
-    ax.set_xticks([0, max_step/2, max_step])
-    ax.set_xticklabels([0, f"{(max_step/2)*11/24000:.2f}"] + [f"{max_step*11/24000:.2f}"])
-
-    ax.set_xlim([-0.5, max_step + 0.5])
-    ax.legend(loc="upper left")
-
-    # save the figure
-    figure_path = os.path.join(pathToSave, f'VasculatureBar-step{max_step}.png')
-    plt.savefig(figure_path)
-
 def generate_graphs(nameOfTheSimulation):
     SimulationPath = os.path.join(parent_dir, nameOfTheSimulation)
     print(f'\tAnalyzing data in the folder {SimulationPath}\n')
@@ -433,9 +369,6 @@ def generate_graphs(nameOfTheSimulation):
     print(f'Plotting vasculature...')
     for id, step in enumerate(range(0,max_step+1,step_size)):
         plotVasculatureGraphs(figCounter, VasculatureImagesPath, first_vasculature_path, step)
-        plt.close()
-        figCounter += 1
-        plotVasculatureBarGraph(figCounter, VasculatureImagesPath, first_vasculature_path, step)
         plt.close()
         figCounter += 1
 
