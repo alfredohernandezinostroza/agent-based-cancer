@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from Classes.utils import parent_dir
 from Classes.utils import gridsize_utils as gridsize
+from Classes.utils import carrying_capacity
 import re
 import os
 import json
@@ -146,6 +147,18 @@ def plotMMP2orECM(i, step, files_path, figCounter, grid_id, pathToSave, type="Mm
         figure_path = os.path.join(pathToSave, f'{type}-grid{grid_id}-step{step} - {11/24000 * step:.2f} days.png')
     plt.savefig(figure_path)
 
+def plot_histogram(data_folder_path, histogram_images_path):
+    csv_files_names = [f for f in os.listdir(data_folder_path) if os.path.isfile(os.path.join(data_folder_path, f)) and f.endswith(".csv")]
+    if csv_files_names:
+        for csv_file in csv_files_names:
+            histogram = pd.read_csv(csv_file)
+            plt.bar(histogram['Bins'], histogram['Frequency'])
+            plt.xticks(range(carrying_capacity + 1))
+            plt.xlim([-1, carrying_capacity + 1])
+            plt.savefig(histogram_images_path)
+    else:
+        raise Exception(f'No CSV files found at {data_folder_path}. Did you run the data analysis first?')
+
 def plotVasculatureGraphs(figCounter, pathToSave, vasculature_json_path, max_step):
     # Reads the dict in the json file
     with open(vasculature_json_path, 'r') as f:
@@ -190,9 +203,9 @@ def plotVasculatureGraphs(figCounter, pathToSave, vasculature_json_path, max_ste
     bar_width = 3
 
     # Plot the data for each category
-    ax.bar(index, mesenchymal_data, bar_width, color='tab:blue', label='Mesenchymal Cells')
-    ax.bar([i + bar_width for i in index], epithelial_data, bar_width, color='tab:orange', label='Epithelial Cells')
-    ax.bar([i + 2 * bar_width for i in index], cluster_data, bar_width, color='darkred', label='Clusters')
+    ax.step(index, mesenchymal_data, where='mid', color='tab:blue', label='Mesenchymal Cells', linewidth=1)
+    ax.step(index, epithelial_data, where='mid', color='tab:orange', label='Epithelial Cells', linewidth=1)
+    ax.step(index, cluster_data, where='mid', color='darkred', label='Clusters', linewidth=1)
 
     # Set the chart labels, title, and legend
     ax.set_xlabel('Day')
@@ -323,6 +336,18 @@ def generate_graphs(nameOfTheSimulation):
         return
 
 
+    #Path of the data
+    dataFolder = "Data analysis"
+    dataPath = os.path.join(SimulationPath, dataFolder)
+
+    TumorDataPath = os.path.join(dataPath, "Tumor growth")
+    CellsDataPath = os.path.join(dataPath, "Cells growth")
+    EcmDataPath = os.path.join(dataPath, "Ecm evolution")
+    Mmp2DataPath = os.path.join(dataPath, "Mmp2 evolution")
+    VasculatureDataPath = os.path.join(dataPath, "Vasculature evolution")
+    histogram_data_path = os.path.join(dataPath, "Positions histogram")
+
+
     # use regex to find the values before 'steps', 'stepsize' and 'grids'. Ex: 50steps-10stepsize-cells
     max_step = int(re.search(r"(\d+)steps", first_csv_name).group(1))
     step_size = int(re.search(r"(\d+)stepsize", first_csv_name).group(1))
@@ -337,6 +362,7 @@ def generate_graphs(nameOfTheSimulation):
     EcmImagesPath = os.path.join(imagesPath, "Ecm evolution")
     Mmp2ImagesPath = os.path.join(imagesPath, "Mmp2 evolution")
     VasculatureImagesPath = os.path.join(imagesPath, "Vasculature evolution")
+    histogram_images_path = os.path.join(imagesPath, "Positions histogram")
 
     # Create folder for all the visual analysis
     if not os.path.exists(imagesPath):
@@ -346,12 +372,14 @@ def generate_graphs(nameOfTheSimulation):
         os.makedirs(EcmImagesPath)
         os.makedirs(CellsImagesPath)
         os.makedirs(VasculatureImagesPath)
+        os.makedirs(histogram_images_path)
 
         print(f"\nSaving tumor images in the folder:", TumorImagesPath)
         print("Saving Mmp2 images in the folder:", Mmp2ImagesPath)
         print("Saving Ecm images in the folder:", EcmImagesPath)
         print("Saving cells numbers images in the folder:", CellsImagesPath)
         print("Saving vasculature images in the folder:", VasculatureImagesPath)
+        print("Saving vasculature images in the folder:", histogram_images_path)
 
     # If there the visual analysis is already done, tell the user
     else:
@@ -367,6 +395,14 @@ def generate_graphs(nameOfTheSimulation):
         print(f'\tPlotting tumor graphs...')
         for id, step in enumerate(range(1,max_step+1,step_size)):
             plotCancer(getCoordsForPlot(step, first_csv_path, grid_id), figCounter, imagesFolder, grid_id, step, TumorImagesPath)
+            plt.close()
+            figCounter += 1
+
+        # Plot the histogram graphs
+        print(f'\tPlotting tumor graphs...')
+        for id, step in enumerate(range(1,max_step+1,step_size)):
+            data_folder_path = os.path.join()
+            plot_histogram(histogram_data_path, histogram_images_path)
             plt.close()
             figCounter += 1
 

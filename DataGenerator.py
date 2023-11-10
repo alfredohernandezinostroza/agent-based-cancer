@@ -34,19 +34,28 @@ def getCoordsForPlot(step, allCellsCsvPath, grid_id):
 
     return [Xm, Ym, Xe, Ye, Xv, Yv, Xvr, Yvr]
 
-def saveCancer(coordsList, grid_id, step, TumorDataPath):
+def save_cancer(coordsList, grid_id, step, TumorDataPath):
 
     Xm, Ym, Xe, Ye, Xv, Yv, Xvr, Yvr = coordsList[0], coordsList[1], coordsList[2], coordsList[3], coordsList[4], coordsList[5], coordsList[6], coordsList[7]
 
     # save the data
-    df_export = pd.Dataframe([Xm, Ym, Xe, Ye, Xv, Yv, Xvr, Yvr])
+    df_export = pd.DataFrame([Xm, Ym, Xe, Ye, Xv, Yv, Xvr, Yvr])
     path = os.path.join(TumorDataPath, f'Cells-grid{grid_id}-step{step} - Tumor size at {11/24000 * step:.2f} days.csv')
     df_export.save_to_csv(path)
 
-    #this will return the radius and diameter of the processed tumor
-    df_positions = pd.DataFrame([Xm + Xe, Ym + Ye])
-    return get_cluster_radius_and_diameter(df_positions, grid_id)
+    #create histogram of positions
+    df_positions = pd.DataFrame({'Position': zip(Xm + Xe, Ym + Ye)})
+    position_repetition_count = df_positions['Position'].value_counts()
+    histogram = position_repetition_count.value_counts()
+    histogram = pd.DataFrame({'Bins': histogram.values, 'Frequency': histogram.index})
+    number_of_empty_positions = gridsize * gridsize - len(position_repetition_count)
+    new_row = pd.DataFrame({'Bins': [0], 'Frequency': [number_of_empty_positions]})
+    histogram = pd.concat([histogram, new_row])
+    path = os.path.join(TumorDataPath, f'Cells-grid{grid_id}-step{step} - Histogram at {11/24000 * step:.2f} days.csv')
+    histogram.save_to_csv(path)
 
+    #this will return the radius and diameter of the processed tumor
+    return get_cluster_radius_and_diameter(df_positions, grid_id)
 
 def saveGrowthData(fig_index, allCellsCsvPath, stepsize, grid_id, CellsDataPath, step_number):
     # get data at each step
@@ -172,6 +181,7 @@ def generate_data(nameOfTheSimulation):
     EcmDataPath = os.path.join(dataPath, "Ecm evolution")
     Mmp2DataPath = os.path.join(dataPath, "Mmp2 evolution")
     VasculatureDataPath = os.path.join(dataPath, "Vasculature evolution")
+    histogram_data_path = os.path.join(dataPath, "Positions histogram")
 
     # Create folder for all the visual analysis
     if not os.path.exists(dataPath):
@@ -200,7 +210,7 @@ def generate_data(nameOfTheSimulation):
         print(f'\tSaving tumor data...')
         df_radius_diameter_history = pd.DataFrame(columns=['Radius', 'Diameter', 'Step', 'Grid Id'])
         for id, step in enumerate(range(1,max_step+1,step_size)):
-            (radius, diameter) = saveCancer(getCoordsForPlot(step, first_csv_path, grid_id), grid_id, step, TumorDataPath)
+            (radius, diameter) = save_cancer(getCoordsForPlot(step, first_csv_path, grid_id), grid_id, step, TumorDataPath)
             new_row = {'Radius': radius, 'Diameter': diameter, 'Step': step, 'Grid Id': grid_id}
             df_radius_diameter_history.append(new_row, ignore_index=True)
         path = os.path.join(TumorDataPath, f'Tumor radius and diameter history at {11/24000 * step:.2f} days.csv')
@@ -216,7 +226,6 @@ def generate_data(nameOfTheSimulation):
     print(f'Plotting vasculature...')
     for id, step in enumerate(range(0,max_step+1,step_size)):
         saveVasculatureData(VasculatureDataPath, first_vasculature_path, step)
-
 
 def get_cluster_radius_and_diameter(ccells_positions, grid_id):
     """"
