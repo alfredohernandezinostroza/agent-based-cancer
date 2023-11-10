@@ -203,9 +203,9 @@ def plotVasculatureGraphs(figCounter, pathToSave, vasculature_json_path, max_ste
     bar_width = 3
 
     # Plot the data for each category
-    ax.step(index, mesenchymal_data, where='mid', color='tab:blue', label='Mesenchymal Cells', linewidth=1)
-    ax.step(index, epithelial_data, where='mid', color='tab:orange', label='Epithelial Cells', linewidth=1)
-    ax.step(index, cluster_data, where='mid', color='darkred', label='Clusters', linewidth=1)
+    ax.step(index, mesenchymal_data, where='mid', color='tab:blue', label='Mesenchymal Cells', linewidth=1.5)
+    ax.step(index, epithelial_data, where='mid', color='tab:orange', label='Epithelial Cells', linewidth=1.5)
+    ax.step(index, cluster_data, where='mid', color='darkred', label='Multicellular clusters', linewidth=1.5)
 
     # Set the chart labels, title, and legend
     ax.set_xlabel('Day')

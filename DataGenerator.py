@@ -41,7 +41,7 @@ def save_cancer(coordsList, grid_id, step, TumorDataPath):
     # save the data
     df_export = pd.DataFrame([Xm, Ym, Xe, Ye, Xv, Yv, Xvr, Yvr])
     path = os.path.join(TumorDataPath, f'Cells-grid{grid_id}-step{step} - Tumor size at {11/24000 * step:.2f} days.csv')
-    df_export.save_to_csv(path)
+    df_export.to_csv(path)
 
     #create histogram of positions
     df_positions = pd.DataFrame({'Position': zip(Xm + Xe, Ym + Ye)})
@@ -52,12 +52,12 @@ def save_cancer(coordsList, grid_id, step, TumorDataPath):
     new_row = pd.DataFrame({'Bins': [0], 'Frequency': [number_of_empty_positions]})
     histogram = pd.concat([histogram, new_row])
     path = os.path.join(TumorDataPath, f'Cells-grid{grid_id}-step{step} - Histogram at {11/24000 * step:.2f} days.csv')
-    histogram.save_to_csv(path)
+    histogram.to_csv(path)
 
     #this will return the radius and diameter of the processed tumor
     return get_cluster_radius_and_diameter(df_positions, grid_id)
 
-def saveGrowthData(fig_index, allCellsCsvPath, stepsize, grid_id, CellsDataPath, step_number):
+def saveGrowthData(allCellsCsvPath, stepsize, grid_id, CellsDataPath, step_number):
     # get data at each step
     df = pd.read_csv(allCellsCsvPath, converters={"Position": ast.literal_eval})
     df = df[["Step", "Total cells", "Phenotype", "Grid"]]
@@ -93,15 +93,15 @@ def saveVasculatureData(pathToSave, vasculature_json_path, max_step):
         vasculature_dict = json.load(f)
 
     # Change keys to int and only add the key-value pair that is before the given max_step
-    new_vasculature_dict = {int(k): v for k, v in vasculature_dict.items() if int(k) <= max_step}
+    vasculature_dict = {int(k): v for k, v in vasculature_dict.items() if int(k) <= max_step}
 
     # Prepare the data for the bar chart
     mesenchymal_data = []
     epithelial_data = []
     cluster_data = []
-    time_steps = sorted(new_vasculature_dict.keys())
+    time_steps = sorted(vasculature_dict.keys())
     for time_step in time_steps:
-        clusters = new_vasculature_dict[time_step]
+        clusters = vasculature_dict[time_step]
         mesenchymal_count = 0
         epithelial_count = 0
         cluster_count = 0
@@ -114,9 +114,9 @@ def saveVasculatureData(pathToSave, vasculature_json_path, max_step):
         mesenchymal_data.append(mesenchymal_count)
         epithelial_data.append(epithelial_count)
         cluster_data.append(cluster_count)
-    df_export = pd.DataFrame([mesenchymal_data, epithelial_data, cluster_data])
+    df_export = pd.DataFrame({"Mesenchymal cells": mesenchymal_data, "Epithelial cells" :epithelial_data, "Multicellular clusters": cluster_data, "Time": time_steps})
     path = os.path.join(pathToSave, f'Vasculature-step{max_step}.csv')
-    df_export.save_to_csv(path)
+    df_export.to_csv(path)
 
 def generate_data(nameOfTheSimulation):
     SimulationPath = os.path.join(parent_dir, nameOfTheSimulation)
@@ -183,7 +183,7 @@ def generate_data(nameOfTheSimulation):
     VasculatureDataPath = os.path.join(dataPath, "Vasculature evolution")
     histogram_data_path = os.path.join(dataPath, "Positions histogram")
 
-    # Create folder for all the visual analysis
+    # Create folder for all the data analysis
     if not os.path.exists(dataPath):
         os.makedirs(dataPath)
         os.makedirs(TumorDataPath)
@@ -192,13 +192,13 @@ def generate_data(nameOfTheSimulation):
         os.makedirs(CellsDataPath)
         os.makedirs(VasculatureDataPath)
 
-        print(f"\nSaving tumor images in the folder:", TumorDataPath)
-        print("Saving Mmp2 images in the folder:", Mmp2DataPath)
-        print("Saving Ecm images in the folder:", EcmDataPath)
-        print("Saving cells numbers images in the folder:", CellsDataPath)
-        print("Saving vasculature images in the folder:", VasculatureDataPath)
+        print(f"\nSaving tumor data in the folder:", TumorDataPath)
+        print("Saving Mmp2 data in the folder:", Mmp2DataPath)
+        print("Saving Ecm data in the folder:", EcmDataPath)
+        print("Saving cells numbers data in the folder:", CellsDataPath)
+        print("Saving vasculature data in the folder:", VasculatureDataPath)
 
-    # If there the visual analysis is already done, tell the user
+    # If the data analysis is already done, tell the user
     else:
         print("This data has already been saved!")
         return
@@ -211,10 +211,10 @@ def generate_data(nameOfTheSimulation):
         df_radius_diameter_history = pd.DataFrame(columns=['Radius', 'Diameter', 'Step', 'Grid Id'])
         for id, step in enumerate(range(1,max_step+1,step_size)):
             (radius, diameter) = save_cancer(getCoordsForPlot(step, first_csv_path, grid_id), grid_id, step, TumorDataPath)
-            new_row = {'Radius': radius, 'Diameter': diameter, 'Step': step, 'Grid Id': grid_id}
-            df_radius_diameter_history.append(new_row, ignore_index=True)
+            new_row = pd.DataFrame({'Radius': [radius], 'Diameter': [diameter], 'Step': [step], 'Grid Id': [grid_id]})
+            df_radius_diameter_history = pd.concat([df_radius_diameter_history, new_row])
         path = os.path.join(TumorDataPath, f'Tumor radius and diameter history at {11/24000 * step:.2f} days.csv')
-        df_radius_diameter_history.save_to_csv(path)
+        df_radius_diameter_history.to_csv(path)
 
 
         # Plot the growth of ephitelial and mesenchymal cells
@@ -238,7 +238,8 @@ def get_cluster_radius_and_diameter(ccells_positions, grid_id):
         radius: the maximum of all the distances from each cell to the cell's centroid.
         diameter: the maximum of all the cell-cell distanes.
     """
-
+    if ccells_positions.empty:
+        return (float("NaN"), float("NaN"))
     centroid = ccells_positions.mean(axis=0)
     #calculating radius
     radii  = np.linalg.norm(ccells_positions - centroid, axis=1)
