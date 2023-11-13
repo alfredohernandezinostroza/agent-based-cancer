@@ -25,7 +25,7 @@ def main_menu():
         elif selected_option == "Postprocessing":
             postprocessing_menu()
         elif selected_option == "Exit":
-            os._exit(1)
+            os._exit(0)
 
 
 def simulation_menu():
@@ -55,10 +55,10 @@ def load_simulation_menu():
         print_menu()
         listener.join()
         if selected_option == "Exit":
-            os._exit(1)
+            os._exit(0)
     total_steps = get_int_input("Select additional number of steps until the loaded simulation will continue: ")
     interval_steps = get_int_input("Select the size of the intervals for which the information will be collected: ")
-    Batch.main_Batch(total_steps, interval_steps)
+    Batch.main_Batch(total_steps, interval_steps, loadedSimulationPath=selected_option)
 
 def postprocessing_menu():
     global selected_option, selected_option_index, banner_message, options_list
@@ -72,8 +72,8 @@ def postprocessing_menu():
         print_menu()
         listener.join()
         if selected_option == "Exit":
-            os._exit(1)
-    options_list = ["Exit", "Run all", "Generate data", "Generate graphs", "Generate videos", "Cell site Histogram", "Position Histogram"]
+            os._exit(0)
+    options_list = ["Exit", "Run all", "Generate data", "Generate graphs", "Generate videos"]
     selected_simulation = selected_option
     selected_option_index = 0
     with keyboard.Listener(on_press = on_press) as listener:
@@ -81,7 +81,7 @@ def postprocessing_menu():
         print_menu()
         listener.join()
         if selected_option == "Exit":
-            os._exit(1)
+            os._exit(0)
         if selected_option == "Generate data":
             DataGenerator.generate_data(selected_simulation)
             time.sleep(3)
@@ -124,7 +124,7 @@ def on_press(key):
         return False
     elif key == keyboard.Key.esc:
         # os.system('cls')
-        os._exit(1)
+        os._exit(0)
 
 def get_folder_names(directory_path):
     folder_names = []
