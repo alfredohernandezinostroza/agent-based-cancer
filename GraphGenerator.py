@@ -7,7 +7,7 @@ from Classes.utils import gridsize_utils as gridsize
 from Classes.utils import carrying_capacity
 import re
 import os
-import json
+import sys
 
 # To run this code you must be in the parent folder of agent-based-cancer
 
@@ -148,10 +148,12 @@ def plotMMP2orECM(i, step, files_path, figCounter, grid_id, pathToSave, type="Mm
     plt.savefig(figure_path)
 
 def plot_histogram(data_folder_path, histogram_images_path):
-    csv_files_names = [f for f in os.listdir(data_folder_path) if os.path.isfile(os.path.join(data_folder_path, f)) and f.endswith(".csv")]
+    csv_files_names = [f for f in os.listdir(data_folder_path) if os.path.isfile(os.path.join(data_folder_path, f)) and f.endswith(".csv") and "Histogram" in f]
     if csv_files_names:
         for csv_file in csv_files_names:
-            histogram = pd.read_csv(csv_file)
+            histogram = pd.read_csv(os.path.join(data_folder_path, csv_file), header=0, index_col=0)
+            if histogram.empty:
+                continue
             plt.bar(histogram['Bins'], histogram['Frequency'])
             plt.xticks(range(carrying_capacity + 1))
             plt.xlim([-1, carrying_capacity + 1])
@@ -159,60 +161,32 @@ def plot_histogram(data_folder_path, histogram_images_path):
     else:
         raise Exception(f'No CSV files found at {data_folder_path}. Did you run the data analysis first?')
 
-def plotVasculatureGraphs(figCounter, pathToSave, vasculature_json_path, max_step):
-    # Reads the dict in the json file
-    with open(vasculature_json_path, 'r') as f:
-        vasculature_dict = json.load(f)
-
-    # Change keys to int and only add the key-value pair that is before the given max_step
-    new_vasculature_dict = {int(k): v for k, v in vasculature_dict.items() if int(k) <= max_step}
+def plotVasculatureGraphs(vasculature_data, pathToSave, max_step):
+    #read from csv
+    vasculature = pd.read_csv(vasculature_data, header=0)
 
     # Prepare the data for the bar chart
-    mesenchymal_data = []
-    epithelial_data = []
-    cluster_data = []
-    time_steps = sorted(new_vasculature_dict.keys())
-    for time_step in time_steps:
-        clusters = new_vasculature_dict[time_step]
-        mesenchymal_count = 0
-        epithelial_count = 0
-        cluster_count = 0
-        for cluster in clusters:
-            mesenchymal_count += cluster[0]
-            epithelial_count += cluster[1]
-            if cluster[0] + cluster[1] > 1:
-                cluster_count += 1
-
-        mesenchymal_data.append(mesenchymal_count)
-        epithelial_data.append(epithelial_count)
-        cluster_data.append(cluster_count)
-
-    # Set up the bar chart
+    mesenchymal_data = vasculature["Mesenchymal cells"]
+    epithelial_data = vasculature["Epithelial cells"]
+    total_cluster_data = vasculature["Total clusters"]
+    multicellular_cluster_data = vasculature["Multicellular clusters"]
+    time_steps = vasculature["Time"]
     plt.style.use("Solarize_Light2")
+
+    #second plot, clusters
     fig, ax = plt.subplots()
     index = time_steps
-
-    # Calculate the bar width based on the number of time steps
-    #if len(time_steps) == 0:
-    #    num_steps = 1
-    #else:
-    #    num_steps = len(time_steps)
-    #total_width = num_steps * 3 + (num_steps - 1) * 0.5
-    #bar_width = total_width / num_steps * 0.9
-
-    bar_width = 3
-
+    
     # Plot the data for each category
     ax.step(index, mesenchymal_data, where='mid', color='tab:blue', label='Mesenchymal Cells', linewidth=1.5)
     ax.step(index, epithelial_data, where='mid', color='tab:orange', label='Epithelial Cells', linewidth=1.5)
-    ax.step(index, cluster_data, where='mid', color='darkred', label='Multicellular clusters', linewidth=1.5)
+    ax.step(index, total_cluster_data, where='mid', color='darkred', label='Total clusters', linewidth=1.5)
+    ax.step(index, multicellular_cluster_data, where='mid', color='darkred', label='Multicellular clusters', linewidth=1.5)
 
     # Set the chart labels, title, and legend
     ax.set_xlabel('Day')
-    ax.set_ylabel('Cell/Cluster Count')
-    ax.set_title('Vasculature Cell and Cluster Counts')
-    #ax.set_xticks([i + bar_width for i in index] + [max_step])
-    #ax.set_xticklabels([f"{step*11/24000:.3f}" for step in time_steps] + [f"{max_step*11/24000:.3f}"])
+    ax.set_ylabel('Cell Count')
+    ax.set_title('Vasculature Cell Counts')
     ax.set_xticks([0, max_step/2, max_step])
     ax.set_xticklabels([0, f"{(max_step/2)*11/24000:.2f}"] + [f"{max_step*11/24000:.2f}"])
 
@@ -220,33 +194,55 @@ def plotVasculatureGraphs(figCounter, pathToSave, vasculature_json_path, max_ste
     ax.legend(loc="upper left")
 
     # save the figure
-    figure_path = os.path.join(pathToSave, f'Vasculature-step{max_step}.png')
+    figure_path = os.path.join(pathToSave, f'Vasculature-cells-step{max_step}.png')
+    plt.savefig(figure_path)
+    
+    #second plot, clusters
+    fig, ax = plt.subplots()
+    index = time_steps
+    
+    # Plot the data for each category
+    ax.step(index, total_cluster_data, where='mid', color='darkred', label='Total clusters', linewidth=1.5)
+    ax.step(index, multicellular_cluster_data, where='mid', color='darkred', label='Multicellular clusters', linewidth=1.5)
+
+    # Set the chart labels, title, and legend
+    ax.set_xlabel('Day')
+    ax.set_ylabel('Cluster Count')
+    ax.set_title('Vasculature Cluster Counts')
+    ax.set_xticks([0, max_step/2, max_step])
+    ax.set_xticklabels([0, f"{(max_step/2)*11/24000:.2f}"] + [f"{max_step*11/24000:.2f}"])
+
+    ax.set_xlim([-0.5, max_step + 0.5])
+    ax.legend(loc="upper left")
+
+    # save the figure
+    figure_path = os.path.join(pathToSave, f'Vasculature-clusters-step{max_step}.png')
     plt.savefig(figure_path)
 
 def generate_graphs(nameOfTheSimulation):
-    SimulationPath = os.path.join(parent_dir, nameOfTheSimulation)
-    print(f'\tAnalyzing data in the folder {SimulationPath}\n')
+    simulation_path = os.path.join(parent_dir, nameOfTheSimulation)
+    print(f'\tAnalyzing data in the folder {simulation_path}\n')
 
     # Get the agents' data filename 
-    csv_files_name = [f for f in os.listdir(SimulationPath) if os.path.isfile(os.path.join(SimulationPath, f)) and f.endswith(".csv")]
+    csv_files_name = [f for f in os.listdir(simulation_path) if os.path.isfile(os.path.join(simulation_path, f)) and f.endswith(".csv")]
     
     # Get the Ecm and Mmp2 data filenames 
-    EcmPath = os.path.join(SimulationPath, "Ecm")
-    Mmp2Path = os.path.join(SimulationPath, "Mmp2")
+    EcmPath = os.path.join(simulation_path, "Ecm")
+    Mmp2Path = os.path.join(simulation_path, "Mmp2")
     ecm_files_name = [f for f in sorted(os.listdir(EcmPath), key=lambda x: int(re.findall(r'\d+(?=step)', x)[0])) if os.path.isfile(os.path.join(EcmPath, f)) and f.endswith(".csv")]
     mmp2_files_name = [f for f in sorted(os.listdir(Mmp2Path), key=lambda x: int(re.findall(r'\d+(?=step)', x)[0])) if os.path.isfile(os.path.join(Mmp2Path, f)) and f.endswith(".csv")]
 
     # Get the vasculature data filename
-    VasculaturePath = os.path.join(SimulationPath, "Vasculature")
+    VasculaturePath = os.path.join(simulation_path, "Vasculature")
     vasculature_files_name = [f for f in os.listdir(VasculaturePath) if os.path.isfile(os.path.join(VasculaturePath, f)) and f.endswith(".json")]
 
     if csv_files_name:
         first_csv_name = csv_files_name[0]
-        first_csv_path = os.path.join(SimulationPath, first_csv_name)
-        #all_cells_analysis_path = os.path.join(parent_dir, SimulationPath, first_csv_path)
+        first_csv_path = os.path.join(simulation_path, first_csv_name)
+        #all_cells_analysis_path = os.path.join(parent_dir, simulation_path, first_csv_path)
         print("Using cells data at:", first_csv_path)
     else:
-        print("No .csv cell data found in directory:", SimulationPath)
+        print("No .csv cell data found in directory:", simulation_path)
         return
 
     if ecm_files_name:
@@ -268,20 +264,19 @@ def generate_graphs(nameOfTheSimulation):
         first_vasculature_path = os.path.join(VasculaturePath, first_vasculature_name)
         print("Using vasculature data at:", first_vasculature_path)
     else:
-        print("No .json vasculature data found in directory:", SimulationPath)
+        print("No .json vasculature data found in directory:", simulation_path)
         return
 
 
     #Path of the data
     dataFolder = "Data analysis"
-    dataPath = os.path.join(SimulationPath, dataFolder)
+    dataPath = os.path.join(simulation_path, dataFolder)
 
     TumorDataPath = os.path.join(dataPath, "Tumor growth")
     CellsDataPath = os.path.join(dataPath, "Cells growth")
     EcmDataPath = os.path.join(dataPath, "Ecm evolution")
     Mmp2DataPath = os.path.join(dataPath, "Mmp2 evolution")
     VasculatureDataPath = os.path.join(dataPath, "Vasculature evolution")
-    histogram_data_path = os.path.join(dataPath, "Positions histogram")
 
 
     # use regex to find the values before 'steps', 'stepsize' and 'grids'. Ex: 50steps-10stepsize-cells
@@ -291,13 +286,13 @@ def generate_graphs(nameOfTheSimulation):
 
     # Path to save all the images:
     imagesFolder = "Visual analysis"
-    imagesPath = os.path.join(SimulationPath, imagesFolder)
+    imagesPath = os.path.join(simulation_path, imagesFolder)
 
     TumorImagesPath = os.path.join(imagesPath, "Tumor growth")
     CellsImagesPath = os.path.join(imagesPath, "Cells growth")
     EcmImagesPath = os.path.join(imagesPath, "Ecm evolution")
     Mmp2ImagesPath = os.path.join(imagesPath, "Mmp2 evolution")
-    VasculatureImagesPath = os.path.join(imagesPath, "Vasculature evolution")
+    vasculature_images_path = os.path.join(imagesPath, "Vasculature evolution")
     histogram_images_path = os.path.join(imagesPath, "Positions histogram")
 
     # Create folder for all the visual analysis
@@ -307,14 +302,14 @@ def generate_graphs(nameOfTheSimulation):
         os.makedirs(Mmp2ImagesPath)
         os.makedirs(EcmImagesPath)
         os.makedirs(CellsImagesPath)
-        os.makedirs(VasculatureImagesPath)
+        os.makedirs(vasculature_images_path)
         os.makedirs(histogram_images_path)
 
         print(f"\nSaving tumor images in the folder:", TumorImagesPath)
         print("Saving Mmp2 images in the folder:", Mmp2ImagesPath)
         print("Saving Ecm images in the folder:", EcmImagesPath)
         print("Saving cells numbers images in the folder:", CellsImagesPath)
-        print("Saving vasculature images in the folder:", VasculatureImagesPath)
+        print("Saving vasculature images in the folder:", vasculature_images_path)
         print("Saving vasculature images in the folder:", histogram_images_path)
 
     # If there the visual analysis is already done, tell the user
@@ -335,10 +330,9 @@ def generate_graphs(nameOfTheSimulation):
             figCounter += 1
 
         # Plot the histogram graphs
-        print(f'\tPlotting tumor graphs...')
+        print(f'\tPlotting histogram graphs...')
         for id, step in enumerate(range(1,max_step+1,step_size)):
-            data_folder_path = os.path.join()
-            plot_histogram(histogram_data_path, histogram_images_path)
+            plot_histogram(TumorDataPath, histogram_images_path)
             plt.close()
             figCounter += 1
 
@@ -368,7 +362,14 @@ def generate_graphs(nameOfTheSimulation):
     # Plot the vasculature data
     print(f'Plotting vasculature...')
     for id, step in enumerate(range(0,max_step+1,step_size)):
-        plotVasculatureGraphs(figCounter, VasculatureImagesPath, first_vasculature_path, step)
+        try:
+            path = os.path.join(simulation_path, "Data analysis", "Vasculature evolution")
+            vasculature_data = pd.read_csv(path, header=0)
+        except:
+            print(f"Error while reading the vasculature data for step {step} in grid {grid_id}", file=sys.stderr)
+            print("Did you run the 'Data analysis' in the postprocessing menu first?", file=sys.stderr)
+            os._exit(1)
+        plotVasculatureGraphs(vasculature_data, vasculature_images_path, first_vasculature_path, step)
         plt.close()
         figCounter += 1
 
