@@ -73,7 +73,7 @@ def postprocessing_menu():
         listener.join()
         if selected_option == "Exit":
             os._exit(0)
-    options_list = ["Exit", "Run all", "Generate data", "Generate graphs", "Generate videos"]
+    options_list = ["Exit", "Run all", "Begin data analysis", "Begin visual analysis", "Generate videos"]
     selected_simulation = selected_option
     selected_option_index = 0
     with keyboard.Listener(on_press = on_press) as listener:
@@ -82,10 +82,10 @@ def postprocessing_menu():
         listener.join()
         if selected_option == "Exit":
             os._exit(0)
-        if selected_option == "Generate data":
+        if selected_option == "Begin data analysis":
             DataGenerator.generate_data(selected_simulation)
             time.sleep(3)
-        if selected_option == "Generate graphs":
+        if selected_option == "Begin visual analysis":
             GraphGenerator.generate_graphs(selected_simulation)
             time.sleep(3)
         if selected_option == "Generate videos":
