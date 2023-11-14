@@ -57,7 +57,6 @@ class CancerCell(mesa.Agent):
                 isRuptured = agent.ruptured
                 isVessel=True
                 break
-        # if False:
         if isVessel:
             x, y = new_position
             onLeftBorder    = self.grid.out_of_bounds((x-1,y))

@@ -64,42 +64,6 @@ def count_vasculature_cells(model):
     amount_of_cells = sum([len(value) for value in model.vasculature.values()])
     return amount_of_cells
 
-def get_cluster_radius_and_diameter(model,grid_id):
-    """"
-    Calculates the radius and diameter of the cancer cells in a given site.
-
-    Input:
-        model: CancerModel object.
-        grid_id: the grid number for which the radius and diameter will be calculated.
-    Returns:
-        radius: the maximum of all the distances from each cell to the cell's centroid.
-        diameter: the maximum of all the cell-cell distanes.
-    """
-    ccells_positions = np.array([[agent.pos[0],agent.pos.y[1]] for agent in model.schedule.agents if agent.agent_type == "cell" and agent.grid == grid_id])
-    centroid = ccells_positions.mean(axis=0)
-    #calculating radius
-    radii  = np.linalg.norm(ccells_positions - centroid, axis=1)
-    radius = radii.max()
-    #calculating diameter
-    dist_matrix = get_distance_matrix(ccells_positions)
-    diameter = dist_matrix.max()
-    return (radius, diameter)
-
-def get_distance_matrix(vectors):
-    """
-    Calculates the distance matrix between all the vectors in a list
-
-    Input:
-        vectors (list of numpy 2 by 1 arrays): 
-    Returns:
-        distance matrix: len(vectors) by len(Vectors) numpy array with the distances
-        for all vectors.
-    """
-    x = np.sum(vectors**2,axis=1)
-    xx = np.matmul(vectors,vectors.T)
-    x2 = x.reshape(-1,1) #transposing the vector
-    return np.sqrt(x2-2*xx+x)
-
 class CancerModel(mesa.Model):
     """
     Class for the model.
@@ -129,7 +93,7 @@ class CancerModel(mesa.Model):
     disaggregate_clusters(time)
         For a given time, it will dissagregate single cells from clusters
     """
-    def __init__(self, N, width, height, grids_number, maxSteps, dataCollectionPeriod, newSimulationFolder, seed=None):
+    def __init__(self, N, width, height, grids_number, maxSteps, dataCollectionPeriod, newSimulationFolder, loadedSimulationPath="", seed=None):
         super().__init__()  
         self.vasculature = {}
         self.num_agents = N
@@ -151,7 +115,10 @@ class CancerModel(mesa.Model):
         #list of numpy arrays, representing mmp2 and ecm concentration in each grid
         self.mmp2 = [np.zeros((2, width, height), dtype=float) for _ in range(grids_number)]
         self.ecm = [np.ones((2, width, height), dtype=float) for _ in range(grids_number)]
-        self._initialize_grids()
+        if loadedSimulationPath != "":
+            self.loadPreviousSimulation(loadedSimulationPath)
+        else:
+            self._initialize_grids()
         self.datacollector = mesa.DataCollector(
             model_reporters={"Total cells": count_total_cells}, agent_reporters={"Position": "pos", "Agent Type": "agent_type", "Phenotype": "phenotype", "Ruptured": "ruptured", "Grid": "grid_id"})
             # model_reporters={"Total cells": count_total_cells, "Cluster radius and diameter": get_cluster_radius_and_diameter,
@@ -294,6 +261,27 @@ class CancerModel(mesa.Model):
                     agent.grid.place_agent(new_cell, (x,y))
                     total_amount_of_agents +=1
         
+
+
+    def loadPreviousSimulation(self, pathToSimulation):
+        """
+        Loads the last step of a previously computed simulation as the initial condition of thes model
+
+        Input: The simulation's path to be loaded
+        Returns: none
+        """
+
+        previous_sim_df = pd.read_csv(pathToSimulation)
+        last_step = previous_sim_df["Step"].max()
+        previous_sim_df = previous_sim_df[["Step"] == last_step]
+        previous_sim_df = previous_sim_df[["Agent Type"] == "cell"]
+        for index, row in previous_sim_df.iterrows():
+            grid = row["Grid"] - 1
+            ccell = CancerCell(self.current_agent_id, self, self.grids[grid], self.grid_ids[grid], row["Phenotype"], self.ecm[grid], self.mmp2[grid])
+            self.current_agent_id += 1
+            self.schedule.add(ccell)
+            self.grids[grid].place_agent(ccell, row["Position"])
+                
 
 
     def _initialize_grids(self):
