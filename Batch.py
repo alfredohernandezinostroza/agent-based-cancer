@@ -1,3 +1,4 @@
+import re
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -10,7 +11,7 @@ from Classes import utils
 # Before running this code always check if isBatchRun = True is in Utils
 # otherwise it won't save the Mmp2 and Ecm data
 
-def main_Batch(maxSteps, dataCollectionPeriod):
+def main_Batch(maxSteps, dataCollectionPeriod, loadedSimulationPath=""):
 
     # Parameters for this simulation
     N = 388 # Number of cancer cells
@@ -21,7 +22,16 @@ def main_Batch(maxSteps, dataCollectionPeriod):
 
     # Name of the directories
     simulations_dir = parent_dir
-    newSimulationFolder = f"Sim maxSteps-{maxSteps} stepsize-{dataCollectionPeriod} N-{N} gridsNumber-{grids_number}"
+    if loadedSimulationPath != "":
+        pattern = r'maxSteps-(\d+)'
+        match = re.search(pattern, loadedSimulationPath)
+        if match:
+            loadedMaxSteps = int(match.group(1))
+        else:
+            raise ValueError("Error finding loaded simulation maxSteps!")
+        newSimulationFolder = f"Sim maxStepz-{loadedMaxSteps}+{maxSteps} stepsize-{dataCollectionPeriod} N-{N} gridsNumber-{grids_number}"
+    else:
+        newSimulationFolder = f"Sim maxSteps-{maxSteps} stepsize-{dataCollectionPeriod} N-{N} gridsNumber-{grids_number}"
 
     # Create parent directory if it doesn't exist
     if not os.path.exists(simulations_dir):
@@ -48,7 +58,7 @@ def main_Batch(maxSteps, dataCollectionPeriod):
         os.makedirs(pathVasculature)
 
         # Run the simulation and saves the data
-        run_simulation(N, width, height, grids_number, maxSteps, dataCollectionPeriod, newSimulationFolder, simulations_dir)
+        run_simulation(N, width, height, grids_number, maxSteps, dataCollectionPeriod, newSimulationFolder, simulations_dir, loadedSimulationPath)
 
     # If there is already a simulation you skip it
     else:
@@ -57,11 +67,12 @@ def main_Batch(maxSteps, dataCollectionPeriod):
     return print('Finished the simulation')
 
 
-def run_simulation(N, width, height, grids_number, maxSteps, dataCollectionPeriod, newSimulationFolder, simulations_dir):
+def run_simulation(N, width, height, grids_number, maxSteps, dataCollectionPeriod, newSimulationFolder, simulations_dir, loadedSimulationPath=""):
 
     # Setting parameters for mesa.batch_run
     params = {"N": N, "width": width, "height": height, "grids_number": grids_number, "maxSteps": maxSteps, "dataCollectionPeriod": dataCollectionPeriod, "newSimulationFolder": newSimulationFolder }
-
+    if loadedSimulationPath != "":
+        params["loadedSimulationPath"] = loadedSimulationPath
 
     # Saves the simulation configuration
     var_names = dir(utils) + ['maxSteps', 'dataCollectionPeriod', 'N', 'grids_number', 'simulations_dir']
@@ -92,34 +103,22 @@ def run_simulation(N, width, height, grids_number, maxSteps, dataCollectionPerio
     print(f'Example of data collected: {cells_df.head(10)}')
 
     # Saves data analysis
-    nameOfCsv = f'CellsData-{maxSteps}steps-{dataCollectionPeriod}stepsize-{grids_number}grids.csv'
+    if loadedSimulationPath != "":
+        pattern = r'maxSteps-(\d+)'
+        match = re.search(pattern, loadedSimulationPath)
+        if match:
+            loadedMaxSteps = int(match.group(1))
+        else:
+            raise ValueError("Error finding loaded simulation maxSteps!")
+        nameOfCsv = f'CellsData-{loadedMaxSteps}+{maxSteps}steps-{dataCollectionPeriod}stepsize-{grids_number}grids.csv'
+    else:
+        nameOfCsv = f'CellsData-{maxSteps}steps-{dataCollectionPeriod}stepsize-{grids_number}grids.csv'
     pathToSave = os.path.join(simulations_dir, newSimulationFolder, nameOfCsv)
-    cells_df.to_csv(pathToSave)
+    cells_df[1:].to_csv(pathToSave)
     print(f'All data saved')
 
 if __name__ == "__main__":
-    maxSteps = 8
-    dataCollectionPeriod = 1
+    maxSteps = 6
+    dataCollectionPeriod = 3
     # This runs all the code to create folders, run the simulation and save the data
     main_Batch(maxSteps, dataCollectionPeriod)
-
-    
-
-
-
-
-# Error with the size of the array beeing too big -->
-
-#numpy.core._exceptions._ArrayMemoryError: Unable to allocate 3.61 GiB for an array
-#with shape (24000, 201, 201) and data type int32
-
-
-# Error in proliferation function --> problem with Id
-# Erro:   File "c:\Users\vinis\Desktop\Pesquisa IST 2022 - modelagem python células cancer\Repositório-Git\agent-based-cancer\Classes\CancerModel.py", line 75, in step
-#    self.proliferate("mesenchymal")
-#  File "c:\Users\vinis\Desktop\Pesquisa IST 2022 - modelagem python células cancer\Repositório-Git\agent-based-cancer\Classes\CancerModel.py", line 89, in proliferate
-#    self.schedule.add(new_cell)
-#  File "C:\Users\vinis\Desktop\Pesquisa IST 2022 - modelagem python células cancer\Repositório-Git\.venv\lib\site-packages\mesa\time.py", line 68, in add
-#    raise Exception(
-#Exception: Agent with unique id 4809 already
-
