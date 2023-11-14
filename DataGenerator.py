@@ -6,6 +6,7 @@ from Classes.utils import gridsize_utils as gridsize
 import re
 import os
 import json
+from ast import literal_eval
 
 # To run this code you must be in the parent folder of agent-based-cancer
 
@@ -17,15 +18,10 @@ def getCoordsForPlot(step, allCellsCsvPath, grid_id):
     df_step0 = df.loc[(df["Step"] == step) & (df["Grid"] == grid_id)]
 
     # Save the position data
-    mPoints = df_step0.loc[df_step0["Phenotype"] == "mesenchymal"]["Position"] # Series object
-    ePoints = df_step0.loc[df_step0["Phenotype"] == "epithelial"]["Position"]
-    vPoints = df_step0.loc[(df_step0["Agent Type"] == "vessel") & (df_step0["Ruptured"] == False)]["Position"]
-    vRupturedPoints = df_step0.loc[(df_step0["Agent Type"] == "vessel") & (df_step0["Ruptured"] == True)]["Position"]
-
-    mPoints = list(mPoints.map(eval)) # [(104, 101), (101, 97), (101, 95)]
-    ePoints = list(ePoints.map(eval))
-    vPoints = list(vPoints.map(eval))
-    vRupturedPoints = list(vRupturedPoints.map(eval))
+    mPoints = list(df_step0.loc[df_step0["Phenotype"] == "mesenchymal"]["Position"])
+    ePoints = list(df_step0.loc[df_step0["Phenotype"] == "epithelial"]["Position"])
+    vPoints = list(df_step0.loc[(df_step0["Agent Type"] == "vessel") & (df_step0["Ruptured"] == False)]["Position"])
+    vRupturedPoints = list(df_step0.loc[(df_step0["Agent Type"] == "vessel") & (df_step0["Ruptured"] == True)]["Position"])
 
     Xm, Ym = [i[0] for i in mPoints], [i[1] for i in mPoints]
     Xe, Ye = [i[0] for i in ePoints], [i[1] for i in ePoints]
@@ -47,7 +43,7 @@ def save_cancer(coordsList, grid_id, step, TumorDataPath):
     df_positions = pd.DataFrame({'Position': zip(Xm + Xe, Ym + Ye)})
     position_repetition_count = df_positions['Position'].value_counts()
     histogram = position_repetition_count.value_counts()
-    histogram = pd.DataFrame({'Bins': histogram.values, 'Frequency': histogram.index})
+    histogram = pd.DataFrame({'Bins': histogram.index, 'Frequency': histogram.values})
     number_of_empty_positions = gridsize * gridsize - len(position_repetition_count)
     new_row = pd.DataFrame({'Bins': [0], 'Frequency': [number_of_empty_positions]})
     histogram = pd.concat([histogram, new_row])
@@ -98,23 +94,26 @@ def saveVasculatureData(pathToSave, vasculature_json_path, max_step):
     # Prepare the data for the bar chart
     mesenchymal_data = []
     epithelial_data = []
-    cluster_data = []
+    multicellular_cluster_data = []
+    total_cluster_data = []
     time_steps = sorted(vasculature_dict.keys())
     for time_step in time_steps:
         clusters = vasculature_dict[time_step]
         mesenchymal_count = 0
         epithelial_count = 0
-        cluster_count = 0
+        multicellular_cluster_count = 0
+        total_cluster_count = 0
         for cluster in clusters:
+            total_cluster_count += 1
             mesenchymal_count += cluster[0]
             epithelial_count += cluster[1]
             if cluster[0] + cluster[1] > 1:
-                cluster_count += 1
-
+                multicellular_cluster_count += 1
         mesenchymal_data.append(mesenchymal_count)
         epithelial_data.append(epithelial_count)
-        cluster_data.append(cluster_count)
-    df_export = pd.DataFrame({"Mesenchymal cells": mesenchymal_data, "Epithelial cells" :epithelial_data, "Multicellular clusters": cluster_data, "Time": time_steps})
+        multicellular_cluster_data.append(multicellular_cluster_count)
+        total_cluster_data.append(total_cluster_count)
+    df_export = pd.DataFrame({ "Time": time_steps, "Mesenchymal cells": mesenchymal_data, "Epithelial cells" :epithelial_data, "Multicellular clusters": multicellular_cluster_data, "Total clusters": total_cluster_data})
     path = os.path.join(pathToSave, f'Vasculature-step{max_step}.csv')
     df_export.to_csv(path)
 
@@ -181,7 +180,6 @@ def generate_data(nameOfTheSimulation):
     EcmDataPath = os.path.join(dataPath, "Ecm evolution")
     Mmp2DataPath = os.path.join(dataPath, "Mmp2 evolution")
     VasculatureDataPath = os.path.join(dataPath, "Vasculature evolution")
-    histogram_data_path = os.path.join(dataPath, "Positions histogram")
 
     # Create folder for all the data analysis
     if not os.path.exists(dataPath):
@@ -208,12 +206,13 @@ def generate_data(nameOfTheSimulation):
 
         # Plot the cells graphs
         print(f'\tSaving tumor data...')
-        df_radius_diameter_history = pd.DataFrame(columns=['Radius', 'Diameter', 'Step', 'Grid Id'])
-        for id, step in enumerate(range(1,max_step+1,step_size)):
-            (radius, diameter) = save_cancer(getCoordsForPlot(step, first_csv_path, grid_id), grid_id, step, TumorDataPath)
-            new_row = pd.DataFrame({'Radius': [radius], 'Diameter': [diameter], 'Step': [step], 'Grid Id': [grid_id]})
+        df_radius_diameter_history = pd.DataFrame(columns=['Centroid', 'Radius', 'Diameter', 'Step', 'Grid Id'])
+        for id, step in enumerate(range(0,max_step,step_size)):
+            ccells_coords = getCoordsForPlot(step, first_csv_path, grid_id)
+            (centroid, radius, diameter) = save_cancer(ccells_coords, grid_id, step, TumorDataPath)
+            new_row = pd.DataFrame({'Centroid': [centroid],'Radius': [radius], 'Diameter': [diameter], 'Step': [step], 'Grid Id': [grid_id]})
             df_radius_diameter_history = pd.concat([df_radius_diameter_history, new_row])
-        path = os.path.join(TumorDataPath, f'Tumor radius and diameter history at {11/24000 * step:.2f} days.csv')
+        path = os.path.join(TumorDataPath, f'Tumor radius and diameter history in grid {grid_id} at {11/24000 * step:.2f} days.csv')
         df_radius_diameter_history.to_csv(path)
 
 
@@ -236,18 +235,20 @@ def get_cluster_radius_and_diameter(ccells_positions, grid_id):
         grid_id: the grid number for which the radius and diameter will be calculated.
     Returns:
         radius: the maximum of all the distances from each cell to the cell's centroid.
-        diameter: the maximum of all the cell-cell distanes.
+        diameter: the maximum of all the cell-cell distances.
     """
     if ccells_positions.empty:
         return (float("NaN"), float("NaN"))
-    centroid = ccells_positions.mean(axis=0)
+    #centroid = ccells_positions.mean(axis=0)
+    ccells_positions= list(ccells_positions['Position'])
+    centroid = np.average(ccells_positions, axis=0)
     #calculating radius
     radii  = np.linalg.norm(ccells_positions - centroid, axis=1)
     radius = radii.max()
     #calculating diameter
     dist_matrix = get_distance_matrix(ccells_positions)
     diameter = dist_matrix.max()
-    return (radius, diameter)
+    return (centroid, radius, diameter)
 
 def get_distance_matrix(vectors):
     """
@@ -259,6 +260,7 @@ def get_distance_matrix(vectors):
         distance matrix: len(vectors) by len(Vectors) numpy array with the distances
         for all vectors.
     """
+    vectors = np.array(vectors)
     x = np.sum(vectors**2,axis=1)
     xx = np.matmul(vectors,vectors.T)
     x2 = x.reshape(-1,1) #transposing the vector
