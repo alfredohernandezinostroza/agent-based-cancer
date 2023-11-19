@@ -206,23 +206,23 @@ def generate_data(nameOfTheSimulation):
 
         # Plot the cells graphs
         print(f'\tSaving tumor data...')
-        df_radius_diameter_history = pd.DataFrame(columns=['Centroid', 'Radius', 'Diameter', 'Step', 'Grid Id'])
+        df_radius_diameter_history = pd.DataFrame(columns=['Centroid x', 'Centroid y', 'Radius', 'Diameter', 'Step', 'Grid Id'])
         for id, step in enumerate(range(0,max_step,step_size)):
             ccells_coords = getCoordsForPlot(step, first_csv_path, grid_id)
             (centroid, radius, diameter) = save_cancer(ccells_coords, grid_id, step, TumorDataPath)
-            new_row = pd.DataFrame({'Centroid': [centroid],'Radius': [radius], 'Diameter': [diameter], 'Step': [step], 'Grid Id': [grid_id]})
+            new_row = pd.DataFrame({'Centroid x': [centroid[0]], 'Centroid y': [centroid[1]],'Radius': [radius], 'Diameter': [diameter], 'Step': [step], 'Grid Id': [grid_id]})
             df_radius_diameter_history = pd.concat([df_radius_diameter_history, new_row])
         path = os.path.join(TumorDataPath, f'Tumor radius and diameter history in grid {grid_id} at {11/24000 * step:.2f} days.csv')
         df_radius_diameter_history.to_csv(path)
 
 
         # Plot the growth of ephitelial and mesenchymal cells
-        print(f'\tPlotting cells numbers graph...')
+        print(f'\Saving cells numbers graph data...')
         for id, step in enumerate(range(1,max_step+1,step_size)):
             saveGrowthData(first_csv_path, step_size, grid_id , CellsDataPath, step)
 
     # Plot the vasculature data
-    print(f'Plotting vasculature...')
+    print(f'Saving vasculature...')
     for id, step in enumerate(range(0,max_step+1,step_size)):
         saveVasculatureData(VasculatureDataPath, first_vasculature_path, step)
 
@@ -238,7 +238,7 @@ def get_cluster_radius_and_diameter(ccells_positions, grid_id):
         diameter: the maximum of all the cell-cell distances.
     """
     if ccells_positions.empty:
-        return (float("NaN"), float("NaN"))
+        return (float("NaN"), float("NaN"), float("NaN"))
     #centroid = ccells_positions.mean(axis=0)
     ccells_positions= list(ccells_positions['Position'])
     centroid = np.average(ccells_positions, axis=0)
