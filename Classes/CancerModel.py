@@ -142,6 +142,7 @@ class CancerModel(mesa.Model):
         if self.schedule.time in self.vasculature: # Add keys
             self.disaggregate_clusters(self.schedule.time)
             surviving_clusters = [cluster for cluster in self.vasculature[self.schedule.time] if self.random.random() < get_cluster_survival_probability(cluster)]
+            del self.vasculature[self.schedule.time]
             for cluster in surviving_clusters:
                 selected_site = self.random.choices(range(1,self.grids_number), weights=extravasation_probs[0:self.grids_number-1])[0]
                 arriving_point = self.random.choice(self.grid_vessels_positions[selected_site])
