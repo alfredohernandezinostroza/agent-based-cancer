@@ -197,7 +197,7 @@ class CancerModel(mesa.Model):
             self.proliferate("epithelial")
 
         # Saving of non agents data
-        if isBatchRun and (self.schedule.time % self.dataCollectionPeriod == 0):
+        if self.schedule.time == 1 or (self.schedule.time != 0 and isBatchRun and (self.schedule.time % self.dataCollectionPeriod == 0)):
             # Saving Mmp2 and Ecm data
             for grid_id in self.grid_ids:
                 new_mmp2_df = pd.DataFrame(self.mmp2[grid_id-1][0,:,:])
@@ -211,7 +211,7 @@ class CancerModel(mesa.Model):
                 new_ecm_df.to_csv(pathToSave)
 
                 bool_grid_df = pd.DataFrame({'GridHasCell': self.gridHasCells[grid_id-1][1]}, index=[0])
-                BoolCsvName = f"Ecm-{grid_id}grid-{self.schedule.time}step.csv"
+                BoolCsvName = f"Cells-are-present-{grid_id}grid-{self.schedule.time}step.csv"
                 pathToSave = os.path.join(parent_dir, self.newSimulationFolder, BoolCsvName)
                 bool_grid_df.to_csv(pathToSave)
 
