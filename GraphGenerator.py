@@ -157,68 +157,62 @@ def plot_histogram(data_folder_path, histogram_images_path):
             plt.bar(histogram['Bins'], histogram['Frequency'])
             plt.xticks(range(carrying_capacity + 1))
             plt.xlim([-1, carrying_capacity + 1])
-            plt.savefig(histogram_images_path)
+            path_to_save = os.path.join(histogram_images_path, csv_file[0:-4]+".png")
+            plt.savefig(path_to_save)
     else:
         raise Exception(f'No CSV files found at {data_folder_path}. Did you run the data analysis first?')
 
-def plotVasculatureGraphs(vasculature_data, pathToSave, max_step):
-    #read from csv
-    vasculature = pd.read_csv(vasculature_data, header=0)
-
+def plotVasculatureGraphs(vasculature_df, pathToSave, max_step):
     # Prepare the data for the bar chart
-    mesenchymal_data = vasculature["Mesenchymal cells"]
-    epithelial_data = vasculature["Epithelial cells"]
-    total_cluster_data = vasculature["Total clusters"]
-    multicellular_cluster_data = vasculature["Multicellular clusters"]
-    time_steps = vasculature["Time"]
+    mesenchymal_data = vasculature_df["Mesenchymal cells"]
+    epithelial_data = vasculature_df["Epithelial cells"]
+    total_cluster_data = vasculature_df["Total clusters"]
+    multicellular_cluster_data = vasculature_df["Multicellular clusters"]
+    time_steps = vasculature_df["Time"]
     plt.style.use("Solarize_Light2")
 
     #second plot, clusters
-    fig, ax = plt.subplots()
-    index = time_steps
+    plt.figure()
     
     # Plot the data for each category
-    ax.step(index, mesenchymal_data, where='mid', color='tab:blue', label='Mesenchymal Cells', linewidth=1.5)
-    ax.step(index, epithelial_data, where='mid', color='tab:orange', label='Epithelial Cells', linewidth=1.5)
-    ax.step(index, total_cluster_data, where='mid', color='darkred', label='Total clusters', linewidth=1.5)
-    ax.step(index, multicellular_cluster_data, where='mid', color='darkred', label='Multicellular clusters', linewidth=1.5)
+    plt.step(time_steps, mesenchymal_data, where='mid', color='tab:blue', label='Mesenchymal Cells', linewidth=1.5)
+    plt.step(time_steps, epithelial_data, where='mid', color='tab:orange', label='Epithelial Cells', linewidth=1.5)
 
     # Set the chart labels, title, and legend
-    ax.set_xlabel('Day')
-    ax.set_ylabel('Cell Count')
-    ax.set_title('Vasculature Cell Counts')
-    ax.set_xticks([0, max_step/2, max_step])
-    ax.set_xticklabels([0, f"{(max_step/2)*11/24000:.2f}"] + [f"{max_step*11/24000:.2f}"])
-
-    ax.set_xlim([-0.5, max_step + 0.5])
-    ax.legend(loc="upper left")
+    plt.xlabel('Day')
+    plt.ylabel('Cell Count')
+    plt.title('Vasculature Cell Counts')
+    plt.xticks([0, max_step/2, max_step], [0, f"{(max_step/2)*11/24000:.2f}", f"{max_step*11/24000:.2f}"])
+    
+    plt.xlim([-0.5, max_step + 0.5])
+    plt.legend(loc="upper left")
 
     # save the figure
     figure_path = os.path.join(pathToSave, f'Vasculature-cells-step{max_step}.png')
     plt.savefig(figure_path)
-    
+    plt.close()
     #second plot, clusters
-    fig, ax = plt.subplots()
-    index = time_steps
+    plt.figure()
     
     # Plot the data for each category
-    ax.step(index, total_cluster_data, where='mid', color='darkred', label='Total clusters', linewidth=1.5)
-    ax.step(index, multicellular_cluster_data, where='mid', color='darkred', label='Multicellular clusters', linewidth=1.5)
+    plt.step(time_steps, total_cluster_data, where='mid', color='darkred', label='Total clusters', linewidth=1.5)
+    plt.step(time_steps, multicellular_cluster_data, where='mid', color='green', label='Multicellular clusters', linewidth=1.5)
 
     # Set the chart labels, title, and legend
-    ax.set_xlabel('Day')
-    ax.set_ylabel('Cluster Count')
-    ax.set_title('Vasculature Cluster Counts')
-    ax.set_xticks([0, max_step/2, max_step])
-    ax.set_xticklabels([0, f"{(max_step/2)*11/24000:.2f}"] + [f"{max_step*11/24000:.2f}"])
+    plt.xlabel('Day')
+    plt.ylabel('Cluster Count')
+    plt.title('Vasculature Cluster Counts')
+    plt.xticks([0, max_step/2, max_step], [0, f"{(max_step/2)*11/24000:.2f}", f"{max_step*11/24000:.2f}"])
+    
 
-    ax.set_xlim([-0.5, max_step + 0.5])
-    ax.legend(loc="upper left")
+    plt.xlim([-0.5, max_step + 0.5])
+    plt.legend(loc="upper left")
 
     # save the figure
     figure_path = os.path.join(pathToSave, f'Vasculature-clusters-step{max_step}.png')
     plt.savefig(figure_path)
-
+    plt.close()
+    
 def generate_graphs(nameOfTheSimulation):
     simulation_path = os.path.join(parent_dir, nameOfTheSimulation)
     print(f'\tAnalyzing data in the folder {simulation_path}\n')
@@ -310,7 +304,7 @@ def generate_graphs(nameOfTheSimulation):
         print("Saving Ecm images in the folder:", EcmImagesPath)
         print("Saving cells numbers images in the folder:", CellsImagesPath)
         print("Saving vasculature images in the folder:", vasculature_images_path)
-        print("Saving vasculature images in the folder:", histogram_images_path)
+        print("Saving histogram images in the folder:", histogram_images_path)
 
     # If there the visual analysis is already done, tell the user
     else:
@@ -362,14 +356,15 @@ def generate_graphs(nameOfTheSimulation):
     # Plot the vasculature data
     print(f'Plotting vasculature...')
     for id, step in enumerate(range(0,max_step+1,step_size)):
+        folder_path = os.path.join(simulation_path, "Data analysis", "Vasculature evolution")
         try:
-            path = os.path.join(simulation_path, "Data analysis", "Vasculature evolution")
-            vasculature_data = pd.read_csv(path, header=0)
+            file_path = os.path.join(folder_path, f"Vasculature-step{step}.csv")
+            vasculature_data = pd.read_csv(file_path, header=0)
         except:
             print(f"Error while reading the vasculature data for step {step} in grid {grid_id}", file=sys.stderr)
             print("Did you run the 'Data analysis' in the postprocessing menu first?", file=sys.stderr)
             os._exit(1)
-        plotVasculatureGraphs(vasculature_data, vasculature_images_path, first_vasculature_path, step)
+        plotVasculatureGraphs(vasculature_data, vasculature_images_path, step)
         plt.close()
         figCounter += 1
 
