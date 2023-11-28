@@ -1,0 +1,6 @@
+keyboard==0.13.5
+matplotlib==3.8.0
+mesa==2.1.2
+numpy==1.26.0
+pandas==2.1.1
+opencv-python==4.8.1.78
