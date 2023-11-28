@@ -91,9 +91,9 @@ def run_simulation(N, width, height, grids_number, maxSteps, dataCollectionPerio
     results = mesa.batch_run(
         CancerModel,
         parameters=params,
-        iterations=1, # I think for the code to run and save in the specified folders this must be always 1
+        iterations=1, # for the code to run and save in the specified folders this must be always 1
         max_steps=maxSteps,
-        number_processes=1,
+        number_processes=None,
         data_collection_period=dataCollectionPeriod,
         display_progress=True,
     )
