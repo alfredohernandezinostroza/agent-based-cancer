@@ -1,4 +1,3 @@
-from Classes.utils import parent_dir
 from Classes.utils import gridsize_utils as gridsize
 import cv2
 import os
@@ -110,11 +109,12 @@ def generate_videos(nameOfTheSimulation, frameRate):
     
     # Path where the folder of images are located
     imagesFolder = "Visual analysis"
-    ImagesFolderPath = os.path.join(parent_dir, nameOfTheSimulation, imagesFolder)
+    simulations_dir = "Simulations"
+    ImagesFolderPath = os.path.join(simulations_dir, nameOfTheSimulation, imagesFolder)
     print(f'Analyzing images at: {ImagesFolderPath}')
 
     #Path to save the videos
-    VideosFolderPath = os.path.join(parent_dir, nameOfTheSimulation, "Videos")
+    VideosFolderPath = os.path.join(simulations_dir, nameOfTheSimulation, "Videos")
     print(f'Creating folder to save videos at: {VideosFolderPath}\n')
 
     print(f'\tFrame rate is: {frameRate}')

@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from Classes.CancerModel import *
 import os
-from Classes.utils import parent_dir, gridsize_utils
+from Classes.utils import gridsize_utils
 from Classes import utils
 
 # To run this code you must be in the parent folder of agent-based-cancer
@@ -21,7 +21,7 @@ def main_Batch(maxSteps, dataCollectionPeriod, loadedSimulationPath=""):
     grids_number = 3
 
     # Name of the directories
-    simulations_dir = parent_dir
+    simulations_dir = "Simulations"
     if loadedSimulationPath != "":
         pattern = r'maxSteps-(\d+)'
         match = re.search(pattern, loadedSimulationPath)

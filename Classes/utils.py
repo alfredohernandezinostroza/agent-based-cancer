@@ -15,10 +15,10 @@ theta                   = 0.195
 Lambda                  = 0.1
 gamma1                  = 1
 gamma2                  = 1
-doublingTimeE           = 1000 # PDF: 2000
-doublingTimeM           = 1500 # PDF: 3000
+doublingTimeE           = 2 # PDF: 2000
+doublingTimeM           = 3 # PDF: 3000
 gridsize                = 10
-totalTime               = 24002 # must contain step 0 and final step of batch. (I think this is never being used)
+totalTime               = 16002 # must contain step 0 and final step of batch. (I think this is never being used)
 patchsize               = 3
 middlePoint             = round(gridsize/2)
 E1                      = 0.5461 #bones
@@ -38,8 +38,5 @@ n_center_points_for_Vessels = 200 #PDF 200 # vessels will not be in this center 
 # Variable to stop the saving of ecm and mmp2 if it is NOT a Batch run analysis
 isBatchRun = True
 
-# Name of the directorie to save the data
-parent_dir = "Simulations"
-imagesFolder_utils = "Visual analysis"
 gridsize_utils = 201
 

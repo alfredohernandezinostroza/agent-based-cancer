@@ -5,11 +5,9 @@ import pandas as pd
 import os
 import json
 import ast
-# from Classes import *
 from Classes.CancerCell import CancerCell
 from Classes.Vessel import Vessel
 from Classes.utils import *
-
 from Classes.QuasiCircle import find_quasi_circle
 from matplotlib import pyplot as plt
 from matplotlib import cm
@@ -96,6 +94,7 @@ class CancerModel(mesa.Model):
     """
     def __init__(self, N, width, height, grids_number, maxSteps, dataCollectionPeriod, newSimulationFolder, loadedSimulationPath="", seed=None):
         super().__init__()  
+        self.simulations_dir = "Simulations"
         self.vasculature = {}
         self.num_agents = N
         self.width = width
@@ -216,17 +215,17 @@ class CancerModel(mesa.Model):
             for grid_id in self.grid_ids:
                 new_mmp2_df = pd.DataFrame(self.mmp2[grid_id-1][0,:,:])
                 mmp2CsvName = f"Mmp2-{grid_id}grid-{self.schedule.time}step.csv"
-                pathToSave = os.path.join(parent_dir, self.newSimulationFolder, "Mmp2", mmp2CsvName)
+                pathToSave = os.path.join(self.simulations_dir, self.newSimulationFolder, "Mmp2", mmp2CsvName)
                 new_mmp2_df.to_csv(pathToSave)
 
                 new_ecm_df = pd.DataFrame(self.ecm[grid_id-1][0,:,:])
                 EcmCsvName = f"Ecm-{grid_id}grid-{self.schedule.time}step.csv"
-                pathToSave = os.path.join(parent_dir, self.newSimulationFolder, "Ecm", EcmCsvName)
+                pathToSave = os.path.join(self.simulations_dir, self.newSimulationFolder, "Ecm", EcmCsvName)
                 new_ecm_df.to_csv(pathToSave)
 
                 df_time_grids_got_populated[f"Time when grid {grid_id} was first populated"] = [self.time_grid_got_populated[grid_id-1]]
                 df_time_grids_got_populated_csv_name = f"Cells-are-present-grid-{grid_id}-{self.schedule.time}step.csv"
-            pathToSave = os.path.join(parent_dir, self.newSimulationFolder, "Time when grids were populated", df_time_grids_got_populated_csv_name)
+            pathToSave = os.path.join(self.simulations_dir, self.newSimulationFolder, "Time when grids were populated", df_time_grids_got_populated_csv_name)
             df_time_grids_got_populated.to_csv(pathToSave)
 
             # Saves vasculature data
@@ -234,7 +233,7 @@ class CancerModel(mesa.Model):
             # {key: list of clusters} -> {timestep: [(number of Mcells, number of Ecells), ..., (..., ...)]}
             
             vasculatureJsonName = f"Vasculature-{self.schedule.time}step.json"
-            pathToSave = os.path.join(parent_dir, self.newSimulationFolder, "Vasculature", vasculatureJsonName)
+            pathToSave = os.path.join(self.simulations_dir, self.newSimulationFolder, "Vasculature", vasculatureJsonName)
             
             with open(pathToSave, 'w') as f:
                 f.write(vasculature_json)
@@ -242,7 +241,7 @@ class CancerModel(mesa.Model):
             # Saves cancer cells data
             _, current_model_data = mesa.batchrunner._collect_data(self, self.schedule.time-1)
             df_current_model_data = pd.DataFrame(current_model_data)
-            pathToSave = os.path.join(parent_dir, self.newSimulationFolder, f'CellsData.csv')
+            pathToSave = os.path.join(self.simulations_dir, self.newSimulationFolder, f'CellsData.csv')
             df_current_model_data.to_csv(pathToSave)
 
 

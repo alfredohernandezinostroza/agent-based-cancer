@@ -2,7 +2,6 @@ import ast
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
-from Classes.utils import parent_dir
 from Classes.utils import gridsize_utils as gridsize
 from Classes.utils import carrying_capacity
 import re
@@ -214,7 +213,8 @@ def plotVasculatureGraphs(vasculature_df, pathToSave, max_step):
     plt.close()
     
 def generate_graphs(nameOfTheSimulation):
-    simulation_path = os.path.join(parent_dir, nameOfTheSimulation)
+    simulations_dir = "Simulations"
+    simulation_path = os.path.join(simulations_dir, nameOfTheSimulation)
     print(f'\tAnalyzing data in the folder {simulation_path}\n')
 
     # Get the agents' data filename 
@@ -233,7 +233,6 @@ def generate_graphs(nameOfTheSimulation):
     if csv_files_name:
         first_csv_name = csv_files_name[0]
         first_csv_path = os.path.join(simulation_path, first_csv_name)
-        #all_cells_analysis_path = os.path.join(parent_dir, simulation_path, first_csv_path)
         print("Using cells data at:", first_csv_path)
     else:
         print("No .csv cell data found in directory:", simulation_path)

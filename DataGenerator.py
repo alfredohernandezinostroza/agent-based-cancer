@@ -1,7 +1,6 @@
 import ast
 import pandas as pd
 import numpy as np
-from Classes.utils import parent_dir
 from Classes.utils import gridsize_utils as gridsize
 import re
 import os
@@ -117,7 +116,7 @@ def saveVasculatureData(pathToSave, vasculature_json_path, max_step):
     df_export.to_csv(path)
 
 def generate_data(nameOfTheSimulation):
-    SimulationPath = os.path.join(parent_dir, nameOfTheSimulation)
+    SimulationPath = os.path.join("Simulations", nameOfTheSimulation)
     print(f'\tAnalyzing data in the folder {SimulationPath}\n')
 
     # Get the agents' data filename 
@@ -136,7 +135,6 @@ def generate_data(nameOfTheSimulation):
     if csv_files_name:
         first_csv_name = csv_files_name[0]
         first_csv_path = os.path.join(SimulationPath, first_csv_name)
-        #all_cells_analysis_path = os.path.join(parent_dir, SimulationPath, first_csv_path)
         print("Using cells data at:", first_csv_path)
     else:
         print("No .csv cell data found in directory:", SimulationPath)
