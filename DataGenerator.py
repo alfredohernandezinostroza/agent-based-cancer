@@ -6,7 +6,6 @@ from Classes.utils import gridsize_utils as gridsize
 import re
 import os
 import json
-from ast import literal_eval
 
 # To run this code you must be in the parent folder of agent-based-cancer
 
