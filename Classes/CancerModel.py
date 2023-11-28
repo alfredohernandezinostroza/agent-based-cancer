@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import os
 import json
+import ast
 # from Classes import *
 from Classes.CancerCell import CancerCell
 from Classes.Vessel import Vessel
@@ -196,8 +197,21 @@ class CancerModel(mesa.Model):
         if (self.schedule.time % doublingTimeE == 0 and self.schedule.time != 0):
             self.proliferate("epithelial")
 
+        print(f'step number: {self.schedule.time}')
+        self.schedule.step()
+        self.datacollector.collect(self)
+
+        #at the end of each step, check if the grid has been populated, and if it happened, store the time step when it did
+        for index, time in enumerate(self.time_grid_got_populated):
+            if time == -1: #if it has not been populated already, we check:
+                cell_count = len([1 for agent in self.schedule.agents if agent.agent_type == "cell" and (agent.grid_id - 1) == index])
+                if cell_count > 0:
+                    self.time_grid_got_populated[index] = self.schedule.time
+
         # Saving of non agents data
-        if self.schedule.time == 1 or (self.schedule.time != 0 and isBatchRun and (self.schedule.time % self.dataCollectionPeriod == 0)):
+        if self.schedule.time == 1 \
+            or (self.schedule.time != 0 and isBatchRun and (self.schedule.time % self.dataCollectionPeriod == 0)) \
+            or self.schedule.time == self.maxSteps:
             df_time_grids_got_populated = pd.DataFrame()
             for grid_id in self.grid_ids:
                 new_mmp2_df = pd.DataFrame(self.mmp2[grid_id-1][0,:,:])
@@ -210,35 +224,27 @@ class CancerModel(mesa.Model):
                 pathToSave = os.path.join(parent_dir, self.newSimulationFolder, "Ecm", EcmCsvName)
                 new_ecm_df.to_csv(pathToSave)
 
-                df_time_grids_got_populated[f"Time when grid {grid_id-1} was first populated"] = [self.time_grid_got_populated[grid_id-1]]
+                df_time_grids_got_populated[f"Time when grid {grid_id} was first populated"] = [self.time_grid_got_populated[grid_id-1]]
                 df_time_grids_got_populated_csv_name = f"Cells-are-present-grid-{grid_id}-{self.schedule.time}step.csv"
-            pathToSave = os.path.join(parent_dir, self.newSimulationFolder, df_time_grids_got_populated_csv_name)
+            pathToSave = os.path.join(parent_dir, self.newSimulationFolder, "Time when grids were populated", df_time_grids_got_populated_csv_name)
             df_time_grids_got_populated.to_csv(pathToSave)
 
-
             # Saves vasculature data
-            if self.schedule.time == self.maxSteps:
-                vasculature_json = json.dumps(self.vasculature)
-                # {key: list of clusters} -> {timestep: [(number of Mcells, number of Ecells), ..., (..., ...)]}
-                
-                vasculatureJsonName = f"Vasculature-{self.schedule.time}step.json"
-                pathToSave = os.path.join(parent_dir, self.newSimulationFolder, "Vasculature", vasculatureJsonName)
-                
-                with open(pathToSave, 'w') as f:
-                    f.write(vasculature_json)
+            vasculature_json = json.dumps(self.vasculature)
+            # {key: list of clusters} -> {timestep: [(number of Mcells, number of Ecells), ..., (..., ...)]}
+            
+            vasculatureJsonName = f"Vasculature-{self.schedule.time}step.json"
+            pathToSave = os.path.join(parent_dir, self.newSimulationFolder, "Vasculature", vasculatureJsonName)
+            
+            with open(pathToSave, 'w') as f:
+                f.write(vasculature_json)
                     
             # Saves cancer cells data
-                #dadsa
-        print(f'step number: {self.schedule.time}')
-        self.schedule.step()
-        self.datacollector.collect(self)
+            _, current_model_data = mesa.batchrunner._collect_data(self, self.schedule.time-1)
+            df_current_model_data = pd.DataFrame(current_model_data)
+            pathToSave = os.path.join(parent_dir, self.newSimulationFolder, f'CellsData.csv')
+            df_current_model_data.to_csv(pathToSave)
 
-        #at the end of each step, check if the grid has been populated, and if it happened, store the time step it did
-        for index, time in enumerate(self.time_grid_got_populated):
-            if time == -1: #if it has not been populated already, we check:
-                cell_count = len([1 for agent in self.schedule.agents if agent.agent_type == "cell" and agent.grid == index])
-                if cell_count > 0:
-                    self.time_grid_got_populated[index] = self.schedule.time
 
 
     def proliferate(self, cellType):
@@ -266,18 +272,19 @@ class CancerModel(mesa.Model):
 
     def loadPreviousSimulation(self, pathToSimulation):
         """
-        Loads the last step of a previously computed simulation as the initial condition of thes model
+        Loads the last step of a previously computed simulation as the initial condition of this model
 
         Input: The simulation's path to be loaded
         Returns: none
         """
-
-        previous_sim_df = pd.read_csv(pathToSimulation)
+        # previous_sim_df = pd.DataFrame({"Step": [1]})
+        path = os.path.join(pathToSimulation, "CellsData.csv")
+        previous_sim_df = pd.read_csv(path, converters={"Position": ast.literal_eval})
         last_step = previous_sim_df["Step"].max()
-        previous_sim_df = previous_sim_df[["Step"] == last_step]
-        previous_sim_df = previous_sim_df[["Agent Type"] == "cell"]
+        previous_sim_df = previous_sim_df[previous_sim_df["Step"] == last_step]
+        previous_sim_df = previous_sim_df[previous_sim_df["Agent Type"] == "cell"]
         for index, row in previous_sim_df.iterrows():
-            grid = row["Grid"] - 1
+            grid = int(row["Grid"]) - 1
             ccell = CancerCell(self.current_agent_id, self, self.grids[grid], self.grid_ids[grid], row["Phenotype"], self.ecm[grid], self.mmp2[grid])
             self.current_agent_id += 1
             self.schedule.add(ccell)

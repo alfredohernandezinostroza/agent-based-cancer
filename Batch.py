@@ -43,6 +43,7 @@ def main_Batch(maxSteps, dataCollectionPeriod, loadedSimulationPath=""):
     pathMmp2 = os.path.join(path, "Mmp2")
     pathEcm = os.path.join(path, "Ecm")
     pathVasculature = os.path.join(path, "Vasculature")
+    pathTimeOfPopulation = os.path.join(path, "Time when grids were populated")
 
     # Create folder for all cells analysis, for Mmp2 matrices and Ecm matrices
     if not os.path.exists(path):
@@ -56,6 +57,7 @@ def main_Batch(maxSteps, dataCollectionPeriod, loadedSimulationPath=""):
         os.makedirs(pathMmp2)
         os.makedirs(pathEcm)
         os.makedirs(pathVasculature)
+        os.makedirs(pathTimeOfPopulation)
 
         # Run the simulation and saves the data
         run_simulation(N, width, height, grids_number, maxSteps, dataCollectionPeriod, newSimulationFolder, simulations_dir, loadedSimulationPath)
