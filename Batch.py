@@ -103,16 +103,7 @@ def run_simulation(N, width, height, grids_number, maxSteps, dataCollectionPerio
     print(f'Example of data collected: {cells_df.head(10)}')
 
     # Saves data analysis
-    if loadedSimulationPath != "":
-        pattern = r'maxSteps-(\d+)'
-        match = re.search(pattern, loadedSimulationPath)
-        if match:
-            loadedMaxSteps = int(match.group(1))
-        else:
-            raise ValueError("Error finding loaded simulation maxSteps!")
-        nameOfCsv = f'CellsData-{loadedMaxSteps}+{maxSteps}steps-{dataCollectionPeriod}stepsize-{grids_number}grids.csv'
-    else:
-        nameOfCsv = f'CellsData-{maxSteps}steps-{dataCollectionPeriod}stepsize-{grids_number}grids.csv'
+    nameOfCsv = f'CellsData.csv'
     pathToSave = os.path.join(simulations_dir, newSimulationFolder, nameOfCsv)
     cells_df[1:].to_csv(pathToSave)
     print(f'All data saved')
