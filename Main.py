@@ -4,7 +4,7 @@ import os
 import sys
 import DataGenerator
 import GraphGenerator
-import VideoGenerator
+import videoGenerator
 import time
 import Batch
 
@@ -58,7 +58,7 @@ def load_simulation_menu():
             os._exit(0)
     total_steps = get_int_input("Select additional number of steps until the loaded simulation will continue: ")
     interval_steps = get_int_input("Select the size of the intervals for which the information will be collected: ")
-    Batch.main_Batch(total_steps, interval_steps, loadedSimulationPath=selected_option)
+    Batch.main_Batch(total_steps, interval_steps, loadedSimulationPath=os.path.join(os.getcwd(),directory_path, selected_option))
 
 def postprocessing_menu():
     global selected_option, selected_option_index, banner_message, options_list
