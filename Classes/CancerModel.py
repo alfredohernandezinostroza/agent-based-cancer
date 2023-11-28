@@ -110,7 +110,7 @@ class CancerModel(mesa.Model):
         self.grids_number = grids_number
         self.grids = [mesa.space.MultiGrid(width, height, False) for _ in range(self.grids_number)]
         self.grid_ids = [i+1 for i in range(self.grids_number)] # need a number to appear in the data analysis (.csv)
-        self.gridHasCells = [(False, 0) for _ in range(self.grids_number)]
+        self.time_grid_got_populated = [-1 for _ in range(self.grids_number)]
         self.schedule = mesa.time.RandomActivation(self)
         #list of numpy arrays, representing mmp2 and ecm concentration in each grid
         self.mmp2 = [np.zeros((2, width, height), dtype=float) for _ in range(grids_number)]
@@ -198,7 +198,7 @@ class CancerModel(mesa.Model):
 
         # Saving of non agents data
         if self.schedule.time == 1 or (self.schedule.time != 0 and isBatchRun and (self.schedule.time % self.dataCollectionPeriod == 0)):
-            # Saving Mmp2 and Ecm data
+            df_time_grids_got_populated = pd.DataFrame()
             for grid_id in self.grid_ids:
                 new_mmp2_df = pd.DataFrame(self.mmp2[grid_id-1][0,:,:])
                 mmp2CsvName = f"Mmp2-{grid_id}grid-{self.schedule.time}step.csv"
@@ -210,10 +210,10 @@ class CancerModel(mesa.Model):
                 pathToSave = os.path.join(parent_dir, self.newSimulationFolder, "Ecm", EcmCsvName)
                 new_ecm_df.to_csv(pathToSave)
 
-                bool_grid_df = pd.DataFrame({'GridHasCell': self.gridHasCells[grid_id-1][1]}, index=[0])
-                BoolCsvName = f"Cells-are-present-{grid_id}grid-{self.schedule.time}step.csv"
-                pathToSave = os.path.join(parent_dir, self.newSimulationFolder, BoolCsvName)
-                bool_grid_df.to_csv(pathToSave)
+                df_time_grids_got_populated[f"Time when grid {grid_id-1} was first populated"] = [self.time_grid_got_populated[grid_id-1]]
+                df_time_grids_got_populated_csv_name = f"Cells-are-present-grid-{grid_id}-{self.schedule.time}step.csv"
+            pathToSave = os.path.join(parent_dir, self.newSimulationFolder, df_time_grids_got_populated_csv_name)
+            df_time_grids_got_populated.to_csv(pathToSave)
 
 
             # Saves vasculature data
@@ -234,11 +234,11 @@ class CancerModel(mesa.Model):
         self.datacollector.collect(self)
 
         #at the end of each step, check if the grid has been populated, and if it happened, store the time step it did
-        for index, (grid_cell_state, _) in enumerate(self.gridHasCells):
-            if not grid_cell_state:
+        for index, time in enumerate(self.time_grid_got_populated):
+            if time == -1: #if it has not been populated already, we check:
                 cell_count = len([1 for agent in self.schedule.agents if agent.agent_type == "cell" and agent.grid == index])
                 if cell_count > 0:
-                    self.gridHasCells[index] = (True, self.schedule.time)
+                    self.time_grid_got_populated[index] = self.schedule.time
 
 
     def proliferate(self, cellType):
