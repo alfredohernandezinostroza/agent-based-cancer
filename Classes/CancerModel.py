@@ -12,6 +12,16 @@ from Classes.QuasiCircle import find_quasi_circle
 from matplotlib import pyplot as plt
 from matplotlib import cm
 
+def load_simulation_configs(path):
+    """
+    Loads the config file, reading the csv given in path, and adding their values to the global scope
+    Input:
+        string: path
+    """ 
+    df_configs = pd.read_csv(path, header=0, converters=ast.literal_eval)
+    dict_configs = dict(zip(df_configs["Names"], df_configs["Values"]))
+    globals().update(dict_configs)  
+
 def get_cluster_survival_probability(cluster):
     """
     Takes in a tuple representing a cluster, returns the survival probabiltiy.
@@ -278,6 +288,8 @@ class CancerModel(mesa.Model):
         """
         # previous_sim_df = pd.DataFrame({"Step": [1]})
         path = os.path.join(pathToSimulation, "CellsData.csv")
+        configs_path = os.path.join(pathToSimulation, "configs.csv") 
+        load_simulation_configs(configs_path)
         previous_sim_df = pd.read_csv(path, converters={"Position": ast.literal_eval})
         last_step = previous_sim_df["Step"].max()
         previous_sim_df = previous_sim_df[previous_sim_df["Step"] == last_step]
