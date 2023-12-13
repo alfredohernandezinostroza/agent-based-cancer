@@ -77,25 +77,21 @@ def run_simulation(N, width, height, grids_number, maxSteps, dataCollectionPerio
         params["loadedSimulationPath"] = loadedSimulationPath
 
     # Saves the simulation configuration
-    var_names = dir(utils) + ['maxSteps', 'dataCollectionPeriod', 'N', 'grids_number', 'simulations_dir']
-
-    # Open the file for writing
     print(f"Saving all the simulations parameters at: {os.path.join(simulations_dir, newSimulationFolder, 'configs.txt')}")
+    var_names = dir(utils)
     names = []
     values = []
     for name, value in globals().items():
         if name in var_names and not name.startswith('_'):
             names.append(name)
             values.append(value)
-    df_test = pd.DataFrame({"Names": names, "Values": values})
+    #add configurations that are not in the global variables
+    names += ['maxSteps', 'dataCollectionPeriod', 'grids_number']
+    values += [maxSteps, dataCollectionPeriod, grids_number]
+    df_vars = pd.DataFrame({"Names": names, "Values": values})
+    df_vars = df_vars.set_index("Names")
     path = os.path.join(simulations_dir, newSimulationFolder, 'configs.csv')
-    df_test.to_csv(path)
-    # with open(os.path.join(simulations_dir, newSimulationFolder, 'configs.csv'), 'w') as f:
-        # Write the values of each variable to the file
-        # for name, value in globals().items():
-        #     if name in var_names and not name.startswith('_'):
-        #         f.write(f'{name}, {value}\n')
-
+    df_vars.to_csv(path)
 
     # The whole simulation occurs here
     print(f'\n\tStarting the simulation')
@@ -120,7 +116,7 @@ def run_simulation(N, width, height, grids_number, maxSteps, dataCollectionPerio
     print(f'All data saved')
 
 if __name__ == "__main__":
-    maxSteps = 4
+    maxSteps = 7
     dataCollectionPeriod = 2
     # This runs all the code to create folders, run the simulation and save the data
     main_Batch(maxSteps, dataCollectionPeriod)
