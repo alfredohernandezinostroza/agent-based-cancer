@@ -1,6 +1,6 @@
 import mesa
-from Classes.utils import *
 from Classes.Vessel import Vessel
+from Classes.configs import *
 
 class CancerCell(mesa.Agent):
 

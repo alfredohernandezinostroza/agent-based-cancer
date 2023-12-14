@@ -2,10 +2,11 @@ import re
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-from Classes.CancerModel import *
+# from Classes.CancerModel import *
+import mesa
 import os
-from Classes.utils import gridsize_utils
-from Classes import utils
+# from Classes.configs import *
+import Classes.configs
 
 # To run this code you must be in the parent folder of agent-based-cancer
 # Before running this code always check if isBatchRun = True is in Utils
@@ -13,9 +14,19 @@ from Classes import utils
 
 def main_Batch(maxSteps, dataCollectionPeriod, loadedSimulationPath=""):
 
+    # load configs file from a previous simulation or loads the general configs file
+    if loadedSimulationPath != "":
+        configs_path = os.path.join(loadedSimulationPath, "configs.csv")
+    else:
+        configs_path = "simulations_configs.csv"
+    config_var_names = Classes.configs.load_simulation_configs(configs_path)
+    # for var in config_var_names:
+    #     globals()[var] = getattr(Classes.configs, var)
+    # from Classes.CancerModel import CancerModel
+    
     # Parameters for this simulation
     N = 388 # Number of cancer cells
-    gridsize     = gridsize_utils #PDF: 201
+    gridsize     = Classes.configs.gridsize_utils #PDF: 201
     width        = gridsize
     height       = gridsize
     grids_number = 3
@@ -60,7 +71,7 @@ def main_Batch(maxSteps, dataCollectionPeriod, loadedSimulationPath=""):
         os.makedirs(pathTimeOfPopulation)
 
         # Run the simulation and saves the data
-        run_simulation(N, width, height, grids_number, maxSteps, dataCollectionPeriod, newSimulationFolder, simulations_dir, loadedSimulationPath)
+        run_simulation(Classes.CancerModel, N, width, height, grids_number, maxSteps, dataCollectionPeriod, newSimulationFolder, simulations_dir, config_var_names, loadedSimulationPath)
 
     # If there is already a simulation you skip it
     else:
@@ -69,7 +80,7 @@ def main_Batch(maxSteps, dataCollectionPeriod, loadedSimulationPath=""):
     return print('Finished the simulation')
 
 
-def run_simulation(N, width, height, grids_number, maxSteps, dataCollectionPeriod, newSimulationFolder, simulations_dir, loadedSimulationPath=""):
+def run_simulation(CancerModel, N, width, height, grids_number, maxSteps, dataCollectionPeriod, newSimulationFolder, simulations_dir, config_var_names, loadedSimulationPath=""):
 
     # Setting parameters for mesa.batch_run
     params = {"N": N, "width": width, "height": height, "grids_number": grids_number, "maxSteps": maxSteps, "dataCollectionPeriod": dataCollectionPeriod, "newSimulationFolder": newSimulationFolder }
@@ -77,12 +88,11 @@ def run_simulation(N, width, height, grids_number, maxSteps, dataCollectionPerio
         params["loadedSimulationPath"] = loadedSimulationPath
 
     # Saves the simulation configuration
-    print(f"Saving all the simulations parameters at: {os.path.join(simulations_dir, newSimulationFolder, 'configs.txt')}")
-    var_names = dir(utils)
+    print(f"Saving all the simulations parameters at: {os.path.join(simulations_dir, newSimulationFolder, 'configs.csv')}")
     names = []
     values = []
     for name, value in globals().items():
-        if name in var_names and not name.startswith('_'):
+        if name in config_var_names and not name.startswith('_'):
             names.append(name)
             values.append(value)
     #add configurations that are not in the global variables
@@ -116,7 +126,7 @@ def run_simulation(N, width, height, grids_number, maxSteps, dataCollectionPerio
     print(f'All data saved')
 
 if __name__ == "__main__":
-    maxSteps = 7
+    maxSteps = 30
     dataCollectionPeriod = 2
     # This runs all the code to create folders, run the simulation and save the data
     main_Batch(maxSteps, dataCollectionPeriod)

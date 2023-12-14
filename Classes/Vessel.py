@@ -1,5 +1,4 @@
 import mesa
-from Classes.utils import *
 
 class Vessel(mesa.Agent):
     def __init__(self, unique_id, model, ruptured, grid, grid_id):

@@ -7,20 +7,13 @@ import json
 import ast
 from Classes.CancerCell import CancerCell
 from Classes.Vessel import Vessel
-from Classes.utils import *
 from Classes.QuasiCircle import find_quasi_circle
 from matplotlib import pyplot as plt
 from matplotlib import cm
+# from Classes.configs import *
+import Classes.configs
 
-def load_simulation_configs(path):
-    """
-    Loads the config file, reading the csv given in path, and adding their values to the global scope
-    Input:
-        string: path
-    """ 
-    df_configs = pd.read_csv(path, header=0, converters=ast.literal_eval)
-    dict_configs = dict(zip(df_configs["Names"], df_configs["Values"]))
-    globals().update(dict_configs)  
+
 
 def get_cluster_survival_probability(cluster):
     """
@@ -102,6 +95,7 @@ class CancerModel(mesa.Model):
     disaggregate_clusters(time)
         For a given time, it will dissagregate single cells from clusters
     """
+
     def __init__(self, N, width, height, grids_number, maxSteps, dataCollectionPeriod, newSimulationFolder, loadedSimulationPath="", seed=None):
         super().__init__()  
         self.simulations_dir = "Simulations"
@@ -125,9 +119,21 @@ class CancerModel(mesa.Model):
         #list of numpy arrays, representing mmp2 and ecm concentration in each grid
         self.mmp2 = [np.zeros((2, width, height), dtype=float) for _ in range(grids_number)]
         self.ecm = [np.ones((2, width, height), dtype=float) for _ in range(grids_number)]
+
         if loadedSimulationPath != "":
+            # configs_path = os.path.join(loadedSimulationPath, "configs.csv")
+            # config_var_names = configs.load_simulation_configs(configs_path)
+            # for var in config_var_names:
+            #     globals()[var] = getattr(configs, var)
+            #     self.loadPreviousSimulation(loadedSimulationPath)
             self.loadPreviousSimulation(loadedSimulationPath)
         else:
+            # load_simulation_configs("simulations_configs.csv")
+
+            configs_path = "simulations_configs.csv"
+            config_var_names = Classes.configs.load_simulation_configs(configs_path)
+            for var in config_var_names:
+                globals()[var] = getattr(Classes.configs, var)
             self._initialize_grids()
         self.datacollector = mesa.DataCollector(
             model_reporters={"Total cells": count_total_cells}, agent_reporters={"Position": "pos", "Agent Type": "agent_type", "Phenotype": "phenotype", "Ruptured": "ruptured", "Grid": "grid_id"})
@@ -286,10 +292,9 @@ class CancerModel(mesa.Model):
         Input: The simulation's path to be loaded
         Returns: none
         """
-        # previous_sim_df = pd.DataFrame({"Step": [1]})
+        # configs_path = os.path.join(pathToSimulation, "configs.csv")
+        # load_simulation_configs(configs_path)
         path = os.path.join(pathToSimulation, "CellsData.csv")
-        configs_path = os.path.join(pathToSimulation, "configs.csv") 
-        load_simulation_configs(configs_path)
         previous_sim_df = pd.read_csv(path, converters={"Position": ast.literal_eval})
         last_step = previous_sim_df["Step"].max()
         previous_sim_df = previous_sim_df[previous_sim_df["Step"] == last_step]
@@ -431,6 +436,7 @@ class CancerModel(mesa.Model):
 
 
     def calculateEnvironment(self, mmp2, ecm):
+        global th
         for i in range(len(mmp2)):
             for cell in self.grids[i].coord_iter():
                 cell_contents, (x, y) = cell
