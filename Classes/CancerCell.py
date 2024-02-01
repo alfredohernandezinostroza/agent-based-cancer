@@ -90,4 +90,6 @@ class CancerCell(mesa.Agent):
             # print("Travelled!")
             # self.model.grid[1].place_agent(self,(0,5))
         else:
+            # if carrying_capacity > len(get_amount_cells())
+            #     self.grid.move_agent(self, new_position)
             self.grid.move_agent(self, new_position)

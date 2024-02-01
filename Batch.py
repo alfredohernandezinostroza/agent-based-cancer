@@ -19,7 +19,7 @@ def main_Batch(maxSteps, dataCollectionPeriod, loadedSimulationPath=""):
         configs_path = os.path.join(loadedSimulationPath, "configs.csv")
     else:
         configs_path = "simulations_configs.csv"
-    config_var_names = Classes.configs.load_simulation_configs(configs_path)
+    config_var_names = Classes.configs.init_simulation_configs(configs_path)
     # for var in config_var_names:
     #     globals()[var] = getattr(Classes.configs, var)
     # from Classes.CancerModel import CancerModel
@@ -89,14 +89,9 @@ def run_simulation(CancerModel, N, width, height, grids_number, maxSteps, dataCo
 
     # Saves the simulation configuration
     print(f"Saving all the simulations parameters at: {os.path.join(simulations_dir, newSimulationFolder, 'configs.csv')}")
-    names = []
-    values = []
-    for name, value in globals().items():
-        if name in config_var_names and not name.startswith('_'):
-            names.append(name)
-            values.append(value)
+    values = [getattr(Classes.configs, i) for i in config_var_names]
     #add configurations that are not in the global variables
-    names += ['maxSteps', 'dataCollectionPeriod', 'grids_number']
+    names = config_var_names + ['maxSteps', 'dataCollectionPeriod', 'grids_number']
     values += [maxSteps, dataCollectionPeriod, grids_number]
     df_vars = pd.DataFrame({"Names": names, "Values": values})
     df_vars = df_vars.set_index("Names")
@@ -126,7 +121,7 @@ def run_simulation(CancerModel, N, width, height, grids_number, maxSteps, dataCo
     print(f'All data saved')
 
 if __name__ == "__main__":
-    maxSteps = 30
-    dataCollectionPeriod = 2
+    maxSteps = 100
+    dataCollectionPeriod = 10
     # This runs all the code to create folders, run the simulation and save the data
     main_Batch(maxSteps, dataCollectionPeriod)

@@ -131,7 +131,7 @@ class CancerModel(mesa.Model):
             # load_simulation_configs("simulations_configs.csv")
 
             configs_path = "simulations_configs.csv"
-            config_var_names = Classes.configs.load_simulation_configs(configs_path)
+            config_var_names = Classes.configs.init_simulation_configs(configs_path)
             for var in config_var_names:
                 globals()[var] = getattr(Classes.configs, var)
             self._initialize_grids()
@@ -224,7 +224,7 @@ class CancerModel(mesa.Model):
                     self.time_grid_got_populated[index] = self.schedule.time
 
         # Saving of non agents data
-        if self.schedule.time == 1 \
+        if self.schedule.time == 2 \
             or (self.schedule.time != 0 and isBatchRun and (self.schedule.time % self.dataCollectionPeriod == 0)) \
             or self.schedule.time == self.maxSteps:
             df_time_grids_got_populated = pd.DataFrame()
@@ -254,9 +254,10 @@ class CancerModel(mesa.Model):
             with open(pathToSave, 'w') as f:
                 f.write(vasculature_json)
                     
-            # Saves cancer cells data
+            # Saves cancer cells data as a backup in case the simulation fails
             _, current_model_data = mesa.batchrunner._collect_data(self, self.schedule.time-1)
             df_current_model_data = pd.DataFrame(current_model_data)
+            df_current_model_data["Step"] = self.schedule.time-1
             pathToSave = os.path.join(self.simulations_dir, self.newSimulationFolder, f'CellsData.csv')
             df_current_model_data.to_csv(pathToSave)
 
@@ -305,6 +306,10 @@ class CancerModel(mesa.Model):
             self.current_agent_id += 1
             self.schedule.add(ccell)
             self.grids[grid].place_agent(ccell, row["Position"])
+        #copy ecm
+        #copy mmp2
+        #copy vasculature
+
                 
 
 
@@ -432,9 +437,6 @@ class CancerModel(mesa.Model):
                         self.grids[i].place_agent(a, (x,y))
                         self.grid_vessels_positions[i] += [(x,y)]
                 
-
-
-
     def calculateEnvironment(self, mmp2, ecm):
         global th
         for i in range(len(mmp2)):
@@ -472,10 +474,6 @@ class CancerModel(mesa.Model):
                     print(".")
             mmp2[i][0,:,:] = mmp2[i][1,:,:]
             ecm[i][0,:,:] = ecm[i][1,:,:]
-
-
-
-                        #ahora hay que mover la celula de acuerdo a las posibilidades
 
     def disaggregate_clusters(self, time):
         """

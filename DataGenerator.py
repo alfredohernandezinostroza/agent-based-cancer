@@ -1,10 +1,11 @@
 import ast
 import pandas as pd
 import numpy as np
-from Classes.utils import gridsize_utils as gridsize
+# from Classes.utils import gridsize_utils as gridsize
 import re
 import os
 import json
+import Classes.configs
 
 # To run this code you must be in the parent folder of agent-based-cancer
 
@@ -42,7 +43,7 @@ def save_cancer(coordsList, grid_id, step, TumorDataPath):
     position_repetition_count = df_positions['Position'].value_counts()
     histogram = position_repetition_count.value_counts()
     histogram = pd.DataFrame({'Bins': histogram.index, 'Frequency': histogram.values})
-    number_of_empty_positions = gridsize * gridsize - len(position_repetition_count)
+    number_of_empty_positions = Classes.configs.gridsize * Classes.configs.gridsize - len(position_repetition_count)
     new_row = pd.DataFrame({'Bins': [0], 'Frequency': [number_of_empty_positions]})
     histogram = pd.concat([histogram, new_row])
     path = os.path.join(TumorDataPath, f'Cells-grid{grid_id}-step{step} - Histogram at {11/24000 * step:.2f} days.csv')
@@ -117,6 +118,10 @@ def saveVasculatureData(pathToSave, vasculature_json_path, max_step):
 
 def generate_data(nameOfTheSimulation):
     SimulationPath = os.path.join("Simulations", nameOfTheSimulation)
+    
+    configs_path = os.path.join(SimulationPath, "configs.csv")
+    Classes.configs.load_simulation_configs_for_data_generation(configs_path)
+    
     print(f'\tAnalyzing data in the folder {SimulationPath}\n')
 
     # Get the agents' data filename 
@@ -163,10 +168,13 @@ def generate_data(nameOfTheSimulation):
         return
 
 
+    max_step = Classes.configs.maxSteps
+    step_size = Classes.configs.dataCollectionPeriod
+    grids_number = Classes.configs.grids_number
     # use regex to find the values before 'steps', 'stepsize' and 'grids'. Ex: 50steps-10stepsize-cells
-    max_step = int(re.search(r"(\d+)steps", first_csv_name).group(1))
-    step_size = int(re.search(r"(\d+)stepsize", first_csv_name).group(1))
-    grids_number = int(re.search(r"(\d+)grids", first_csv_name).group(1))
+    # max_step = int(re.search(r"(\d+)steps", first_csv_name).group(1))
+    # step_size = int(re.search(r"(\d+)stepsize", first_csv_name).group(1))
+    # grids_number = int(re.search(r"(\d+)grids", first_csv_name).group(1))
 
     # Path to save the data:
     dataFolder = "Data analysis"
@@ -204,7 +212,7 @@ def generate_data(nameOfTheSimulation):
         # Plot the cells graphs
         print(f'\tSaving tumor data...')
         df_radius_diameter_history = pd.DataFrame(columns=['Centroid x', 'Centroid y', 'Radius', 'Diameter', 'Step', 'Grid Id'])
-        for id, step in enumerate(range(0,max_step,step_size)):
+        for id, step in enumerate(range(step_size,max_step+1,step_size)):
             ccells_coords = getCoordsForPlot(step, first_csv_path, grid_id)
             (centroid, radius, diameter) = save_cancer(ccells_coords, grid_id, step, TumorDataPath)
             new_row = pd.DataFrame({'Centroid x': [centroid[0]], 'Centroid y': [centroid[1]],'Radius': [radius], 'Diameter': [diameter], 'Step': [step], 'Grid Id': [grid_id]})
@@ -235,7 +243,7 @@ def get_cluster_radius_and_diameter(ccells_positions, grid_id):
         diameter: the maximum of all the cell-cell distances.
     """
     if ccells_positions.empty:
-        return (float("NaN"), float("NaN"), float("NaN"))
+        return ([np.nan, np.nan], np.nan, np.nan)
     #centroid = ccells_positions.mean(axis=0)
     ccells_positions= list(ccells_positions['Position'])
     centroid = np.average(ccells_positions, axis=0)
@@ -266,7 +274,7 @@ def get_distance_matrix(vectors):
 if __name__ == "__main__":
 
     # CHANGE THIS LINE according to the simulation you want to plot the graphs  
-    nameOfTheSimulation = "Sim maxSteps-1100 stepsize-100 N-388 gridsNumber-3"
+    nameOfTheSimulation = "Sim maxSteps-4 stepsize-2 N-388 gridsNumber-3"
 
     # This runs all the code to generate the graphs in the folder
     generate_data(nameOfTheSimulation)
