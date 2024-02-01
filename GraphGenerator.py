@@ -2,11 +2,12 @@ import ast
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
-from Classes.utils import gridsize_utils as gridsize
-from Classes.utils import carrying_capacity
+# from Classes.utils import gridsize_utils as gridsize
+# from Classes.utils import carrying_capacity
 import re
 import os
 import sys
+import Classes.configs
 
 # To run this code you must be in the parent folder of agent-based-cancer
 
@@ -44,11 +45,11 @@ def plotCancer(coordsList, figCounter, imagesFolder, grid_id, step, TumorImagesP
     plt.scatter(Xe, Ye, marker='h', color='orange', alpha=0.05, label="Epithelial cells")
     plt.scatter(Xv, Yv, marker='.', color='red', alpha=0.8, label="Vasculature points")
     plt.scatter(Xvr, Yvr, marker='+', color='darkred', alpha=0.8, label="Ruptured vasculature points")
-    plt.xlim(0, gridsize)
-    plt.ylim(0, gridsize)
+    plt.xlim(0, Classes.configs.gridsize_utils)
+    plt.ylim(0, Classes.configs.gridsize_utils)
 
-    xticks = np.arange(0, gridsize, step=int(gridsize/6)) # 6 ticks
-    xticklabels = [str(round(j,1)) for j in np.arange(0, 2.1, step = 2/201*(gridsize/6))]
+    xticks = np.arange(0, Classes.configs.gridsize_utils, step=int(Classes.configs.gridsize_utils/6)) # 6 ticks
+    xticklabels = [str(round(j,1)) for j in np.arange(0, 2.1, step = 2/201*(Classes.configs.gridsize_utils/6))]
     plt.xticks(xticks, xticklabels)
     plt.yticks(xticks, xticklabels)
     plt.xlabel("mm")
@@ -126,11 +127,11 @@ def plotMMP2orECM(i, step, files_path, figCounter, grid_id, pathToSave, type="Mm
         
     plt.colorbar()
 
-    plt.xlim(0, gridsize)
-    plt.ylim(0, gridsize)
+    plt.xlim(0, Classes.configs.gridsize_utils)
+    plt.ylim(0, Classes.configs.gridsize_utils)
 
-    xticks = np.arange(0, gridsize, step=int(gridsize/6)) # 6 ticks
-    xticklabels = [str(round(j,1)) for j in np.arange(0, 2.1, step = 2/201*(gridsize/6))]
+    xticks = np.arange(0, Classes.configs.gridsize_utils, step=int(Classes.configs.gridsize_utils/6)) # 6 ticks
+    xticklabels = [str(round(j,1)) for j in np.arange(0, 2.1, step = 2/201*(Classes.configs.gridsize_utils/6))]
     plt.xticks(xticks, xticklabels)
     plt.yticks(xticks, xticklabels)
     plt.xlabel("mm")
@@ -154,8 +155,8 @@ def plot_histogram(data_folder_path, histogram_images_path):
             if histogram.empty:
                 continue
             plt.bar(histogram['Bins'], histogram['Frequency'])
-            plt.xticks(range(carrying_capacity + 1))
-            plt.xlim([-1, carrying_capacity + 1])
+            plt.xticks(range(Classes.configs.carrying_capacity + 1))
+            plt.xlim([-1, Classes.configs.carrying_capacity + 1])
             path_to_save = os.path.join(histogram_images_path, csv_file[0:-4]+".png")
             plt.savefig(path_to_save)
     else:
@@ -215,6 +216,8 @@ def plotVasculatureGraphs(vasculature_df, pathToSave, max_step):
 def generate_graphs(nameOfTheSimulation):
     simulations_dir = "Simulations"
     simulation_path = os.path.join(simulations_dir, nameOfTheSimulation)
+    configs_path = os.path.join(simulation_path, "configs.csv")
+    Classes.configs.load_simulation_configs_for_data_generation(configs_path)
     print(f'\tAnalyzing data in the folder {simulation_path}\n')
 
     # Get the agents' data filename 
@@ -272,10 +275,13 @@ def generate_graphs(nameOfTheSimulation):
     VasculatureDataPath = os.path.join(dataPath, "Vasculature evolution")
 
 
+    max_step = Classes.configs.maxSteps
+    step_size = Classes.configs.dataCollectionPeriod
+    grids_number = Classes.configs.grids_number
     # use regex to find the values before 'steps', 'stepsize' and 'grids'. Ex: 50steps-10stepsize-cells
-    max_step = int(re.search(r"(\d+)steps", first_csv_name).group(1))
-    step_size = int(re.search(r"(\d+)stepsize", first_csv_name).group(1))
-    grids_number = int(re.search(r"(\d+)grids", first_csv_name).group(1))
+    # max_step = int(re.search(r"(\d+)steps", first_csv_name).group(1))
+    # step_size = int(re.search(r"(\d+)stepsize", first_csv_name).group(1))
+    # grids_number = int(re.search(r"(\d+)grids", first_csv_name).group(1))
 
     # Path to save all the images:
     imagesFolder = "Visual analysis"
@@ -376,7 +382,7 @@ def generate_graphs(nameOfTheSimulation):
 if __name__ == "__main__":
 
     # CHANGE THIS LINE according to the simulation you want to plot the graphs
-    nameOfTheSimulation = "Sim maxSteps-1100 stepsize-100 N-388 gridsNumber-3"
+    nameOfTheSimulation = "Sim maxSteps-4 stepsize-2 N-388 gridsNumber-3"
 
     # This runs all the code to generate the graphs in the folder
     generate_graphs(nameOfTheSimulation)
