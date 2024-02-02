@@ -1,4 +1,3 @@
-from Classes.utils import gridsize_utils as gridsize
 import cv2
 import os
 
@@ -143,7 +142,8 @@ def generate_videos(nameOfTheSimulation, frameRate):
 
     # Create video for Vasculature evolution
     imagesFileNames = [image_filename for image_filename in os.listdir(VasculatureImagesPath)]
-    imagesFileNames = sorted(imagesFileNames, key=lambda x: int(x.split('Vasculature-step')[1].split('.')[0]))
+    # imagesFileNames = sorted(imagesFileNames, key=lambda x: int(x.split('Vasculature-step')[1].split('.')[0]))
+    imagesFileNames = sorted(imagesFileNames, key=lambda x: int(imagesFileNames[0].split(".")[0][-1]))
     imagesPath = [os.path.join(VasculatureImagesPath, file_name) for file_name in imagesFileNames]
     output_file = os.path.join(VideosFolderPath, f"Vasculature - all grids.mp4")
     create_video_from_images(imagesPath, output_file, frameRate)
@@ -194,7 +194,7 @@ def generate_videos(nameOfTheSimulation, frameRate):
 if __name__ == "__main__":
 
     # CHANGE THIS LINE according to the simulation you want to plot the graphs
-    nameOfTheSimulation = "Sim maxSteps-500 stepsize-10 N-388 gridsNumber-3"
+    nameOfTheSimulation = "Sim maxSteps-4 stepsize-2 N-388 gridsNumber-3"
     frameRate = 20
 
     # This runs all the code to generate the videos
