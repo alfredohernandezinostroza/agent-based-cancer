@@ -82,6 +82,14 @@ def postprocessing_menu():
         listener.join()
         if selected_option == "Exit":
             os._exit(0)
+        if selected_option == "Run all":
+            DataGenerator.generate_data(selected_simulation)
+            time.sleep(3)
+            GraphGenerator.generate_graphs(selected_simulation)
+            time.sleep(3)
+            frameRate = 20
+            videoGenerator.generate_videos(selected_simulation, frameRate)
+            time.sleep(3)
         if selected_option == "Begin data analysis":
             DataGenerator.generate_data(selected_simulation)
             time.sleep(3)
@@ -90,7 +98,7 @@ def postprocessing_menu():
             time.sleep(3)
         if selected_option == "Generate videos":
             frameRate = 20
-            VideoGenerator.generate_videos(selected_simulation, frameRate)
+            videoGenerator.generate_videos(selected_simulation, frameRate)
             time.sleep(3)
 
 
