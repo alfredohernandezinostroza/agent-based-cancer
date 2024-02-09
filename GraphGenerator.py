@@ -24,11 +24,6 @@ def getCoordsForPlot(step, allCellsCsvPath, grid_id):
     vPoints = df_step0.loc[(df_step0["Agent Type"] == "vessel") & (df_step0["Ruptured"] == False)]["Position"]
     vRupturedPoints = df_step0.loc[(df_step0["Agent Type"] == "vessel") & (df_step0["Ruptured"] == True)]["Position"]
 
-    mPoints = list(mPoints.map(eval)) # [(104, 101), (101, 97), (101, 95)]
-    ePoints = list(ePoints.map(eval))
-    vPoints = list(vPoints.map(eval))
-    vRupturedPoints = list(vRupturedPoints.map(eval))
-
     Xm, Ym = [i[0] for i in mPoints], [i[1] for i in mPoints]
     Xe, Ye = [i[0] for i in ePoints], [i[1] for i in ePoints]
     Xv, Yv = [i[0] for i in vPoints], [i[1] for i in vPoints]
@@ -278,11 +273,7 @@ def generate_graphs(nameOfTheSimulation):
     max_step = Classes.configs.maxSteps
     step_size = Classes.configs.dataCollectionPeriod
     grids_number = Classes.configs.grids_number
-    # use regex to find the values before 'steps', 'stepsize' and 'grids'. Ex: 50steps-10stepsize-cells
-    # max_step = int(re.search(r"(\d+)steps", first_csv_name).group(1))
-    # step_size = int(re.search(r"(\d+)stepsize", first_csv_name).group(1))
-    # grids_number = int(re.search(r"(\d+)grids", first_csv_name).group(1))
-
+    
     # Path to save all the images:
     imagesFolder = "Visual analysis"
     imagesPath = os.path.join(simulation_path, imagesFolder)
@@ -323,21 +314,21 @@ def generate_graphs(nameOfTheSimulation):
 
         # Plot the cells graphs
         print(f'\tPlotting tumor graphs...')
-        for id, step in enumerate(range(1,max_step+1,step_size)):
+        for id, step in enumerate(range(step_size,max_step+1,step_size)):
             plotCancer(getCoordsForPlot(step, first_csv_path, grid_id), figCounter, imagesFolder, grid_id, step, TumorImagesPath)
             plt.close()
             figCounter += 1
 
         # Plot the histogram graphs
         print(f'\tPlotting histogram graphs...')
-        for id, step in enumerate(range(1,max_step+1,step_size)):
+        for id, step in enumerate(range(step_size,max_step+1,step_size)):
             plot_histogram(TumorDataPath, histogram_images_path)
             plt.close()
             figCounter += 1
 
         # Plot the Mmp2 graphs
         print(f'\tPlotting Mmp2 graphs...')
-        for id, step in enumerate(range(1,max_step+1,step_size)):
+        for id, step in enumerate(range(step_size,max_step+1,step_size)):
             mmp2_files_path_this_grid = [path for path in mmp2_files_path if f"Mmp2-{grid_id}grid-" in path]
             plotMMP2orECM(id, step, mmp2_files_path_this_grid, figCounter, grid_id, Mmp2ImagesPath, type="Mmp2")
             plt.close()
@@ -345,7 +336,7 @@ def generate_graphs(nameOfTheSimulation):
 
         # Plot the Ecm graphs
         print(f'\tPlotting Ecm graphs...')
-        for id, step in enumerate(range(1,max_step+1,step_size)):
+        for id, step in enumerate(range(step_size,max_step+1,step_size)):
             ecm_files_path_this_grid = [path for path in ecm_files_path if f"Ecm-{grid_id}grid-" in path]
             plotMMP2orECM(id, step, ecm_files_path_this_grid, figCounter, grid_id, EcmImagesPath, type="Ecm")
             plt.close()
@@ -353,14 +344,65 @@ def generate_graphs(nameOfTheSimulation):
 
         # Plot the growth of ephitelial and mesenchymal cells
         print(f'\tPlotting cells numbers graph...')
-        for id, step in enumerate(range(1,max_step+1,step_size)):
+        for id, step in enumerate(range(step_size,max_step+1,step_size)):
             plotGrowthData(figCounter, first_csv_path, step_size, grid_id , CellsImagesPath, step)
             plt.close()
             figCounter += 1
 
     # Plot the vasculature data
     print(f'Plotting vasculature...')
-    for id, step in enumerate(range(0,max_step+1,step_size)):
+    for id, step in enumerate(range(step_size,max_step+1,step_size)):
+        folder_path = os.path.join(simulation_path, "Data analysis", "Vasculature evolution")
+        try:
+            file_path = os.path.join(folder_path, f"Vasculature-step{step}.csv")
+            vasculature_data = pd.read_csv(file_path, header=0)
+        except:
+            print(f"Error while reading the vasculature data for step {step} in grid {grid_id}", file=sys.stderr)
+            print("Did you run the 'Data analysis' in the postprocessing menu first?", file=sys.stderr)
+            os._exit(1)
+        plotVasculatureGraphs(vasculature_data, vasculature_images_path, step)
+        plt.close()
+        figCounter += 1
+
+    plt.show()
+    plt.close()
+def generate_vasculature_graphs_only(nameOfTheSimulation):
+    simulations_dir = "Simulations"
+    simulation_path = os.path.join(simulations_dir, nameOfTheSimulation)
+    configs_path = os.path.join(simulation_path, "configs.csv")
+    Classes.configs.load_simulation_configs_for_data_generation(configs_path)
+    print(f'\tAnalyzing data in the folder {simulation_path}\n')
+
+    # Get the vasculature data filename
+    VasculaturePath = os.path.join(simulation_path, "Vasculature")
+    vasculature_files_name = [f for f in os.listdir(VasculaturePath) if os.path.isfile(os.path.join(VasculaturePath, f)) and f.endswith(".json")]
+    if vasculature_files_name:
+        first_vasculature_name = vasculature_files_name[0]
+        first_vasculature_path = os.path.join(VasculaturePath, first_vasculature_name)
+        print("Using vasculature data at:", first_vasculature_path)
+    else:
+        print("No .json vasculature data found in directory:", simulation_path)
+        return
+
+    #Path of the data
+    dataFolder = "Data analysis"
+    dataPath = os.path.join(simulation_path, dataFolder)
+    VasculatureDataPath = os.path.join(dataPath, "Vasculature evolution")
+
+    max_step = Classes.configs.maxSteps
+    step_size = Classes.configs.dataCollectionPeriod
+    grids_number = Classes.configs.grids_number
+
+    # Path to save all the images:
+    imagesFolder = "Visual analysis"
+    imagesPath = os.path.join(simulation_path, imagesFolder)
+    vasculature_images_path = os.path.join(imagesPath, "Vasculature evolution")
+
+    plt.style.use("Solarize_Light2")
+    figCounter = 1
+    # Plot the vasculature data
+    print(f'Plotting vasculature...')
+    for id, step in enumerate(range(step_size,max_step+1,step_size)):
         folder_path = os.path.join(simulation_path, "Data analysis", "Vasculature evolution")
         try:
             file_path = os.path.join(folder_path, f"Vasculature-step{step}.csv")
@@ -382,10 +424,11 @@ def generate_graphs(nameOfTheSimulation):
 if __name__ == "__main__":
 
     # CHANGE THIS LINE according to the simulation you want to plot the graphs
-    nameOfTheSimulation = "Sim maxSteps-4 stepsize-2 N-388 gridsNumber-3"
+    name_of_the_simulation = "Sim maxSteps-22 stepsize-2 N-388 gridsNumber-3"
 
     # This runs all the code to generate the graphs in the folder
-    generate_graphs(nameOfTheSimulation)
+    # generate_graphs(name_of_the_simulation)
+    generate_vasculature_graphs_only(name_of_the_simulation)
 
 
 
