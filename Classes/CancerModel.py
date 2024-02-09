@@ -310,7 +310,11 @@ class CancerModel(mesa.Model):
         vasculature_path = os.path.join(pathToSimulation, "Vasculature")
         vasculature_files = os.listdir(vasculature_path)
         vasculature_files.sort()
-        last_state_of_vasculature = vasculature_files[-1]
+        last_state_of_vasculature_filepath = vasculature_files[-1]        
+        with open(last_state_of_vasculature_filepath, 'r') as f:
+            last_state_of_vasculature = json.load(f)
+        # Change keys to int
+        last_state_of_vasculature = {int(k): v for k, v in last_state_of_vasculature.items()}
         self.vasculature = last_state_of_vasculature
 
 
