@@ -51,7 +51,7 @@ def count_total_cells(model):
         NOT considering the vasculature    
     """
     amount_of_cells = len([1 for agent in model.schedule.agents if agent.agent_type == "cell"])
-    print(amount_of_cells)
+    # print(amount_of_cells)
     return amount_of_cells
 
 def count_vasculature_cells(model):
@@ -125,8 +125,8 @@ class CancerModel(mesa.Model):
             # config_var_names = configs.load_simulation_configs(configs_path)
             # for var in config_var_names:
             #     globals()[var] = getattr(configs, var)
-            #     self.loadPreviousSimulation(loadedSimulationPath)
-            self.loadPreviousSimulation(loadedSimulationPath)
+            #     self.load_previous_simulation(loadedSimulationPath)
+            self.load_previous_simulation(loadedSimulationPath)
         else:
             # load_simulation_configs("simulations_configs.csv")
 
@@ -154,7 +154,7 @@ class CancerModel(mesa.Model):
         Input: none
         Returns: none
         """        
-        print("=========================================")
+        # print("=========================================")
         if self.schedule.time in self.vasculature: # Add keys
             self.disaggregate_clusters(self.schedule.time)
             surviving_clusters = [cluster for cluster in self.vasculature[self.schedule.time] if self.random.random() < get_cluster_survival_probability(cluster)]
@@ -205,9 +205,9 @@ class CancerModel(mesa.Model):
         
         # Reprodução
         if (self.schedule.time % doublingTimeM == 0 and self.schedule.time != 0):
-            print(f"Before proliferating: {count_total_cells(self)}")
+            # print(f"Before proliferating: {count_total_cells(self)}")
             self.proliferate("mesenchymal")
-            print(f"After proliferating: {count_total_cells(self)}")
+            # print(f"After proliferating: {count_total_cells(self)}")
 
         if (self.schedule.time % doublingTimeE == 0 and self.schedule.time != 0):
             self.proliferate("epithelial")
@@ -277,7 +277,7 @@ class CancerModel(mesa.Model):
                 x, y = agent.pos
                 amount_of_cells = len([cell for cell in agent.grid.get_cell_list_contents([(x, y)]) if cell.agent_type == "cell"])
                 if carrying_capacity > amount_of_cells and agent.phenotype == cellType:
-                    print("Created new cell!!")
+                    # print("Created new cell!!")
                     new_cell = CancerCell(self.current_agent_id, self, agent.grid, agent.grid_id, agent.phenotype, agent.ecm, agent.mmp2)
                     self.current_agent_id += 1
                     self.schedule.add(new_cell)
@@ -286,7 +286,7 @@ class CancerModel(mesa.Model):
         
 
 
-    def loadPreviousSimulation(self, pathToSimulation):
+    def load_previous_simulation(self, pathToSimulation):
         """
         Loads the last step of a previously computed simulation as the initial condition of this model
 
@@ -306,11 +306,13 @@ class CancerModel(mesa.Model):
             self.current_agent_id += 1
             self.schedule.add(ccell)
             self.grids[grid].place_agent(ccell, row["Position"])
-        #copy ecm
-        #copy mmp2
-        #copy vasculature
+        #load vasculature
+        vasculature_path = os.path.join(pathToSimulation, "Vasculature")
+        vasculature_files = os.listdir(vasculature_path)
+        vasculature_files.sort()
+        last_state_of_vasculature = vasculature_files[-1]
+        self.vasculature = last_state_of_vasculature
 
-                
 
 
     def _initialize_grids(self):
