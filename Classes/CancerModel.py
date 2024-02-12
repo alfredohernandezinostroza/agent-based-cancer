@@ -204,12 +204,12 @@ class CancerModel(mesa.Model):
         self.calculateEnvironment(self.mmp2, self.ecm)
         
         # Reprodução
-        if (self.schedule.time % doublingTimeM == 0 and self.schedule.time != 0):
+        if (self.schedule.time % doubling_time_M == 0 and self.schedule.time != 0):
             # print(f"Before proliferating: {count_total_cells(self)}")
             self.proliferate("mesenchymal")
             # print(f"After proliferating: {count_total_cells(self)}")
 
-        if (self.schedule.time % doublingTimeE == 0 and self.schedule.time != 0):
+        if (self.schedule.time % doubling_time_E == 0 and self.schedule.time != 0):
             self.proliferate("epithelial")
 
         print(f'step number: {self.schedule.time}')
@@ -225,7 +225,7 @@ class CancerModel(mesa.Model):
 
         # Saving of non agents data
         if self.schedule.time == 2 \
-            or (self.schedule.time != 0 and isBatchRun and (self.schedule.time % self.dataCollectionPeriod == 0)) \
+            or (self.schedule.time != 0 and (self.schedule.time % self.dataCollectionPeriod == 0)) \
             or self.schedule.time == self.maxSteps:
             df_time_grids_got_populated = pd.DataFrame()
             for grid_id in self.grid_ids:
@@ -377,7 +377,6 @@ class CancerModel(mesa.Model):
 
         # bad code, reduce number of for and make a counter to save the index to de put in each vessel
         # creates grid with 1 where vessels must not be placed
-        # n_center_points_for_Vessels PDF = 200 
         not_possible_array = find_quasi_circle(n_center_points_for_Vessels, self.width, self.height)[0]
         not_possible_array[:2,:] = 1
         not_possible_array[-2:,:] = 1
