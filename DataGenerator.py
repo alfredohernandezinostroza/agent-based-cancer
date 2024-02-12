@@ -214,6 +214,7 @@ def generate_data(nameOfTheSimulation):
         df_radius_diameter_history = pd.DataFrame(columns=['Centroid x', 'Centroid y', 'Radius', 'Diameter', 'Step', 'Grid Id'])
         for id, step in enumerate(range(step_size,max_step+1,step_size)):
             ccells_coords = getCoordsForPlot(step, first_csv_path, grid_id)
+            # save_cancer(ccells_coords, grid_id, step, TumorDataPath)
             (centroid, radius, diameter) = save_cancer(ccells_coords, grid_id, step, TumorDataPath)
             new_row = pd.DataFrame({'Centroid x': [centroid[0]], 'Centroid y': [centroid[1]],'Radius': [radius], 'Diameter': [diameter], 'Step': [step], 'Grid Id': [grid_id]})
             df_radius_diameter_history = pd.concat([df_radius_diameter_history, new_row])
@@ -223,7 +224,7 @@ def generate_data(nameOfTheSimulation):
 
         # Plot the growth of ephitelial and mesenchymal cells
         print(f'\Saving cells numbers graph data...')
-        for id, step in enumerate(range(1,max_step+1,step_size)):
+        for id, step in enumerate(range(step_size,max_step+1,step_size)):
             saveGrowthData(first_csv_path, step_size, grid_id , CellsDataPath, step)
 
     # Plot the vasculature data
@@ -246,6 +247,7 @@ def get_cluster_radius_and_diameter(ccells_positions, grid_id):
         return ([np.nan, np.nan], np.nan, np.nan)
     #centroid = ccells_positions.mean(axis=0)
     ccells_positions= list(ccells_positions['Position'])
+    ccells_positions= list(set(ccells_positions))#delete repeated entries to spped up computation
     centroid = np.average(ccells_positions, axis=0)
     #calculating radius
     radii  = np.linalg.norm(ccells_positions - centroid, axis=1)
@@ -274,13 +276,7 @@ def get_distance_matrix(vectors):
 if __name__ == "__main__":
 
     # CHANGE THIS LINE according to the simulation you want to plot the graphs  
-    nameOfTheSimulation = "Sim maxSteps-4 stepsize-2 N-388 gridsNumber-3"
+    name_of_the_simulation = "Sim maxSteps-22 stepsize-2 N-388 gridsNumber-3"
 
     # This runs all the code to generate the graphs in the folder
-    generate_data(nameOfTheSimulation)
-
-
-
-
-
-
+    generate_data(name_of_the_simulation)
