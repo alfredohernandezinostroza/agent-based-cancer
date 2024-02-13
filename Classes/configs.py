@@ -11,9 +11,9 @@ def init_simulation_configs(path):
     """ 
     df_configs = pd.read_csv(path, header=0, converters={"Values": ast.literal_eval})
     if len(df_configs) < 29:
-        raise Exception("Less than 35 configuration options! Are there some missing?")
+        raise Exception("Less than 29 configuration options! Are there some missing?")
     if len(df_configs) > 29:
-        raise Exception("More than 35 configuration options!")
+        raise Exception("More than 29 configuration options!")
     dict_configs = dict(zip(df_configs["Names"], df_configs["Values"]))
     globals().update(dict_configs)  
     return(list(df_configs["Names"]))
@@ -28,9 +28,9 @@ def load_simulation_configs_for_data_generation(path):
     """ 
     df_configs = pd.read_csv(path, header=0, converters={"Values": ast.literal_eval})
     if len(df_configs) < 32:
-        raise Exception("Less than 38 configuration options! Are there some missing?")
+        raise Exception("Less than 32 configuration options! Are there some missing?")
     if len(df_configs) > 32:
-        raise Exception("More than 38 configuration options!")
+        raise Exception("More than 32 configuration options!")
     dict_configs = dict(zip(df_configs["Names"], df_configs["Values"]))
     globals().update(dict_configs)  
     return(list(df_configs["Names"]))
@@ -50,9 +50,9 @@ def load_simulation_configs_for_reloaded_simulation(path):
     # maxSteps, dataCollectionPeriod and grids_number)
     df_configs = df_configs[:-3]
     if len(df_configs) < 29:
-        raise Exception("Less than 35 configuration options! Are there some missing?")
+        raise Exception("Less than 29 configuration options! Are there some missing?")
     if len(df_configs) > 29:
-        raise Exception("More than 35 configuration options!")
+        raise Exception("More than 29 configuration options!")
     dict_configs = dict(zip(df_configs["Names"], df_configs["Values"]))
     globals().update(dict_configs)  
     return(list(df_configs["Names"]))
