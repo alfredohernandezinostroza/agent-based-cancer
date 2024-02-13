@@ -224,8 +224,7 @@ class CancerModel(mesa.Model):
                     self.time_grid_got_populated[index] = self.schedule.time
 
         # Saving of non agents data
-        if self.schedule.time == 2 \
-            or (self.schedule.time != 0 and (self.schedule.time % self.dataCollectionPeriod == 0)) \
+        if (self.schedule.time != 0 and (self.schedule.time % self.dataCollectionPeriod == 0)) \
             or self.schedule.time == self.maxSteps:
             df_time_grids_got_populated = pd.DataFrame()
             for grid_id in self.grid_ids:
@@ -253,11 +252,16 @@ class CancerModel(mesa.Model):
             
             with open(pathToSave, 'w') as f:
                 f.write(vasculature_json)
-                    
+                
             # Saves cancer cells data as a backup in case the simulation fails
-            _, current_model_data = mesa.batchrunner._collect_data(self, self.schedule.time-1)
+            _, current_model_data = mesa.batchrunner._collect_data(self, self.dataCollectionPeriod-1)
             df_current_model_data = pd.DataFrame(current_model_data)
-            df_current_model_data["Step"] = self.schedule.time-1
+            df_current_model_data["Step"] = self.dataCollectionPeriod
+            for step in range(self.dataCollectionPeriod * 2, self.schedule.time, self.dataCollectionPeriod):
+                _, step_model_data = mesa.batchrunner._collect_data(self, step-1)
+                df_step_model_data = pd.DataFrame(step_model_data)
+                df_step_model_data["Step"] = step
+                df_current_model_data = pd.concat([df_current_model_data, df_step_model_data])
             pathToSave = os.path.join(self.simulations_dir, self.newSimulationFolder, f'CellsData.csv')
             df_current_model_data.to_csv(pathToSave)
 
