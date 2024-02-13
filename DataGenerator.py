@@ -1,4 +1,6 @@
 import ast
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
 import pandas as pd
 import numpy as np
 # from Classes.utils import gridsize_utils as gridsize
