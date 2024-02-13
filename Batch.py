@@ -8,9 +8,7 @@ import os
 # from Classes.configs import *
 import Classes.configs
 
-# To run this code you must be in the parent folder of agent-based-cancer
-# Before running this code always check if isBatchRun = True is in Utils
-# otherwise it won't save the Mmp2 and Ecm data
+# To run this code you must be in the parent folder of the program
 
 def main_Batch(maxSteps, dataCollectionPeriod, loadedSimulationPath=""):
 
@@ -112,6 +110,7 @@ def run_simulation(CancerModel, N, width, height, grids_number, maxSteps, dataCo
 
     # Create data frames for the cells
     cells_df = pd.DataFrame(results)
+    cells_df = cells_df[["Step", "Position", "Phenotype", "Grid", "Agent Type", "Ruptured"]]
     print(f'Example of data collected: {cells_df.head(10)}')
 
     # Saves data analysis

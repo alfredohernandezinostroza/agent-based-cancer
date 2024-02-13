@@ -141,12 +141,20 @@ def generate_videos(nameOfTheSimulation, frameRate):
 
 
     # Create video for Vasculature evolution
-    imagesFileNames = [image_filename for image_filename in os.listdir(VasculatureImagesPath)]
+    imagesFileNames = os.listdir(VasculatureImagesPath)
+    imagesFileNames.sort()
+    images_vasculature_cells = imagesFileNames[:len(imagesFileNames)//2]
+    images_vasculature_clusters = imagesFileNames[len(imagesFileNames)//2:]
+    images_vasculature_cells.sort(key = lambda x: int(x.split('.')[0][22:]))
+    images_vasculature_clusters.sort(key = lambda x: int(x.split('.')[0][25:]))
     # imagesFileNames = sorted(imagesFileNames, key=lambda x: int(x.split('Vasculature-step')[1].split('.')[0]))
-    imagesFileNames = sorted(imagesFileNames, key=lambda x: int(imagesFileNames[0].split(".")[0][-1]))
-    imagesPath = [os.path.join(VasculatureImagesPath, file_name) for file_name in imagesFileNames]
-    output_file = os.path.join(VideosFolderPath, f"Vasculature - all grids.mp4")
-    create_video_from_images(imagesPath, output_file, frameRate)
+    # imagesFileNames = sorted(imagesFileNames, key=lambda x: int(imagesFileNames[0].split(".")[0][-1]))
+    images_vasculature_cells    = [os.path.join(VasculatureImagesPath, file_name) for file_name in images_vasculature_cells]
+    images_vasculature_clusters = [os.path.join(VasculatureImagesPath, file_name) for file_name in images_vasculature_clusters]
+    output_file = os.path.join(VideosFolderPath, f"Vasculature - all grids - cells.mp4")
+    create_video_from_images(images_vasculature_cells, output_file, frameRate)
+    output_file = os.path.join(VideosFolderPath, f"Vasculature - all grids - clusters.mp4")
+    create_video_from_images(images_vasculature_clusters, output_file, frameRate)
 
     # Create videos for the Ecm of each grid
     for i, images_list in enumerate(EcmImagesByGrid):
@@ -194,10 +202,10 @@ def generate_videos(nameOfTheSimulation, frameRate):
 if __name__ == "__main__":
 
     # CHANGE THIS LINE according to the simulation you want to plot the graphs
-    nameOfTheSimulation = "Sim maxSteps-4 stepsize-2 N-388 gridsNumber-3"
-    frameRate = 20
+    name_of_the_simulation = "Sim maxSteps-22 stepsize-2 N-388 gridsNumber-3"
+    frameRate = 1
 
     # This runs all the code to generate the videos
-    generate_videos(nameOfTheSimulation, frameRate)
+    generate_videos(name_of_the_simulation, frameRate)
 
 

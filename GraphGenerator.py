@@ -13,7 +13,7 @@ import Classes.configs
 
 def getCoordsForPlot(step, allCellsCsvPath, grid_id):
     df = pd.read_csv(allCellsCsvPath, converters={"Position": ast.literal_eval})
-    df = df[["Step", "Total cells", "Position", "Phenotype", "Grid", "Agent Type", "Ruptured"]]
+    df = df[["Step", "Position", "Phenotype", "Grid", "Agent Type", "Ruptured"]]
 
     # Select the step you want to plot, from 0 to 24000 (~11 days)
     df_step0 = df.loc[(df["Step"] == step) & (df["Grid"] == grid_id)]
@@ -68,7 +68,7 @@ def plotCancer(coordsList, figCounter, imagesFolder, grid_id, step, TumorImagesP
 def plotGrowthData(fig_index, allCellsCsvPath, stepsize, grid_id, CellsImagesPath, step_number):
     # get data at each step
     df = pd.read_csv(allCellsCsvPath, converters={"Position": ast.literal_eval})
-    df = df[["Step", "Total cells", "Phenotype", "Grid"]]
+    df = df[["Step", "Phenotype", "Grid"]]
     df = df.loc[(df["Grid"] == grid_id) & (df["Step"] <= step_number)]
     plt.figure(fig_index)
 
@@ -270,9 +270,15 @@ def generate_graphs(nameOfTheSimulation):
     VasculatureDataPath = os.path.join(dataPath, "Vasculature evolution")
 
 
-    max_step = Classes.configs.maxSteps
     step_size = Classes.configs.dataCollectionPeriod
     grids_number = Classes.configs.grids_number
+    configs_max_step = Classes.configs.maxSteps
+    df = pd.read_csv(first_csv_path, converters={"Position": ast.literal_eval})
+    df = df[["Step", "Position", "Phenotype", "Grid", "Agent Type", "Ruptured"]]
+    max_step = max(df["Step"])
+    if configs_max_step != max_step:
+        print(f"Warning: the run for this simulation terminated early")
+        print(f"Max step reached is {max_step} while {configs_max_step} was expected.")
     
     # Path to save all the images:
     imagesFolder = "Visual analysis"

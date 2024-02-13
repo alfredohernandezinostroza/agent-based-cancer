@@ -11,7 +11,7 @@ import Classes.configs
 
 def getCoordsForPlot(step, allCellsCsvPath, grid_id):
     df = pd.read_csv(allCellsCsvPath, converters={"Position": ast.literal_eval})
-    df = df[["Step", "Total cells", "Position", "Phenotype", "Grid", "Agent Type", "Ruptured"]]
+    df = df[["Step", "Position", "Phenotype", "Grid", "Agent Type", "Ruptured"]]
 
     # Select the step you want to plot, from 0 to 24000 (~11 days)
     df_step0 = df.loc[(df["Step"] == step) & (df["Grid"] == grid_id)]
@@ -55,7 +55,7 @@ def save_cancer(coordsList, grid_id, step, TumorDataPath):
 def saveGrowthData(allCellsCsvPath, stepsize, grid_id, CellsDataPath, step_number):
     # get data at each step
     df = pd.read_csv(allCellsCsvPath, converters={"Position": ast.literal_eval})
-    df = df[["Step", "Total cells", "Phenotype", "Grid"]]
+    df = df[["Step", "Phenotype", "Grid"]]
     df = df.loc[(df["Grid"] == grid_id) & (df["Step"] <= step_number)]
 
     # For mesenchymal
@@ -81,6 +81,32 @@ def saveGrowthData(allCellsCsvPath, stepsize, grid_id, CellsDataPath, step_numbe
     #save data from plot into csv
     df_csv = pd.DataFrame({"Number of Epithelial Cells": numberEpithelialEachStep, "Number of Mesenchymal Cells": numberMesenchymalEachStep, "Days": steps*11/24000})
     df_csv.to_csv(path_to_save + ".csv")
+
+def get_vasculature_state_at_step(pathToSave, vasculature_json_path, step):
+    # Reads the dict in the json file
+    with open(vasculature_json_path, 'r') as f:
+        vasculature_dict = json.load(f)
+
+    # Change keys to int and only add the key-value pair that is before the given max_step
+    vasculature_dict = {int(k): v for k, v in vasculature_dict.items()}
+    # vasculature_dict = {int(k): v for k, v in vasculature_dict.items() if int(k) <= max_step}
+
+    # Prepare the data for the bar chart
+    mesenchymal_count = 0
+    epithelial_count = 0
+    multicellular_cluster_count = 0
+    total_cluster_count = 0
+    time_steps = sorted(vasculature_dict.keys())
+    for time_step in time_steps:
+        clusters = vasculature_dict[time_step]
+        for cluster in clusters:
+            total_cluster_count += 1
+            mesenchymal_count += cluster[0]
+            epithelial_count += cluster[1]
+            if cluster[0] + cluster[1] > 1:
+                multicellular_cluster_count += 1
+    df_export = pd.DataFrame({ "Time": [step], "Mesenchymal cells": [mesenchymal_count], "Epithelial cells" :[epithelial_count], "Multicellular clusters": [multicellular_cluster_count], "Total clusters": [total_cluster_count]})
+    return df_export
 
 def saveVasculatureData(pathToSave, vasculature_json_path, max_step):
     # Reads the dict in the json file
@@ -113,8 +139,9 @@ def saveVasculatureData(pathToSave, vasculature_json_path, max_step):
         multicellular_cluster_data.append(multicellular_cluster_count)
         total_cluster_data.append(total_cluster_count)
     df_export = pd.DataFrame({ "Time": time_steps, "Mesenchymal cells": mesenchymal_data, "Epithelial cells" :epithelial_data, "Multicellular clusters": multicellular_cluster_data, "Total clusters": total_cluster_data})
-    path = os.path.join(pathToSave, f'Vasculature-step{max_step}.csv')
-    df_export.to_csv(path)
+    return df_export
+    # path = os.path.join(pathToSave, f'Vasculature-step{max_step}.csv')
+    # df_export.to_csv(path)
 
 def generate_data(nameOfTheSimulation):
     SimulationPath = os.path.join("Simulations", nameOfTheSimulation)
@@ -167,14 +194,15 @@ def generate_data(nameOfTheSimulation):
         print("No .json vasculature data found in directory:", SimulationPath)
         return
 
-
-    max_step = Classes.configs.maxSteps
     step_size = Classes.configs.dataCollectionPeriod
     grids_number = Classes.configs.grids_number
-    # use regex to find the values before 'steps', 'stepsize' and 'grids'. Ex: 50steps-10stepsize-cells
-    # max_step = int(re.search(r"(\d+)steps", first_csv_name).group(1))
-    # step_size = int(re.search(r"(\d+)stepsize", first_csv_name).group(1))
-    # grids_number = int(re.search(r"(\d+)grids", first_csv_name).group(1))
+    configs_max_step = Classes.configs.maxSteps
+    df = pd.read_csv(first_csv_path, converters={"Position": ast.literal_eval})
+    df = df[["Step", "Position", "Phenotype", "Grid", "Agent Type", "Ruptured"]]
+    max_step = max(df["Step"])
+    if configs_max_step != max_step:
+        print(f"Warning: the run for this simulation terminated early")
+        print("Max step reached is {max_step} while {configs_max_step} was expected.")
 
     # Path to save the data:
     dataFolder = "Data analysis"
@@ -229,8 +257,64 @@ def generate_data(nameOfTheSimulation):
 
     # Plot the vasculature data
     print(f'Saving vasculature...')
-    for id, step in enumerate(range(0,max_step+1,step_size)):
-        saveVasculatureData(VasculatureDataPath, first_vasculature_path, step)
+    df_export = pd.DataFrame(columns=["Time", "Mesenchymal cells", "Epithelial cells", "Multicellular clusters", "Total clusters"])
+    for step in range(step_size,max_step+1,step_size):
+        file_vasculature_on_step = os.path.join(VasculaturePath, f"Vasculature-{step}step.json")
+        row = get_vasculature_state_at_step(VasculatureDataPath, file_vasculature_on_step, step)
+        df_export = pd.concat([df_export, row])
+        path = os.path.join(VasculatureDataPath, f'Vasculature-step{step}.csv')
+        df_export.to_csv(path)
+
+def generate_data_vasculature_only(nameOfTheSimulation):
+    SimulationPath = os.path.join("Simulations", nameOfTheSimulation)
+    
+    configs_path = os.path.join(SimulationPath, "configs.csv")
+    Classes.configs.load_simulation_configs_for_data_generation(configs_path)
+    
+    # Get the agents' data filename 
+    csv_files_name = [f for f in os.listdir(SimulationPath) if os.path.isfile(os.path.join(SimulationPath, f)) and f.endswith(".csv")]
+
+    # Get the vasculature data filename
+    VasculaturePath = os.path.join(SimulationPath, "Vasculature")
+    vasculature_files_name = [f for f in os.listdir(VasculaturePath) if os.path.isfile(os.path.join(VasculaturePath, f)) and f.endswith(".json")]
+
+    if csv_files_name:
+        first_csv_name = csv_files_name[0]
+        first_csv_path = os.path.join(SimulationPath, first_csv_name)
+        print("Using cells data at:", first_csv_path)
+    else:
+        print("No .csv cell data found in directory:", SimulationPath)
+        return
+    if vasculature_files_name:
+        first_vasculature_name = vasculature_files_name[0]
+        first_vasculature_path = os.path.join(VasculaturePath, first_vasculature_name)
+        print("Using vasculature data at:", first_vasculature_path)
+    else:
+        print("No .json vasculature data found in directory:", SimulationPath)
+        return
+
+    step_size = Classes.configs.dataCollectionPeriod
+    configs_max_step = Classes.configs.maxSteps
+    df = pd.read_csv(first_csv_path, converters={"Position": ast.literal_eval})
+    df = df[["Step", "Position", "Phenotype", "Grid", "Agent Type", "Ruptured"]]
+    max_step = max(df["Step"])
+    if configs_max_step != max_step:
+        print(f"Warning: the run for this simulation terminated early")
+        print("Max step reached is {max_step} while {configs_max_step} was expected.")
+
+    # Path to save the vasculature data:
+    dataFolder = "Data analysis"
+    dataPath = os.path.join(SimulationPath, dataFolder)
+    VasculatureDataPath = os.path.join(dataPath, "Vasculature evolution")
+
+    print(f'Saving vasculature...')
+    df_export = pd.DataFrame(columns=["Time", "Mesenchymal cells", "Epithelial cells", "Multicellular clusters", "Total clusters"])
+    for step in range(step_size,max_step+1,step_size):
+        file_vasculature_on_step = os.path.join(VasculaturePath, f"Vasculature-{step}step.json")
+        row = get_vasculature_state_at_step(VasculatureDataPath, file_vasculature_on_step, step)
+        df_export = pd.concat([df_export, row])
+        path = os.path.join(VasculatureDataPath, f'Vasculature-step{step}.csv')
+        df_export.to_csv(path)
 
 def get_cluster_radius_and_diameter(ccells_positions, grid_id):
     """"
@@ -273,10 +357,12 @@ def get_distance_matrix(vectors):
     x2 = x.reshape(-1,1) #transposing the vector
     return np.sqrt(x2-2*xx+x)
 
+
 if __name__ == "__main__":
 
     # CHANGE THIS LINE according to the simulation you want to plot the graphs  
     name_of_the_simulation = "Sim maxSteps-22 stepsize-2 N-388 gridsNumber-3"
 
     # This runs all the code to generate the graphs in the folder
-    generate_data(name_of_the_simulation)
+    # generate_data(name_of_the_simulation)
+    generate_data_vasculature_only(name_of_the_simulation)
