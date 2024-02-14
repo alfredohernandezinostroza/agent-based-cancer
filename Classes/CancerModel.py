@@ -106,16 +106,16 @@ class CancerModel(mesa.Model):
         self.width = width
         self.height = height
         self.phenotypes = ["mesenchymal", "epithelial"]
-        self.grid_vessels_positions = [[],[],[]]
+        self.grid_vessels_positions = [[]] * grids_number
         self.current_agent_id = 0
         self.maxSteps = maxSteps
         self.dataCollectionPeriod = dataCollectionPeriod
-        self.newSimulationFolder  = newSimulationFolder 
+        self.newSimulationFolder  = newSimulationFolder
         self.mesenchymalCount = [np.zeros((width, height), dtype=float) for _ in range(grids_number)]
         self.epithelialCount = [np.zeros((width, height), dtype=float) for _ in range(grids_number)]
         self.grids_number = grids_number
         self.grids = [mesa.space.MultiGrid(width, height, False) for _ in range(self.grids_number)]
-        self.grid_ids = [i+1 for i in range(self.grids_number)] # need a number to appear in the data analysis (.csv)
+        self.grid_ids = [i+1 for i in range(self.grids_number)]
         self.time_grid_got_populated = [-1 for _ in range(self.grids_number)]
         self.schedule = mesa.time.RandomActivation(self)
         #list of numpy arrays, representing mmp2 and ecm concentration in each grid
@@ -322,18 +322,19 @@ class CancerModel(mesa.Model):
         last_step_cells = previous_sim_df[previous_sim_df["Agent Type"] == "cell"]
         last_step_vessels = previous_sim_df[previous_sim_df["Agent Type"] == "vessel"]
         for index, row in last_step_cells.iterrows():
-            grid = int(row["Grid"]) - 1
-            ccell = CancerCell(self.current_agent_id, self, self.grids[grid], self.grid_ids[grid], row["Phenotype"], self.ecm[grid], self.mmp2[grid])
+            grid_number = int(row["Grid"]) - 1
+            ccell = CancerCell(self.current_agent_id, self, self.grids[grid_number], self.grid_ids[grid_number], row["Phenotype"], self.ecm[grid_number], self.mmp2[grid_number])
             self.current_agent_id += 1
             self.schedule.add(ccell)
-            self.grids[grid].place_agent(ccell, row["Position"])
+            self.grids[grid_number].place_agent(ccell, row["Position"])
         for index, row in last_step_vessels.iterrows():
-            grid = int(row["Grid"]) - 1
+            grid_number = int(row["Grid"]) - 1
             ruptured_state = bool(row["Ruptured"])
-            vessel = Vessel(self.current_agent_id, self, ruptured_state, self.grids[grid], self.grid_ids[grid])
+            vessel = Vessel(self.current_agent_id, self, ruptured_state, self.grids[grid_number], self.grid_ids[grid_number])
             self.current_agent_id += 1
             self.schedule.add(vessel)
-            self.grids[grid].place_agent(vessel, row["Position"])
+            self.grids[grid_number].place_agent(vessel, row["Position"])
+            self.grid_vessels_positions[grid_number] += [row["Position"]]
 
         #load vasculature
         vasculature_path = os.path.join(pathToSimulation, "Vasculature")
