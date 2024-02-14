@@ -24,7 +24,7 @@ def main_Batch(maxSteps, dataCollectionPeriod, loadedSimulationPath=""):
     
     # Parameters for this simulation
     N = 388 # Number of cancer cells
-    gridsize     = Classes.configs.gridsize_utils #PDF: 201
+    gridsize     = Classes.configs.gridsize #PDF: 201
     grids_number = Classes.configs.grids_number #PDF: 201
     width        = gridsize
     height       = gridsize

@@ -16,12 +16,15 @@ def init_simulation_configs(path):
         raise Exception("More than 33 configuration options!")
     dict_configs = dict(zip(df_configs["Names"], df_configs["Values"]))
     globals().update(dict_configs)  
+    error_string = ""
     if sum(extravasation_probs) != 1:
-        raise ValueError("Extravasation probabilities must sum 1!")
+        error_string += "Extravasation probabilities must sum 1!\n"
     if len(extravasation_probs) != grids_number:
-        raise ValueError("There must be as many Extravasation probabilities as the value og grids_number!")
+        error_string += "There must be as many Extravasation probabilities as the value of grids_number!\n"
     if len(secondary_site_vessels) != grids_number-1:
-        raise ValueError("There must be as many secondary site vessels as the value of grids_number - 1!")
+        error_string += "There must be as many secondary site vessels as the value of grids_number - 1!\n"
+    if error_string != ""
+        raise ValueError(error_string)
     return(list(df_configs["Names"]))
 
 def load_simulation_configs_for_data_generation(path):

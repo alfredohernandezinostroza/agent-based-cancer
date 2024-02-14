@@ -2,8 +2,6 @@ import ast
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
-# from Classes.utils import gridsize_utils as gridsize
-# from Classes.utils import carrying_capacity
 import re
 import os
 import sys
@@ -40,11 +38,11 @@ def plotCancer(coordsList, figCounter, imagesFolder, grid_id, step, TumorImagesP
     plt.scatter(Xe, Ye, marker='h', color='orange', alpha=0.05, label="Epithelial cells")
     plt.scatter(Xv, Yv, marker='.', color='red', alpha=0.8, label="Vasculature points")
     plt.scatter(Xvr, Yvr, marker='+', color='darkred', alpha=0.8, label="Ruptured vasculature points")
-    plt.xlim(0, Classes.configs.gridsize_utils)
-    plt.ylim(0, Classes.configs.gridsize_utils)
+    plt.xlim(0, Classes.configs.gridsize)
+    plt.ylim(0, Classes.configs.gridsize)
 
-    xticks = np.arange(0, Classes.configs.gridsize_utils, step=int(Classes.configs.gridsize_utils/6)) # 6 ticks
-    xticklabels = [str(round(j,1)) for j in np.arange(0, 2.1, step = 2/201*(Classes.configs.gridsize_utils/6))]
+    xticks = np.arange(0, Classes.configs.gridsize, step=int(Classes.configs.gridsize/6)) # 6 ticks
+    xticklabels = [str(round(j,1)) for j in np.arange(0, 2.1, step = 2/201*(Classes.configs.gridsize/6))]
     plt.xticks(xticks, xticklabels)
     plt.yticks(xticks, xticklabels)
     plt.xlabel("mm")
@@ -122,11 +120,11 @@ def plotMMP2orECM(i, step, files_path, figCounter, grid_id, pathToSave, type="Mm
         
     plt.colorbar()
 
-    plt.xlim(0, Classes.configs.gridsize_utils)
-    plt.ylim(0, Classes.configs.gridsize_utils)
+    plt.xlim(0, Classes.configs.gridsize)
+    plt.ylim(0, Classes.configs.gridsize)
 
-    xticks = np.arange(0, Classes.configs.gridsize_utils, step=int(Classes.configs.gridsize_utils/6)) # 6 ticks
-    xticklabels = [str(round(j,1)) for j in np.arange(0, 2.1, step = 2/201*(Classes.configs.gridsize_utils/6))]
+    xticks = np.arange(0, Classes.configs.gridsize, step=int(Classes.configs.gridsize/6)) # 6 ticks
+    xticklabels = [str(round(j,1)) for j in np.arange(0, 2.1, step = 2/201*(Classes.configs.gridsize/6))]
     plt.xticks(xticks, xticklabels)
     plt.yticks(xticks, xticklabels)
     plt.xlabel("mm")

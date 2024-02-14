@@ -25,8 +25,7 @@ ruptured_vessels_primary,2
 secondary_sites_vessels,"[10, 10]"
 n_center_points_for_tumor,97
 n_center_points_for_Vessels,200
-gridsize_utils,201
-gridsize,10
+gridsize,201
 grids_number,3
 patchsize,3
 middlePoint,5

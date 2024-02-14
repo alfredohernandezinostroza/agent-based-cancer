@@ -3,7 +3,6 @@ import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 import pandas as pd
 import numpy as np
-# from Classes.utils import gridsize_utils as gridsize
 import re
 import os
 import json
@@ -45,7 +44,7 @@ def save_cancer(coordsList, grid_id, step, TumorDataPath):
     position_repetition_count = df_positions['Position'].value_counts()
     histogram = position_repetition_count.value_counts()
     histogram = pd.DataFrame({'Bins': histogram.index, 'Frequency': histogram.values})
-    number_of_empty_positions = Classes.configs.gridsize_utils * Classes.configs.gridsize_utils - len(position_repetition_count)
+    number_of_empty_positions = Classes.configs.gridsize * Classes.configs.gridsize - len(position_repetition_count)
     new_row = pd.DataFrame({'Bins': [0], 'Frequency': [number_of_empty_positions]})
     histogram = pd.concat([histogram, new_row])
     path = os.path.join(TumorDataPath, f'Cells-grid{grid_id}-step{step} - Histogram at {11/24000 * step:.2f} days.csv')
