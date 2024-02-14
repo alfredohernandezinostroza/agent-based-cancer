@@ -253,7 +253,7 @@ def generate_data(nameOfTheSimulation):
 
 
         # Plot the growth of ephitelial and mesenchymal cells
-        print(f'\Saving cells numbers graph data...')
+        print(f'\tSaving cells numbers graph data...')
         for id, step in enumerate(range(step_size,max_step+1,step_size)):
             saveGrowthData(first_csv_path, step_size, grid_id , CellsDataPath, step)
 
