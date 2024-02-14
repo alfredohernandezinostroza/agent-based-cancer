@@ -13,8 +13,8 @@ Lambda,0.1
 gamma1,1
 gamma2,1
 vasculature_time,180
-doubling_time_M,2
-doubling_time_E,3
+doubling_time_M,2000
+doubling_time_E,3000
 single_cell_survival,5e-04
 cluster_survival,0.025
 extravasation_probs,"[0.5461, 0.2553, 0.1986]"
@@ -27,6 +27,7 @@ n_center_points_for_tumor,97
 n_center_points_for_Vessels,200
 gridsize_utils,201
 gridsize,10
+grids_number,3
 patchsize,3
 middlePoint,5
 mesenchymal_proportion,0.6

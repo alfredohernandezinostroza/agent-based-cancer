@@ -25,9 +25,9 @@ def main_Batch(maxSteps, dataCollectionPeriod, loadedSimulationPath=""):
     # Parameters for this simulation
     N = 388 # Number of cancer cells
     gridsize     = Classes.configs.gridsize_utils #PDF: 201
+    grids_number = Classes.configs.grids_number #PDF: 201
     width        = gridsize
     height       = gridsize
-    grids_number = 3
 
     # Name of the directories
     simulations_dir = "Simulations"
@@ -94,9 +94,11 @@ def run_simulation(CancerModel, N, width, height, grids_number, maxSteps, dataCo
     names = config_var_names
 
     #add configurations that are not in the global variables
-    if loadedSimulationPath == "":
-        names += ['maxSteps', 'dataCollectionPeriod', 'grids_number']
-        values += [maxSteps, dataCollectionPeriod, grids_number]
+    # if loadedSimulationPath == "":
+    #     names += ['maxSteps', 'dataCollectionPeriod', 'grids_number']
+    #     values += [maxSteps, dataCollectionPeriod, grids_number]
+    names += ['maxSteps', 'dataCollectionPeriod']
+    values += [maxSteps, dataCollectionPeriod]
     df_vars = pd.DataFrame({"Names": names, "Values": values})
     df_vars = df_vars.set_index("Names")
     path = os.path.join(simulations_dir, newSimulationFolder, 'configs.csv')
