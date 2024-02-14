@@ -310,13 +310,22 @@ class CancerModel(mesa.Model):
         previous_sim_df = pd.read_csv(path, converters={"Position": ast.literal_eval})
         last_step = previous_sim_df["Step"].max()
         previous_sim_df = previous_sim_df[previous_sim_df["Step"] == last_step]
-        previous_sim_df = previous_sim_df[previous_sim_df["Agent Type"] == "cell"]
-        for index, row in previous_sim_df.iterrows():
+        last_step_cells = previous_sim_df[previous_sim_df["Agent Type"] == "cell"]
+        last_step_vessels = previous_sim_df[previous_sim_df["Agent Type"] == "vessel"]
+        for index, row in last_step_cells.iterrows():
             grid = int(row["Grid"]) - 1
             ccell = CancerCell(self.current_agent_id, self, self.grids[grid], self.grid_ids[grid], row["Phenotype"], self.ecm[grid], self.mmp2[grid])
             self.current_agent_id += 1
             self.schedule.add(ccell)
             self.grids[grid].place_agent(ccell, row["Position"])
+        for index, row in last_step_vessels.iterrows():
+            grid = int(row["Grid"]) - 1
+            ruptured_state = bool(row["Ruptured"])
+            vessel = Vessel(self.current_agent_id, self, ruptured_state, self.grids[grid], self.grid_ids[grid])
+            self.current_agent_id += 1
+            self.schedule.add(vessel)
+            self.grids[grid].place_agent(vessel, row["Position"])
+
         #load vasculature
         vasculature_path = os.path.join(pathToSimulation, "Vasculature")
         vasculature_files = os.listdir(vasculature_path)
