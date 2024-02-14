@@ -58,6 +58,8 @@ def load_simulation_menu():
             os._exit(0)
     total_steps = get_int_input("Select additional number of steps until the loaded simulation will continue: ")
     interval_steps = get_int_input("Select the size of the intervals for which the information will be collected: ")
+    os.system('cls')
+    print("Loading simulation...")
     Batch.main_Batch(total_steps, interval_steps, loadedSimulationPath=os.path.join(os.getcwd(),directory_path, selected_option))
 
 def postprocessing_menu():
@@ -148,10 +150,10 @@ def get_int_input(text):
         while result == '':
             os.system('cls')
             result = input(text)
-        try:
-            result = int(result)
-        except:
-            pass
+            try:
+                result = int(result)
+            except:
+                result = ''
     return result
 
 
