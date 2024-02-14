@@ -383,17 +383,11 @@ class CancerModel(mesa.Model):
             y = self.random.randrange(3,7)
             self.grids[1].place_agent(a, (x, y))
 
-        # Testing code - creates a ruptured vessels at a given point
-        a = Vessel(self.current_agent_id, self, True, self.grids[0], self.grid_ids[0])
-        self.current_agent_id += 1
-        self.schedule.add(a)
-        self.grids[0].place_agent(a, (90,100))
-
         # Create vessels
-        numNormalVessels = 0
-        numRupturedVessels = 10
+        num_normal_vessels = normal_vessels_primary
+        num_ruptured_vessels = ruptured_vessels_primary
         numVesselsSecondary = 10
-        numVesselsThird = 2 # just to test it, final code will not have 1 var to each grid
+        numVesselsThird = 10 # just to test it, final code will not have 1 var to each grid
 
         # bad code, reduce number of for and make a counter to save the index to de put in each vessel
         # creates grid with 1 where vessels must not be placed
@@ -408,11 +402,10 @@ class CancerModel(mesa.Model):
         # range(2) for 1 secondary site
         #for i in range(2):
         for i in range(len(self.grids)):
-
             if i == 0: # primary grid
-                temp = numRupturedVessels
+                temp = num_ruptured_vessels
                 while temp > 0:
-                    j = numRupturedVessels - temp
+                    j = num_ruptured_vessels - temp
                     cell_to_place = [self.random.randrange(self.width), self.random.randrange(self.height)]
                     if cell_to_place in pos_coords:
                         a = Vessel(self.current_agent_id, self, True, self.grids[0], self.grid_ids[0])
@@ -424,9 +417,9 @@ class CancerModel(mesa.Model):
                         pos_coords.remove(cell_to_place)
                         temp -= 1
 
-                temp = numNormalVessels
+                temp = num_normal_vessels
                 while temp > 0:
-                    j = numNormalVessels - temp
+                    j = num_normal_vessels - temp
                     cell_to_place = [self.random.randrange(self.width), self.random.randrange(self.height)]
                     if cell_to_place in pos_coords:
                         a = Vessel(self.current_agent_id, self, False, self.grids[0], self.grid_ids[0])
