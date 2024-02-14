@@ -1,4 +1,5 @@
 import re
+import ast
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -15,6 +16,7 @@ def main_Batch(maxSteps, dataCollectionPeriod, loadedSimulationPath=""):
     # load configs file from a previous simulation or loads the general configs file
     if loadedSimulationPath != "":
         configs_path = os.path.join(loadedSimulationPath, "configs.csv")
+        # config_var_names = Classes.configs.load_simulation_configs_for_data_generation(configs_path)
         config_var_names = Classes.configs.load_simulation_configs_for_reloaded_simulation(configs_path)
     else:
         configs_path = "simulations_configs.csv"
@@ -30,13 +32,16 @@ def main_Batch(maxSteps, dataCollectionPeriod, loadedSimulationPath=""):
     # Name of the directories
     simulations_dir = "Simulations"
     if loadedSimulationPath != "":
-        pattern = r'maxSteps-(\d+)'
-        match = re.search(pattern, loadedSimulationPath)
-        if match:
-            loadedMaxSteps = int(match.group(1))
-        else:
-            raise ValueError("Error finding loaded simulation maxSteps!")
-        newSimulationFolder = f"Sim maxStepz-{loadedMaxSteps}+{maxSteps} stepsize-{dataCollectionPeriod} N-{N} gridsNumber-{grids_number}"
+        cells_path = os.path.join(loadedSimulationPath, "CellsData.csv")
+        df = pd.read_csv(cells_path, converters={"Position": ast.literal_eval})
+        loaded_max_step = max(df["Step"])
+        # pattern = r'maxSteps-(\d+)'
+        # match = re.search(pattern, loadedSimulationPath)
+        # if match:
+        #     loadedMaxSteps = int(match.group(1))
+        # else:
+        #     raise ValueError("Error finding loaded simulation maxSteps!")
+        newSimulationFolder = f"Sim maxSteps-{loaded_max_step}+{maxSteps} stepsize-{dataCollectionPeriod} N-{N} gridsNumber-{grids_number}"
     else:
         newSimulationFolder = f"Sim maxSteps-{maxSteps} stepsize-{dataCollectionPeriod} N-{N} gridsNumber-{grids_number}"
 
