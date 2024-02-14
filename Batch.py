@@ -15,7 +15,7 @@ def main_Batch(maxSteps, dataCollectionPeriod, loadedSimulationPath=""):
     # load configs file from a previous simulation or loads the general configs file
     if loadedSimulationPath != "":
         configs_path = os.path.join(loadedSimulationPath, "configs.csv")
-        config_var_names = Classes.configs.load_simulation_configs_for_data_generation(configs_path)
+        config_var_names = Classes.configs.load_simulation_configs_for_reloaded_simulation(configs_path)
     else:
         configs_path = "simulations_configs.csv"
         config_var_names = Classes.configs.init_simulation_configs(configs_path)
