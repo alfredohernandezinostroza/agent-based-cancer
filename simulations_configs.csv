@@ -12,7 +12,7 @@ theta,0.195
 Lambda,0.1
 gamma1,1
 gamma2,1
-vasculature_time,1
+vasculature_time,180
 doubling_time_M,2
 doubling_time_E,3
 single_cell_survival,5e-04
@@ -20,8 +20,8 @@ cluster_survival,0.025
 extravasation_probs,"[0.5461, 0.2553, 0.1986]"
 dissagreggation_prob,0.5
 carrying_capacity,4
-normal_vessels_primary,10
-ruptured_vessels_primary,10
+normal_vessels_primary,8
+ruptured_vessels_primary,2
 secondary_sites_vessels,"[10, 10]"
 n_center_points_for_tumor,97
 n_center_points_for_Vessels,200
