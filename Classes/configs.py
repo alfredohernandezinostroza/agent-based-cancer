@@ -16,6 +16,8 @@ def init_simulation_configs(path):
         raise Exception("More than 32 configuration options!")
     dict_configs = dict(zip(df_configs["Names"], df_configs["Values"]))
     globals().update(dict_configs)  
+    if sum(extravasation_probs) != 1:
+        raise ValueError("Extravasation probabilities must sum 1!")
     return(list(df_configs["Names"]))
 
 def load_simulation_configs_for_data_generation(path):
