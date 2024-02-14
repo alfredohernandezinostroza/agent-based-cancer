@@ -133,7 +133,6 @@ class CancerModel(mesa.Model):
             config_var_names = Classes.configs.load_simulation_configs_for_reloaded_simulation(configs_path)
             for var in config_var_names:
                 globals()[var] = getattr(Classes.configs, var)
-            self._initialize_grids()
         else:
             # load_simulation_configs("simulations_configs.csv")
 
@@ -147,8 +146,6 @@ class CancerModel(mesa.Model):
             # model_reporters={"Total cells": count_total_cells, "Cluster radius and diameter": get_cluster_radius_and_diameter,
             #                   "Amount of vasculature cells": count_vasculature_cells,}, agent_reporters={"Position": "pos", "Agent Type": "agent_type", "Phenotype": "phenotype", "Ruptured": "ruptured", "Grid": "grid_id"})
         #model_reporters={"Mmp2": "mmp2", "Grid": "grid"},
-        self.mmp2Data = np.zeros((1, self.width, self.height), dtype=float)
-        self.ecmData = np.ones((1, self.width, self.height), dtype=float)
 
     def step(self):
         """Advance the model by one step.
@@ -304,8 +301,20 @@ class CancerModel(mesa.Model):
         Input: The simulation's path to be loaded
         Returns: none
         """
-        # configs_path = os.path.join(pathToSimulation, "configs.csv")
-        # load_simulation_configs(configs_path)
+        
+        #load mmp2 and ecm
+        for grid_number in range(self.grids_number):
+            mmp2_files_path = os.path.join(pathToSimulation, "Mmp2")
+            ecm_files_path  = os.path.join(pathToSimulation, "Ecm")
+            mmp2_files = os.listdir(mmp2_files_path)
+            ecm_files  = os.listdir(ecm_files_path)
+            mmp2_files.sort(key = lambda file_name: int(file_name.split('step')[0][11:]))
+            ecm_files.sort(key  = lambda file_name: int(file_name.split('step')[0][10:]))
+            last_state_of_mmp2_filepath = os.path.join(mmp2_files_path,mmp2_files[-1])
+            last_state_of_ecm_filepath  = os.path.join(ecm_files_path,ecm_files[-1])
+            self.ecm[grid_number][0,:,:]  = pd.read_csv(last_state_of_ecm_filepath, index_col=0).to_numpy(dtype=float)
+            self.mmp2[grid_number][0,:,:] = pd.read_csv(last_state_of_mmp2_filepath, index_col=0).to_numpy(dtype=float)
+
         path = os.path.join(pathToSimulation, "CellsData.csv")
         previous_sim_df = pd.read_csv(path, converters={"Position": ast.literal_eval})
         last_step = previous_sim_df["Step"].max()
@@ -329,7 +338,7 @@ class CancerModel(mesa.Model):
         #load vasculature
         vasculature_path = os.path.join(pathToSimulation, "Vasculature")
         vasculature_files = os.listdir(vasculature_path)
-        vasculature_files.sort()
+        vasculature_files.sort(key = lambda file_name: int(file_name.split('step')[0][12:]))
         last_state_of_vasculature_filepath = os.path.join(vasculature_path,vasculature_files[-1])
         with open(last_state_of_vasculature_filepath, 'r') as f:
             last_state_of_vasculature = json.load(f)
@@ -430,22 +439,8 @@ class CancerModel(mesa.Model):
                         not_possible_array[cell_to_place[0], cell_to_place[1]] = 1
                         pos_coords.remove(cell_to_place)
                         temp -= 1
-
-
-            if i > 0: # secondary and third grid
-                if i == 1:
-                    for m in range(numVesselsSecondary):
-                        # make if to only create a vessel if given random value of x and y doesnt already has a vessel
-                        a = Vessel(self.current_agent_id, self, False, self.grids[i], self.grid_ids[i])
-                        self.current_agent_id += 1
-                        self.schedule.add(a)
-                        x = self.random.randrange(self.width)
-                        y = self.random.randrange(self.height)
-                        self.grids[i].place_agent(a, (x,y))
-                        self.grid_vessels_positions[i] += [(x,y)]
-
-                if i == 2:  
-                    for m in range(numVesselsThird):
+            elif i > 0: # secondary and third grid
+                    for m in range(secondary_sites_vessels[i-1]):
                         # make if to only create a vessel if given random value of x and y doesnt already has a vessel
                         a = Vessel(self.current_agent_id, self, False, self.grids[i], self.grid_ids[i])
                         self.current_agent_id += 1
