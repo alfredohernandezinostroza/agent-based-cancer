@@ -151,9 +151,9 @@ def generate_videos(nameOfTheSimulation, frameRate):
     # imagesFileNames = sorted(imagesFileNames, key=lambda x: int(imagesFileNames[0].split(".")[0][-1]))
     images_vasculature_cells    = [os.path.join(VasculatureImagesPath, file_name) for file_name in images_vasculature_cells]
     images_vasculature_clusters = [os.path.join(VasculatureImagesPath, file_name) for file_name in images_vasculature_clusters]
-    output_file = os.path.join(VideosFolderPath, f"Vasculature - all grids - cells.mp4")
+    output_file = os.path.join(VideosFolderPath, f"Vasculature - cells.mp4")
     create_video_from_images(images_vasculature_cells, output_file, frameRate)
-    output_file = os.path.join(VideosFolderPath, f"Vasculature - all grids - clusters.mp4")
+    output_file = os.path.join(VideosFolderPath, f"Vasculature - clusters.mp4")
     create_video_from_images(images_vasculature_clusters, output_file, frameRate)
 
     # Create videos for the Ecm of each grid
@@ -163,8 +163,8 @@ def generate_videos(nameOfTheSimulation, frameRate):
         output_file = os.path.join(VideosFolderPath, f"Ecm Evolution - Grid{i+1}.mp4")
         create_video_from_images(imagesPath, output_file, frameRate)
     # Create videos for the Ecm for all grids
-    output_file = os.path.join(VideosFolderPath, f"Ecm Evolution - All grids.mp4")
-    create_combined_video(EcmImagesByGrid, output_file, frameRate)
+    # output_file = os.path.join(VideosFolderPath, f"Ecm Evolution - All grids.mp4")
+    # create_combined_video(EcmImagesByGrid, output_file, frameRate)
 
     # Create videos for the Mmp2 of each grid
     for i, images_list in enumerate(Mmp2ImagesByGrid):
@@ -173,8 +173,8 @@ def generate_videos(nameOfTheSimulation, frameRate):
         output_file = os.path.join(VideosFolderPath, f"Mmp2 Evolution - Grid{i+1}.mp4")
         create_video_from_images(imagesPath, output_file, frameRate)
     # Create videos for the Mmp2 for all grids
-    output_file = os.path.join(VideosFolderPath, f"Mmp2 Evolution - All grids.mp4")
-    create_combined_video(Mmp2ImagesByGrid, output_file, frameRate)
+    # output_file = os.path.join(VideosFolderPath, f"Mmp2 Evolution - All grids.mp4")
+    # create_combined_video(Mmp2ImagesByGrid, output_file, frameRate)
 
     # Create videos for the Tumor of each grid
     for i, images_list in enumerate(CellsImagesByGrid):
@@ -183,8 +183,8 @@ def generate_videos(nameOfTheSimulation, frameRate):
         output_file = os.path.join(VideosFolderPath, f"Cells Evolution - Grid{i+1}.mp4")
         create_video_from_images(imagesPath, output_file, frameRate)
     # Create videos for the Tumor for all grids
-    output_file = os.path.join(VideosFolderPath, f"Cells Evolution - All grids.mp4")
-    create_combined_video(CellsImagesByGrid, output_file, frameRate)
+    # output_file = os.path.join(VideosFolderPath, f"Cells Evolution - All grids.mp4")
+    # create_combined_video(CellsImagesByGrid, output_file, frameRate)
 
     # Create video for the cell number growth
     for i, images_list in enumerate(CellsNumberImagesByGrid):
@@ -193,8 +193,8 @@ def generate_videos(nameOfTheSimulation, frameRate):
         output_file = os.path.join(VideosFolderPath, f"Cells Number - Grid{i+1}.mp4")
         create_video_from_images(imagesPath, output_file, frameRate)
     # Create videos for the Tumor for all grids
-    output_file = os.path.join(VideosFolderPath, f"Cells Number - All grids.mp4")
-    create_combined_video(CellsNumberImagesByGrid, output_file, frameRate)
+    # output_file = os.path.join(VideosFolderPath, f"Cells Number - All grids.mp4")
+    # create_combined_video(CellsNumberImagesByGrid, output_file, frameRate)
 
     print(f'\nFinished!')
 
