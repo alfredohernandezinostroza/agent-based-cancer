@@ -212,22 +212,22 @@ def generate_data(nameOfTheSimulation):
 
     TumorDataPath = os.path.join(dataPath, "Tumor growth")
     CellsDataPath = os.path.join(dataPath, "Cells growth")
-    EcmDataPath = os.path.join(dataPath, "Ecm evolution")
-    Mmp2DataPath = os.path.join(dataPath, "Mmp2 evolution")
+    # EcmDataPath = os.path.join(dataPath, "Ecm evolution")
+    # Mmp2DataPath = os.path.join(dataPath, "Mmp2 evolution")
     VasculatureDataPath = os.path.join(dataPath, "Vasculature evolution")
 
     # Create folder for all the data analysis
     if not os.path.exists(dataPath):
         os.makedirs(dataPath)
         os.makedirs(TumorDataPath)
-        os.makedirs(Mmp2DataPath)
-        os.makedirs(EcmDataPath)
+        # os.makedirs(Mmp2DataPath)
+        # os.makedirs(EcmDataPath)
         os.makedirs(CellsDataPath)
         os.makedirs(VasculatureDataPath)
 
         print(f"\nSaving tumor data in the folder:", TumorDataPath)
-        print("Saving Mmp2 data in the folder:", Mmp2DataPath)
-        print("Saving Ecm data in the folder:", EcmDataPath)
+        # print("Saving Mmp2 data in the folder:", Mmp2DataPath)
+        # print("Saving Ecm data in the folder:", EcmDataPath)
         print("Saving cells numbers data in the folder:", CellsDataPath)
         print("Saving vasculature data in the folder:", VasculatureDataPath)
 
