@@ -61,6 +61,7 @@ def load_simulation_menu():
     Batch.main_Batch(total_steps, interval_steps, loadedSimulationPath=os.path.join(os.getcwd(),directory_path, selected_option))
 
 def postprocessing_menu():
+    frameRate = 1
     global selected_option, selected_option_index, banner_message, options_list
     directory_path = "Simulations"
     folder_names = ["Exit"] + get_folder_names(directory_path)
@@ -87,7 +88,6 @@ def postprocessing_menu():
             time.sleep(3)
             GraphGenerator.generate_graphs(selected_simulation)
             time.sleep(3)
-            frameRate = 20
             videoGenerator.generate_videos(selected_simulation, frameRate)
             time.sleep(3)
         if selected_option == "Begin data analysis":
@@ -97,7 +97,6 @@ def postprocessing_menu():
             GraphGenerator.generate_graphs(selected_simulation)
             time.sleep(3)
         if selected_option == "Generate videos":
-            frameRate = 20
             videoGenerator.generate_videos(selected_simulation, frameRate)
             time.sleep(3)
 
