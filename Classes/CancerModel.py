@@ -129,6 +129,11 @@ class CancerModel(mesa.Model):
             #     globals()[var] = getattr(configs, var)
             #     self.load_previous_simulation(loadedSimulationPath)
             self.load_previous_simulation(loadedSimulationPath)
+            configs_path = os.path.join(loadedSimulationPath, "configs.csv")
+            config_var_names = Classes.configs.load_simulation_configs_for_reloaded_simulation(configs_path)
+            for var in config_var_names:
+                globals()[var] = getattr(Classes.configs, var)
+            self._initialize_grids()
         else:
             # load_simulation_configs("simulations_configs.csv")
 
@@ -316,7 +321,7 @@ class CancerModel(mesa.Model):
         vasculature_path = os.path.join(pathToSimulation, "Vasculature")
         vasculature_files = os.listdir(vasculature_path)
         vasculature_files.sort()
-        last_state_of_vasculature_filepath = vasculature_files[-1]        
+        last_state_of_vasculature_filepath = os.path.join(vasculature_path,vasculature_files[-1])
         with open(last_state_of_vasculature_filepath, 'r') as f:
             last_state_of_vasculature = json.load(f)
         # Change keys to int
