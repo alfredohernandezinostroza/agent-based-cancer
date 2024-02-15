@@ -52,9 +52,9 @@ def count_total_cells(model):
         amount_of_cells (int): the total amount of cells in every site,
         NOT considering the vasculature    
     """
-    amount_of_cells = len([1 for agent in model.schedule.agents if agent.agent_type == "cell"])
+    # amount_of_cells = len([1 for agent in model.schedule.agents if agent.agent_type == "cell"])
     # print(amount_of_cells)
-    return amount_of_cells
+    return sum(model.cancer_cells_counter)
 
 def count_vasculature_cells(model):
     """"
@@ -116,6 +116,7 @@ class CancerModel(mesa.Model):
         self.grids_number = grids_number
         self.grids = [mesa.space.MultiGrid(width, height, False) for _ in range(self.grids_number)]
         self.grid_ids = [i+1 for i in range(self.grids_number)]
+        self.cancer_cells_counter = [0] * grids_number
         self.time_grid_got_populated = [-1 for _ in range(self.grids_number)]
         self.schedule = mesa.time.RandomActivation(self)
         #list of numpy arrays, representing mmp2 and ecm concentration in each grid
@@ -183,24 +184,28 @@ class CancerModel(mesa.Model):
                             self.current_agent_id += 1
                             self.grids[selected_site].place_agent(ccell, (x-1,y)) 
                             number_of_ccells_in_arriving_point[x-1,y] += 1
+                            self.cancer_cells_counter[selected_site] += 1
                             self.schedule.add(ccell)
                         elif not onRightBorder and carrying_capacity > number_of_ccells_in_arriving_point[x+1,y]:
                             ccell = CancerCell(self.current_agent_id, self, self.grids[selected_site], self.grid_ids[selected_site], cell_type, self.ecm[selected_site], self.mmp2[selected_site])
                             self.current_agent_id += 1
                             self.grids[selected_site].place_agent(ccell, (x+1,y))
                             number_of_ccells_in_arriving_point[x+1,y] += 1
+                            self.cancer_cells_counter[selected_site] += 1
                             self.schedule.add(ccell)
                         elif not onBottomBorder and carrying_capacity > number_of_ccells_in_arriving_point[x,y-1]:
                             ccell = CancerCell(self.current_agent_id, self, self.grids[selected_site], self.grid_ids[selected_site], cell_type, self.ecm[selected_site], self.mmp2[selected_site])
                             self.current_agent_id += 1
                             self.grids[selected_site].place_agent(ccell, (x,y-1))
                             number_of_ccells_in_arriving_point[x,y-1] += 1
+                            self.cancer_cells_counter[selected_site] += 1
                             self.schedule.add(ccell)
                         elif not onTopBorder and carrying_capacity > number_of_ccells_in_arriving_point[x,y+1]:
                             ccell = CancerCell(self.current_agent_id, self, self.grids[selected_site], self.grid_ids[selected_site], cell_type, self.ecm[selected_site], self.mmp2[selected_site])
                             self.current_agent_id += 1
                             self.grids[selected_site].place_agent(ccell, (x,y+1))
                             number_of_ccells_in_arriving_point[x,y+1] += 1
+                            self.cancer_cells_counter[selected_site] += 1
                             self.schedule.add(ccell)
                         ccells_amount -= 1
                     
@@ -223,8 +228,8 @@ class CancerModel(mesa.Model):
         #at the end of each step, check if the grid has been populated, and if it happened, store the time step when it did
         for index, time in enumerate(self.time_grid_got_populated):
             if time == -1: #if it has not been populated already, we check:
-                cell_count = len([1 for agent in self.schedule.agents if agent.agent_type == "cell" and (agent.grid_id - 1) == index])
-                if cell_count > 0:
+                # cell_count = len([1 for agent in self.schedule.agents if agent.agent_type == "cell" and (agent.grid_id - 1) == index])
+                if self.cancer_cells_counter[index] > 0:
                     self.time_grid_got_populated[index] = self.schedule.time
 
         # Saving of non agents data
@@ -278,9 +283,7 @@ class CancerModel(mesa.Model):
         Input: none
         Returns: none
         """
-        all_agents = [agent for agent in self.schedule.agents]
-        total_amount_of_agents = len(all_agents)
-        for agent in all_agents:
+        for agent in self.schedule.agents:
             if agent.agent_type == "cell":
                 x, y = agent.pos
                 amount_of_cells = len([cell for cell in agent.grid.get_cell_list_contents([(x, y)]) if cell.agent_type == "cell"])
@@ -290,7 +293,7 @@ class CancerModel(mesa.Model):
                     self.current_agent_id += 1
                     self.schedule.add(new_cell)
                     agent.grid.place_agent(new_cell, (x,y))
-                    total_amount_of_agents +=1
+                    self.cancer_cells_counter[agent.grid_id] += 1
         
 
 
@@ -322,19 +325,20 @@ class CancerModel(mesa.Model):
         last_step_cells = previous_sim_df[previous_sim_df["Agent Type"] == "cell"]
         last_step_vessels = previous_sim_df[previous_sim_df["Agent Type"] == "vessel"]
         for index, row in last_step_cells.iterrows():
-            grid_number = int(row["Grid"]) - 1
-            ccell = CancerCell(self.current_agent_id, self, self.grids[grid_number], self.grid_ids[grid_number], row["Phenotype"], self.ecm[grid_number], self.mmp2[grid_number])
+            current_grid_number = int(row["Grid"]) - 1
+            ccell = CancerCell(self.current_agent_id, self, self.grids[current_grid_number], self.grid_ids[current_grid_number], row["Phenotype"], self.ecm[current_grid_number], self.mmp2[current_grid_number])
             self.current_agent_id += 1
             self.schedule.add(ccell)
-            self.grids[grid_number].place_agent(ccell, row["Position"])
+            self.grids[current_grid_number].place_agent(ccell, row["Position"])
+            self.cancer_cells_counter[current_grid_number] += 1
         for index, row in last_step_vessels.iterrows():
-            grid_number = int(row["Grid"]) - 1
+            current_grid_number = int(row["Grid"]) - 1
             ruptured_state = bool(row["Ruptured"])
-            vessel = Vessel(self.current_agent_id, self, ruptured_state, self.grids[grid_number], self.grid_ids[grid_number])
+            vessel = Vessel(self.current_agent_id, self, ruptured_state, self.grids[current_grid_number], self.grid_ids[current_grid_number])
             self.current_agent_id += 1
             self.schedule.add(vessel)
-            self.grids[grid_number].place_agent(vessel, row["Position"])
-            self.grid_vessels_positions[grid_number] += [row["Position"]]
+            self.grids[current_grid_number].place_agent(vessel, row["Position"])
+            self.grid_vessels_positions[current_grid_number] += [row["Position"]]
 
         #load vasculature
         vasculature_path = os.path.join(pathToSimulation, "Vasculature")
@@ -374,6 +378,7 @@ class CancerModel(mesa.Model):
 
             self.schedule.add(a)
             self.grids[0].place_agent(a, (x, y))
+            self.cancer_cells_counter[0] += 1
 
             # Remove the point after it has 4 cells
             possible_places[j][2] += 1
@@ -381,8 +386,8 @@ class CancerModel(mesa.Model):
                 possible_places.pop(j)
 
 
-        # Create agents at second grid
-        amount_of_second_grid_CAcells=0
+        # Create agents at second grid. Useful for debugging.
+        amount_of_second_grid_CAcells = 0
         for i in range(amount_of_second_grid_CAcells):
             a = CancerCell(self.current_agent_id, self, self.grids[1], self.grid_ids[1], "mesenchymal", self.ecm[1], self.mmp2[1])
             self.current_agent_id += 1
@@ -392,6 +397,7 @@ class CancerModel(mesa.Model):
             x = self.random.randrange(3,7)
             y = self.random.randrange(3,7)
             self.grids[1].place_agent(a, (x, y))
+            self.cancer_cells_counter[1] += 1
 
         # Create vessels
         num_normal_vessels = normal_vessels_primary
