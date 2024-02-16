@@ -203,7 +203,7 @@ def generate_data(nameOfTheSimulation):
     max_step = max(df["Step"])
     if configs_max_step != max_step:
         print(f"Warning: the run for this simulation terminated early")
-        print("Max step reached is {max_step} while {configs_max_step} was expected.")
+        print(f"Max step reached is {max_step} while {configs_max_step} was expected.")
 
     # Path to save the data:
     dataFolder = "Data analysis"
@@ -301,7 +301,7 @@ def generate_data_vasculature_only(nameOfTheSimulation):
     max_step = max(df["Step"])
     if configs_max_step != max_step:
         print(f"Warning: the run for this simulation terminated early")
-        print("Max step reached is {max_step} while {configs_max_step} was expected.")
+        print(f"Max step reached is {max_step} while {configs_max_step} was expected.")
 
     # Path to save the vasculature data:
     dataFolder = "Data analysis"
@@ -362,7 +362,7 @@ def get_distance_matrix(vectors):
 if __name__ == "__main__":
 
     # CHANGE THIS LINE according to the simulation you want to plot the graphs  
-    name_of_the_simulation = "Sim maxSteps-22 stepsize-2 N-388 gridsNumber-3"
+    name_of_the_simulation = "Sim maxSteps-27300+20700 stepsize-150 N-388 gridsNumber-3"
 
     # This runs all the code to generate the graphs in the folder
     # generate_data(name_of_the_simulation)
