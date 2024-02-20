@@ -118,7 +118,7 @@ def run_simulation(CancerModel, N, width, height, grids_number, maxSteps, dataCo
 
     # Create data frames for the cells
     cells_df = pd.DataFrame(results)
-    cells_df = cells_df[["Step", "Position", "Phenotype", "Grid", "Agent Type", "Ruptured"]]
+    cells_df = cells_df[["AgentID","Step", "Position", "Phenotype", "Grid", "Agent Type", "Ruptured"]]
     print(f'Example of data collected: {cells_df.head(10)}')
 
     # Saves data analysis
