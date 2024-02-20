@@ -76,7 +76,7 @@ def postprocessing_menu():
         listener.join()
         if selected_option == "Exit":
             os._exit(0)
-    options_list = ["Exit", "Run all", "Begin data analysis", "Begin visual analysis", "Generate videos"]
+    options_list = ["Exit", "Run all", "Begin data analysis", "Begin graphical analysis", "Generate videos"]
     selected_simulation = selected_option
     selected_option_index = 0
     with keyboard.Listener(on_press = on_press) as listener:
