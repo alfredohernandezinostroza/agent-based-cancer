@@ -14,7 +14,7 @@ from matplotlib import pyplot as plt
 from matplotlib import cm
 # from Classes.configs import *
 import Classes.configs
-
+# import pickle
 
 
 def get_cluster_survival_probability(cluster):
@@ -144,9 +144,8 @@ class CancerModel(mesa.Model):
             self._initialize_grids()
         self.datacollector = mesa.DataCollector(
             model_reporters={"Total cells": count_total_cells}, agent_reporters={"Position": "pos", "Agent Type": "agent_type", "Phenotype": "phenotype", "Ruptured": "ruptured", "Grid": "grid_id"})
-            # model_reporters={"Total cells": count_total_cells, "Cluster radius and diameter": get_cluster_radius_and_diameter,
-            #                   "Amount of vasculature cells": count_vasculature_cells,}, agent_reporters={"Position": "pos", "Agent Type": "agent_type", "Phenotype": "phenotype", "Ruptured": "ruptured", "Grid": "grid_id"})
-        #model_reporters={"Mmp2": "mmp2", "Grid": "grid"},
+        self.doubling_time_counter_M = doubling_time_M
+        self.doubling_time_counter_E = doubling_time_E
 
     def step(self):
         """Advance the model by one step.
@@ -213,13 +212,23 @@ class CancerModel(mesa.Model):
         self.calculateEnvironment(self.mmp2, self.ecm)
         
         # Reprodução
-        if (self.schedule.time % doubling_time_M == 0 and self.schedule.time != 0):
-            # print(f"Before proliferating: {count_total_cells(self)}")
+        # Counters are used so when loading a simulation the behaviour does not change, compared to use self.schedule.time % doubling_time_M == 0
+        if (self.doubling_time_counter_M == 0 and self.schedule.time != 0):
             self.proliferate("mesenchymal")
-            # print(f"After proliferating: {count_total_cells(self)}")
+            self.doubling_time_counter_M = doubling_time_M
 
-        if (self.schedule.time % doubling_time_E == 0 and self.schedule.time != 0):
+        if (self.doubling_time_counter_E == 0 and self.schedule.time != 0):
             self.proliferate("epithelial")
+            self.doubling_time_counter_E = doubling_time_E
+                
+        self.doubling_time_counter_E -= 1
+        self.doubling_time_counter_M -= 1
+
+        # if (self.schedule.time % doubling_time_M == 0 and self.schedule.time != 0):
+        #     self.proliferate("mesenchymal")
+
+        # if (self.schedule.time % doubling_time_E == 0 and self.schedule.time != 0):
+        #     self.proliferate("epithelial")
 
         print(f'step number: {self.schedule.time}')
         self.schedule.step()
@@ -235,6 +244,9 @@ class CancerModel(mesa.Model):
         # Saving of non agents data
         if (self.schedule.time != 0 and (self.schedule.time % self.dataCollectionPeriod == 0)) \
             or self.schedule.time == self.maxSteps:
+            # backup_file_path = os.path.join(self.simulations_dir, self.newSimulationFolder, "Backup", "backup.p")
+            # with open(backup_file_path, "wb") as f:
+            #     pickle.dump(self, f)
             df_time_grids_got_populated = pd.DataFrame()
             for grid_id in self.grid_ids:
                 new_mmp2_df = pd.DataFrame(self.mmp2[grid_id-1][0,:,:])
@@ -351,6 +363,9 @@ class CancerModel(mesa.Model):
         last_state_of_vasculature = {int(k): v for k, v in last_state_of_vasculature.items()}
         self.vasculature = last_state_of_vasculature
 
+        #calculate state of doubling counters
+        self.doubling_time_counter_E = doubling_time_E - (last_step % doubling_time_E)
+        self.doubling_time_counter_E = doubling_time_M - (last_step % doubling_time_M)
 
 
     def _initialize_grids(self):
@@ -521,34 +536,3 @@ class CancerModel(mesa.Model):
             if new_mesenchymal + new_epithelial > 0:
                 new_vasculature += [(new_mesenchymal,new_epithelial)]
         self.vasculature[time] = new_vasculature
-
-
-
-#
-    #def graph_ecm_mmp2(self, time):
-    #    if self.schedule.time == time:
-    #        print("SADSADDSA")
-    #        fig = plt.figure(figsize=plt.figaspect(0.5))
-    #        ax = fig.add_subplot(1, 2, 1, projection='3d')
-    #        X = np.arange(0, self.width, 1)
-    #        Y = np.arange(0, self.height,1)
-    #        X, Y = np.meshgrid(X, Y)
-    #        Z = self.mmp2[0][0, :, :]
-    #        print(Z)
-    #        # ax.scatter(X, Y, Z, marker='o')
-    #        surf = ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap=cm.coolwarm,
-    #                    linewidth=0, antialiased=False)
-    #        ax.set_zlim(-1.01, 1.01)
-    #        fig.colorbar(surf, shrink=0.5, aspect=10)
-    #        
-    #                    
-    #        ax = fig.add_subplot(1, 2, 2, projection='3d')
-    #        Z = self.ecm[0][0, :, :]
-    #        print(Z)
-    #        # ax.scatter(X, Y, Z, marker=m)
-    #        surf = ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap=cm.coolwarm,
-    #                    linewidth=0, antialiased=False)
-    #        ax.set_zlim(-1.01, 2.01)
-    #        fig.colorbar(surf, shrink=0.5, aspect=10)
-    #        
-    #        plt.show()
