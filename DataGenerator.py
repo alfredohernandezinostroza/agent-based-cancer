@@ -10,53 +10,55 @@ import Classes.configs
 
 # To run this code you must be in the parent folder of agent-based-cancer
 
-def getCoordsForPlot(step, allCellsCsvPath, grid_id):
-    df = pd.read_csv(allCellsCsvPath, converters={"Position": ast.literal_eval})
-    df = df[["Step", "Position", "Phenotype", "Grid", "Agent Type", "Ruptured"]]
+def read_coords_for_plot(step, all_cells_dataframe, grid_id):
+    df = all_cells_dataframe[["Step", "Position", "Phenotype", "Grid", "Agent Type", "Ruptured"]]
 
-    # Select the step you want to plot, from 0 to 24000 (~11 days)
-    df_step0 = df.loc[(df["Step"] == step) & (df["Grid"] == grid_id)]
+    # Selected step to plot
+    df_selected_step_and_grid = df.loc[(df["Step"] == step) & (df["Grid"] == grid_id)]
 
     # Save the position data
-    mPoints = list(df_step0.loc[df_step0["Phenotype"] == "mesenchymal"]["Position"])
-    ePoints = list(df_step0.loc[df_step0["Phenotype"] == "epithelial"]["Position"])
-    vPoints = list(df_step0.loc[(df_step0["Agent Type"] == "vessel") & (df_step0["Ruptured"] == False)]["Position"])
-    vRupturedPoints = list(df_step0.loc[(df_step0["Agent Type"] == "vessel") & (df_step0["Ruptured"] == True)]["Position"])
+    mPoints = list(df_selected_step_and_grid.loc[df_selected_step_and_grid["Phenotype"] == "mesenchymal"]["Position"])
+    ePoints = list(df_selected_step_and_grid.loc[df_selected_step_and_grid["Phenotype"] == "epithelial"]["Position"])
+    vPoints = list(df_selected_step_and_grid.loc[(df_selected_step_and_grid["Agent Type"] == "vessel") & (df_selected_step_and_grid["Ruptured"] == False)]["Position"])
+    vRupturedPoints = list(df_selected_step_and_grid.loc[(df_selected_step_and_grid["Agent Type"] == "vessel") & (df_selected_step_and_grid["Ruptured"] == True)]["Position"])
 
-    Xm, Ym = [i[0] for i in mPoints], [i[1] for i in mPoints]
-    Xe, Ye = [i[0] for i in ePoints], [i[1] for i in ePoints]
-    Xv, Yv = [i[0] for i in vPoints], [i[1] for i in vPoints]
-    Xvr, Yvr = [i[0] for i in vRupturedPoints], [i[1] for i in vRupturedPoints]
+    X_position_m, Y_position_m = [i[0] for i in mPoints], [i[1] for i in mPoints]
+    X_position_e, Y_position_e = [i[0] for i in ePoints], [i[1] for i in ePoints]
+    X_position_v, Y_position_v = [i[0] for i in vPoints], [i[1] for i in vPoints]
+    X_position_vr, Y_position_vr = [i[0] for i in vRupturedPoints], [i[1] for i in vRupturedPoints]
 
-    return [Xm, Ym, Xe, Ye, Xv, Yv, Xvr, Yvr]
+    return [X_position_m, Y_position_m, X_position_e, Y_position_e, X_position_v, Y_position_v, X_position_vr, Y_position_vr]
 
-def save_cancer(coordsList, grid_id, step, TumorDataPath):
+def save_cancer(all_cells_dataframe, grid_id, step, real_time_at_step, TumorDataPath):
+    path = os.path.join(TumorDataPath, f'Cells-grid{grid_id}-step{step} - Tumor size at {real_time_at_step/(3600*24):.2f} days.csv')
+    if not os.path.isfile(path):
+        coords_list =  read_coords_for_plot(step, all_cells_dataframe, grid_id)
+        Xm, Ym, Xe, Ye, Xv, Yv, Xvr, Yvr = coords_list[0], coords_list[1], coords_list[2], coords_list[3], coords_list[4], coords_list[5], coords_list[6], coords_list[7]
 
-    Xm, Ym, Xe, Ye, Xv, Yv, Xvr, Yvr = coordsList[0], coordsList[1], coordsList[2], coordsList[3], coordsList[4], coordsList[5], coordsList[6], coordsList[7]
-
-    # save the data
-    df_export = pd.DataFrame([Xm, Ym, Xe, Ye, Xv, Yv, Xvr, Yvr])
-    path = os.path.join(TumorDataPath, f'Cells-grid{grid_id}-step{step} - Tumor size at {11/24000 * step:.2f} days.csv')
-    df_export.to_csv(path)
+        # save the data
+        df_export = pd.DataFrame([Xm, Ym, Xe, Ye, Xv, Yv, Xvr, Yvr]) 
+        df_export.to_csv(path)
 
     #create histogram of positions
-    df_positions = pd.DataFrame({'Position': zip(Xm + Xe, Ym + Ye)})
-    position_repetition_count = df_positions['Position'].value_counts()
-    histogram = position_repetition_count.value_counts()
-    histogram = pd.DataFrame({'Bins': histogram.index, 'Frequency': histogram.values})
-    number_of_empty_positions = Classes.configs.gridsize * Classes.configs.gridsize - len(position_repetition_count)
-    new_row = pd.DataFrame({'Bins': [0], 'Frequency': [number_of_empty_positions]})
-    histogram = pd.concat([histogram, new_row])
-    path = os.path.join(TumorDataPath, f'Cells-grid{grid_id}-step{step} - Histogram at {11/24000 * step:.2f} days.csv')
-    histogram.to_csv(path)
+    path = os.path.join(TumorDataPath, f'Cells-grid{grid_id}-step{step} - Histogram at {real_time_at_step/(3600*24):.2f} days.csv')
+    if not os.path.isfile(path):
+        df_positions = pd.DataFrame({'Position': zip(Xm + Xe, Ym + Ye)})
+        position_repetition_count = df_positions['Position'].value_counts()
+        histogram = position_repetition_count.value_counts()
+        histogram = pd.DataFrame({'Bins': histogram.index, 'Frequency': histogram.values})
+        number_of_empty_positions = Classes.configs.gridsize * Classes.configs.gridsize - len(position_repetition_count)
+        new_row = pd.DataFrame({'Bins': [0], 'Frequency': [number_of_empty_positions]})
+        histogram = pd.concat([histogram, new_row])
+        histogram.to_csv(path)
+        #this will return the radius and diameter of the processed tumor
+        return get_cluster_centroid_radius_and_diameter(df_positions, grid_id)
+    return ([np.nan, np.nan], np.nan, np.nan)
 
-    #this will return the radius and diameter of the processed tumor
-    return get_cluster_radius_and_diameter(df_positions, grid_id)
-
-def saveGrowthData(allCellsCsvPath, stepsize, grid_id, CellsDataPath, step_number):
-    # get data at each step
-    df = pd.read_csv(allCellsCsvPath, converters={"Position": ast.literal_eval})
-    df = df[["Step", "Phenotype", "Grid"]]
+def save_growth_data(all_cells_dataframe, stepsize, grid_id, CellsDataPath, step_number, real_time_at_step):
+    path_to_save = os.path.join(CellsDataPath, f'CellsGrowth-grid{grid_id}-step{step_number} - {real_time_at_step/(3600*24):.2f} days.csv')
+    if os.path.isfile(path_to_save):
+        return
+    df = all_cells_dataframe[["Step", "Phenotype", "Grid"]]
     df = df.loc[(df["Grid"] == grid_id) & (df["Step"] <= step_number)]
 
     # For mesenchymal
@@ -76,21 +78,17 @@ def saveGrowthData(allCellsCsvPath, stepsize, grid_id, CellsDataPath, step_numbe
     # create arrays with the step number and number of cells
     steps = np.arange(0, max(df_e["Step"]) + 1, stepsize)
     numberEpithelialEachStep = [df_e.loc[(df_e["Step"] == step) & (df_e["Phenotype"] == "epithelial")].shape[0] for step in steps]
-
-    path_to_save = os.path.join(CellsDataPath, f'CellsGrowth-grid{grid_id}-step{step_number} - {11/24000 * step_number:.2f} days')
-
     #save data from plot into csv
-    df_csv = pd.DataFrame({"Number of Epithelial Cells": numberEpithelialEachStep, "Number of Mesenchymal Cells": numberMesenchymalEachStep, "Days": steps*11/24000})
-    df_csv.to_csv(path_to_save + ".csv")
+    df_csv = pd.DataFrame({"Number of Epithelial Cells": numberEpithelialEachStep, "Number of Mesenchymal Cells": numberMesenchymalEachStep, "Days": real_time_at_step})
+    df_csv.to_csv(path_to_save)
 
 def get_vasculature_state_at_step(pathToSave, vasculature_json_path, step):
     # Reads the dict in the json file
     with open(vasculature_json_path, 'r') as f:
         vasculature_dict = json.load(f)
 
-    # Change keys to int and only add the key-value pair that is before the given max_step
+    # Change keys to int
     vasculature_dict = {int(k): v for k, v in vasculature_dict.items()}
-    # vasculature_dict = {int(k): v for k, v in vasculature_dict.items() if int(k) <= max_step}
 
     # Prepare the data for the bar chart
     mesenchymal_count = 0
@@ -141,8 +139,6 @@ def saveVasculatureData(pathToSave, vasculature_json_path, max_step):
         total_cluster_data.append(total_cluster_count)
     df_export = pd.DataFrame({ "Time": time_steps, "Mesenchymal cells": mesenchymal_data, "Epithelial cells" :epithelial_data, "Multicellular clusters": multicellular_cluster_data, "Total clusters": total_cluster_data})
     return df_export
-    # path = os.path.join(pathToSave, f'Vasculature-step{max_step}.csv')
-    # df_export.to_csv(path)
 
 def generate_data(nameOfTheSimulation):
     SimulationPath = os.path.join("Simulations", nameOfTheSimulation)
@@ -152,9 +148,6 @@ def generate_data(nameOfTheSimulation):
     
     print(f'\tAnalyzing data in the folder {SimulationPath}\n')
 
-    # Get the agents' data filename 
-    csv_files_name = [f for f in os.listdir(SimulationPath) if os.path.isfile(os.path.join(SimulationPath, f)) and f.endswith(".csv")]
-    
     # Get the Ecm and Mmp2 data filenames 
     EcmPath = os.path.join(SimulationPath, "Ecm")
     Mmp2Path = os.path.join(SimulationPath, "Mmp2")
@@ -165,12 +158,11 @@ def generate_data(nameOfTheSimulation):
     VasculaturePath = os.path.join(SimulationPath, "Vasculature")
     vasculature_files_name = [f for f in os.listdir(VasculaturePath) if os.path.isfile(os.path.join(VasculaturePath, f)) and f.endswith(".json")]
 
-    if csv_files_name:
-        first_csv_name = csv_files_name[0]
-        first_csv_path = os.path.join(SimulationPath, first_csv_name)
-        print("Using cells data at:", first_csv_path)
+    all_cells_filename = os.path.join(SimulationPath, "CellsData.csv")
+    if os.path.isfile(all_cells_filename):
+        print("Using cells data at:", all_cells_filename)
     else:
-        print("No .csv cell data found in directory:", SimulationPath)
+        print("No CellsData.csv cell data found in directory:", SimulationPath)
         return
 
     if ecm_files_name:
@@ -188,19 +180,20 @@ def generate_data(nameOfTheSimulation):
         return
 
     if vasculature_files_name:
-        first_vasculature_name = vasculature_files_name[0]
-        first_vasculature_path = os.path.join(VasculaturePath, first_vasculature_name)
-        print("Using vasculature data at:", first_vasculature_path)
+        # first_vasculature_name = vasculature_files_name[0]
+        # first_vasculature_path = os.path.join(VasculaturePath, first_vasculature_name)
+        print("Using vasculature data at:", VasculaturePath)
     else:
         print("No .json vasculature data found in directory:", SimulationPath)
         return
 
     step_size = Classes.configs.dataCollectionPeriod
+    real_time_at_step = 40 * Classes.configs.th/0.001 * step_size #the original ratio is 40 seconds/0.001 non-dimensional time
     grids_number = Classes.configs.grids_number
     configs_max_step = Classes.configs.maxSteps
-    df = pd.read_csv(first_csv_path, converters={"Position": ast.literal_eval})
-    df = df[["Step", "Position", "Phenotype", "Grid", "Agent Type", "Ruptured"]]
-    max_step = max(df["Step"])
+    all_cells_dataframe = pd.read_csv(all_cells_filename, converters={"Position": ast.literal_eval})
+    all_cells_dataframe = all_cells_dataframe[["Step", "Position", "Phenotype", "Grid", "Agent Type", "Ruptured"]]
+    max_step = max(all_cells_dataframe["Step"])
     if configs_max_step != max_step:
         print(f"Warning: the run for this simulation terminated early")
         print(f"Max step reached is {max_step} while {configs_max_step} was expected.")
@@ -211,29 +204,18 @@ def generate_data(nameOfTheSimulation):
 
     TumorDataPath = os.path.join(dataPath, "Tumor growth")
     CellsDataPath = os.path.join(dataPath, "Cells growth")
-    # EcmDataPath = os.path.join(dataPath, "Ecm evolution")
-    # Mmp2DataPath = os.path.join(dataPath, "Mmp2 evolution")
     VasculatureDataPath = os.path.join(dataPath, "Vasculature evolution")
 
     # Create folder for all the data analysis
     if not os.path.exists(dataPath):
         os.makedirs(dataPath)
         os.makedirs(TumorDataPath)
-        # os.makedirs(Mmp2DataPath)
-        # os.makedirs(EcmDataPath)
         os.makedirs(CellsDataPath)
         os.makedirs(VasculatureDataPath)
 
         print(f"\nSaving tumor data in the folder:", TumorDataPath)
-        # print("Saving Mmp2 data in the folder:", Mmp2DataPath)
-        # print("Saving Ecm data in the folder:", EcmDataPath)
         print("Saving cells numbers data in the folder:", CellsDataPath)
         print("Saving vasculature data in the folder:", VasculatureDataPath)
-
-    # If the data analysis is already done, tell the user
-    else:
-        print("This data has already been saved!")
-        return
     
     for grid_id in range(1, grids_number+1):
         print(f'\nGrid: {grid_id}')
@@ -242,28 +224,34 @@ def generate_data(nameOfTheSimulation):
         print(f'\tSaving tumor data...')
         df_radius_diameter_history = pd.DataFrame(columns=['Centroid x', 'Centroid y', 'Radius', 'Diameter', 'Step', 'Grid Id'])
         for id, step in enumerate(range(step_size,max_step+1,step_size)):
-            ccells_coords = getCoordsForPlot(step, first_csv_path, grid_id)
-            # save_cancer(ccells_coords, grid_id, step, TumorDataPath)
-            (centroid, radius, diameter) = save_cancer(ccells_coords, grid_id, step, TumorDataPath)
-            new_row = pd.DataFrame({'Centroid x': [centroid[0]], 'Centroid y': [centroid[1]],'Radius': [radius], 'Diameter': [diameter], 'Step': [step], 'Grid Id': [grid_id]})
-            df_radius_diameter_history = pd.concat([df_radius_diameter_history, new_row])
-        path = os.path.join(TumorDataPath, f'Tumor radius and diameter history in grid {grid_id} at {11/24000 * step:.2f} days.csv')
-        df_radius_diameter_history.to_csv(path)
+            # ccells_coords = read_coords_for_plot(step, all_cells_dataframe, grid_id)
+            if grid_id == 1:
+                (centroid, radius, diameter) = save_cancer(all_cells_dataframe, grid_id, step, real_time_at_step, TumorDataPath)
+                new_row = pd.DataFrame({'Centroid x': [centroid[0]], 'Centroid y': [centroid[1]],'Radius': [radius], 'Diameter': [diameter], 'Step': [step], 'Grid Id': [grid_id]})
+                df_radius_diameter_history = pd.concat([df_radius_diameter_history, new_row])
+            else:
+                save_cancer(all_cells_dataframe, grid_id, step, real_time_at_step, TumorDataPath)
+        if grid_id == 1:
+            path = os.path.join(TumorDataPath, f'Tumor radius and diameter history in grid {grid_id} at {real_time_at_step/(3600*24):.2f} days.csv')
+            if not os.path.isfile(path):
+                df_radius_diameter_history.to_csv(path)
 
 
         # Plot the growth of ephitelial and mesenchymal cells
         print(f'\tSaving cells numbers graph data...')
         for id, step in enumerate(range(step_size,max_step+1,step_size)):
-            saveGrowthData(first_csv_path, step_size, grid_id , CellsDataPath, step)
+            save_growth_data(all_cells_dataframe, step_size, grid_id , CellsDataPath, step, real_time_at_step)
 
     # Plot the vasculature data
     print(f'Saving vasculature...')
     df_export = pd.DataFrame(columns=["Time", "Mesenchymal cells", "Epithelial cells", "Multicellular clusters", "Total clusters"])
     for step in range(step_size,max_step+1,step_size):
+        path = os.path.join(VasculatureDataPath, f'Vasculature-step{step}.csv')
+        if os.path.isfile(path):
+            continue
         file_vasculature_on_step = os.path.join(VasculaturePath, f"Vasculature-{step}step.json")
         row = get_vasculature_state_at_step(VasculatureDataPath, file_vasculature_on_step, step)
         df_export = pd.concat([df_export, row])
-        path = os.path.join(VasculatureDataPath, f'Vasculature-step{step}.csv')
         df_export.to_csv(path)
 
 def generate_data_vasculature_only(nameOfTheSimulation):
@@ -273,32 +261,33 @@ def generate_data_vasculature_only(nameOfTheSimulation):
     Classes.configs.load_simulation_configs_for_data_generation(configs_path)
     
     # Get the agents' data filename 
-    csv_files_name = [f for f in os.listdir(SimulationPath) if os.path.isfile(os.path.join(SimulationPath, f)) and f.endswith(".csv")]
+    # csv_files_name = [f for f in os.listdir(SimulationPath) if os.path.isfile(os.path.join(SimulationPath, f)) and f.endswith(".csv")]
 
     # Get the vasculature data filename
     VasculaturePath = os.path.join(SimulationPath, "Vasculature")
     vasculature_files_name = [f for f in os.listdir(VasculaturePath) if os.path.isfile(os.path.join(VasculaturePath, f)) and f.endswith(".json")]
 
-    if csv_files_name:
-        first_csv_name = csv_files_name[0]
-        first_csv_path = os.path.join(SimulationPath, first_csv_name)
-        print("Using cells data at:", first_csv_path)
+    all_cells_filename = os.path.join(SimulationPath, "CellsData.csv")
+    if os.path.isfile(all_cells_filename):
+        print("Using cells data at:", all_cells_filename)
     else:
-        print("No .csv cell data found in directory:", SimulationPath)
+        print("No CellsData.csv cell data found in directory:", SimulationPath)
         return
     if vasculature_files_name:
-        first_vasculature_name = vasculature_files_name[0]
-        first_vasculature_path = os.path.join(VasculaturePath, first_vasculature_name)
-        print("Using vasculature data at:", first_vasculature_path)
+        # first_vasculature_name = vasculature_files_name[0]
+        # first_vasculature_path = os.path.join(VasculaturePath, first_vasculature_name)
+        # print("Using vasculature data at:", first_vasculature_path)
+        print("Using vasculature data at:", VasculaturePath)
     else:
         print("No .json vasculature data found in directory:", SimulationPath)
         return
 
+    print("Loading CellsData.csv. This might take a minute...")
     step_size = Classes.configs.dataCollectionPeriod
     configs_max_step = Classes.configs.maxSteps
-    df = pd.read_csv(first_csv_path, converters={"Position": ast.literal_eval})
-    df = df[["Step", "Position", "Phenotype", "Grid", "Agent Type", "Ruptured"]]
-    max_step = max(df["Step"])
+    all_cells_dataframe = pd.read_csv(all_cells_filename, converters={"Position": ast.literal_eval})
+    all_cells_dataframe = all_cells_dataframe[["Step", "Position", "Phenotype", "Grid", "Agent Type", "Ruptured"]]
+    max_step = max(all_cells_dataframe["Step"])
     if configs_max_step != max_step:
         print(f"Warning: the run for this simulation terminated early")
         print(f"Max step reached is {max_step} while {configs_max_step} was expected.")
@@ -317,7 +306,7 @@ def generate_data_vasculature_only(nameOfTheSimulation):
         path = os.path.join(VasculatureDataPath, f'Vasculature-step{step}.csv')
         df_export.to_csv(path)
 
-def get_cluster_radius_and_diameter(ccells_positions, grid_id):
+def get_cluster_centroid_radius_and_diameter(ccells_positions, grid_id):
     """"
     Calculates the radius and diameter of the cancer cells in a given site.
 
@@ -328,11 +317,11 @@ def get_cluster_radius_and_diameter(ccells_positions, grid_id):
         radius: the maximum of all the distances from each cell to the cell's centroid.
         diameter: the maximum of all the cell-cell distances.
     """
-    if ccells_positions.empty:
+    if ccells_positions.empty or grid_id != 1:
         return ([np.nan, np.nan], np.nan, np.nan)
     #centroid = ccells_positions.mean(axis=0)
-    ccells_positions= list(ccells_positions['Position'])
-    ccells_positions= list(set(ccells_positions))#delete repeated entries to spped up computation
+    ccells_positions= list(ccells_positions['Position'].unique())
+    # ccells_positions= list(set(ccells_positions))#delete repeated entries to spped up computation
     centroid = np.average(ccells_positions, axis=0)
     #calculating radius
     radii  = np.linalg.norm(ccells_positions - centroid, axis=1)
@@ -362,8 +351,8 @@ def get_distance_matrix(vectors):
 if __name__ == "__main__":
 
     # CHANGE THIS LINE according to the simulation you want to plot the graphs  
-    name_of_the_simulation = "Sim maxSteps-27300+20700 stepsize-150 N-388 gridsNumber-3"
+    name_of_the_simulation = "Sim maxSteps-48000 stepsize-150 N-388 gridsNumber-3"
 
     # This runs all the code to generate the graphs in the folder
-    # generate_data(name_of_the_simulation)
-    generate_data_vasculature_only(name_of_the_simulation)
+    generate_data(name_of_the_simulation)
+    # generate_data_vasculature_only(name_of_the_simulation)
