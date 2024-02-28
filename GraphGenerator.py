@@ -118,7 +118,7 @@ def plot_histogram(histogram_csv_file_path, all_histogram_images_path, step, rea
     plt.xlim([-1, Classes.configs.carrying_capacity + 1])
     plt.savefig(path_to_save)
 
-def plotVasculatureGraphs(vasculature_df, pathToSave, max_step, real_delta_time):
+def plot_vasculature_graphs(vasculature_df, pathToSave, max_step, real_delta_time):
     figure_path = os.path.join(pathToSave, f'Vasculature-cells-step{max_step}.png')
     if not os.path.isfile(figure_path):
         # Prepare the data for the bar chart
@@ -147,25 +147,29 @@ def plotVasculatureGraphs(vasculature_df, pathToSave, max_step, real_delta_time)
         plt.savefig(figure_path)
         plt.close()
 
-    figure_path = os.path.join(pathToSave, f'Vasculature-clusters-step{max_step}.png')
+
+def plot_radius_diameter_history(df, pathToSave, max_step, real_delta_time):
+    figure_path = os.path.join(pathToSave, 'Radius and diameter for Grid 1.png')
     if not os.path.isfile(figure_path):
-        total_cluster_data = vasculature_df["Total clusters"]
-        multicellular_cluster_data = vasculature_df["Multicellular clusters"]
-        time_steps = vasculature_df["Time"]
+        # Prepare the data for the bar chart
+        radius = df["Radius"]*Classes.configs.xh*(0.001/0.005)*10  #getting distance in mm
+        diameter = df["Diameter"]*Classes.configs.xh*(0.001/0.005)*10 #getting distance in mm
+        time_steps = df["Step"]
+        plt.style.use("Solarize_Light2")
+
         #second plot, clusters
         plt.figure()
         
         # Plot the data for each category
-        plt.step(time_steps, total_cluster_data, where='mid', color='darkred', label='Total clusters', linewidth=1.5)
-        plt.step(time_steps, multicellular_cluster_data, where='mid', color='green', label='Multicellular clusters', linewidth=1.5)
+        plt.step(time_steps, radius, where='mid', color='tab:blue', label='Radius', linewidth=1.5)
+        plt.step(time_steps, diameter, where='mid', color='tab:orange', label='Diameter', linewidth=1.5)
 
         # Set the chart labels, title, and legend
         plt.xlabel('Day')
-        plt.ylabel('Cluster Count')
-        plt.title('Vasculature Cluster Counts')
+        plt.ylabel('Distance (mm)')
+        plt.title('Radius and diameter for Grid 1')
         plt.xticks([0, max_step/2, max_step], [0, f"{(max_step/2)*real_delta_time/(3600*24):.2f}", f"{max_step*real_delta_time/(3600*24):.2f}"])
         
-
         plt.xlim([-0.5, max_step + 0.5])
         plt.legend(loc="upper left")
 
@@ -261,9 +265,10 @@ def generate_graphs(name_of_the_simulation, amount_of_pictures=0):
     Mmp2ImagesPath = os.path.join(imagesPath, "Mmp2 evolution")
     vasculature_images_path = os.path.join(imagesPath, "Vasculature evolution")
     all_histogram_images_path = os.path.join(imagesPath, "Positions histogram")
+    radius_diameter_images_path = os.path.join(imagesPath, "Radius and diameter")
 
     # Create folder for all the Graphical analysis
-    
+
     os.makedirs(imagesPath, exist_ok = True)
     os.makedirs(TumorImagesPath, exist_ok = True)
     os.makedirs(Mmp2ImagesPath, exist_ok = True)
@@ -271,6 +276,7 @@ def generate_graphs(name_of_the_simulation, amount_of_pictures=0):
     os.makedirs(cells_images_path, exist_ok = True)
     os.makedirs(vasculature_images_path, exist_ok = True)
     os.makedirs(all_histogram_images_path, exist_ok = True)
+    os.makedirs(radius_diameter_images_path, exist_ok = True)
 
     print(f"\nSaving tumor images in the folder:", TumorImagesPath)
     print("Saving Mmp2 images in the folder:", Mmp2ImagesPath)
@@ -278,6 +284,7 @@ def generate_graphs(name_of_the_simulation, amount_of_pictures=0):
     print("Saving cells numbers images in the folder:", cells_images_path)
     print("Saving vasculature images in the folder:", vasculature_images_path)
     print("Saving histogram images in the folder:", all_histogram_images_path)
+    print("Saving histogram image in the folder:", radius_diameter_images_path)
 
     # If there the Graphical analysis is already done, tell the user
     # else:
@@ -355,13 +362,25 @@ def generate_graphs(name_of_the_simulation, amount_of_pictures=0):
             print(f"Error while reading the vasculature data for step {step} in grid {grid_id}", file=sys.stderr)
             print("Did you run the 'Data analysis' in the postprocessing menu first?", file=sys.stderr)
             os._exit(1)
-        plotVasculatureGraphs(vasculature_data, vasculature_images_path, step, real_delta_time)
+        plot_vasculature_graphs(vasculature_data, vasculature_images_path, step, real_delta_time)
         plt.close()
         figCounter += 1
+    #plotting the radius and diameter history graph
+    print(f'Plotting radius and diameter history graph...')
+    folder_path = os.path.join(simulation_path, "Data analysis", "Tumor growth")
+    file_name = [file for file in os.listdir(folder_path) if file.startswith("Tumor radius and diameter history")][0]
+    file_path = os.path.join(folder_path, file_name)
+    radius_history_df = pd.read_csv(file_path)#, header=0)
+    plot_radius_diameter_history(radius_history_df, radius_diameter_images_path, step, real_delta_time)
+    plt.close()
+    figCounter += 1
 
     plt.show()
     plt.close()
+
+
 def generate_vasculature_graphs_only(name_of_the_simulation):
+    #just for testing
     simulations_dir = "Simulations"
     simulation_path = os.path.join(simulations_dir, name_of_the_simulation)
     configs_path = os.path.join(simulation_path, "configs.csv")
@@ -406,7 +425,7 @@ def generate_vasculature_graphs_only(name_of_the_simulation):
             print(f"Error while reading the vasculature data for step {step} in grid {grid_id}", file=sys.stderr)
             print("Did you run the 'Data analysis' in the postprocessing menu first?", file=sys.stderr)
             os._exit(1)
-        plotVasculatureGraphs(vasculature_data, vasculature_images_path, step)
+        plot_vasculature_graphs(vasculature_data, vasculature_images_path, step)
         plt.close()
         figCounter += 1
 
