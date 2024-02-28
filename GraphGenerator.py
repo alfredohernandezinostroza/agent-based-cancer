@@ -147,6 +147,30 @@ def plot_vasculature_graphs(vasculature_df, pathToSave, max_step, real_delta_tim
         plt.savefig(figure_path)
         plt.close()
 
+    figure_path = os.path.join(pathToSave, f'Vasculature-clusters-step{max_step}.png')
+    if not os.path.isfile(figure_path):
+        total_cluster_data = vasculature_df["Total clusters"]
+        multicellular_cluster_data = vasculature_df["Multicellular clusters"]
+        time_steps = vasculature_df["Time"]
+        #second plot, clusters
+        plt.figure()
+        
+        # Plot the data for each category
+        plt.step(time_steps, total_cluster_data, where='mid', color='darkred', label='Total clusters', linewidth=1.5)
+        plt.step(time_steps, multicellular_cluster_data, where='mid', color='green', label='Multicellular clusters', linewidth=1.5)
+
+        # Set the chart labels, title, and legend
+        plt.xlabel('Day')
+        plt.ylabel('Cluster Count')
+        plt.title('Vasculature Cluster Counts')
+        plt.xticks([0, max_step/2, max_step], [0, f"{(max_step/2)*real_delta_time/(3600*24):.2f}", f"{max_step*real_delta_time/(3600*24):.2f}"])
+        
+        plt.xlim([-0.5, max_step + 0.5])
+        plt.legend(loc="upper left")
+
+        # save the figure
+        plt.savefig(figure_path)
+        plt.close()
 
 def plot_radius_diameter_history(df, pathToSave, max_step, real_delta_time):
     figure_path = os.path.join(pathToSave, 'Radius and diameter for Grid 1.png')
@@ -176,6 +200,7 @@ def plot_radius_diameter_history(df, pathToSave, max_step, real_delta_time):
         # save the figure
         plt.savefig(figure_path)
         plt.close()
+
     
 def generate_graphs(name_of_the_simulation, amount_of_pictures=0):
     simulations_dir = "Simulations"
