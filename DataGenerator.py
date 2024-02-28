@@ -207,15 +207,14 @@ def generate_data(nameOfTheSimulation):
     VasculatureDataPath = os.path.join(dataPath, "Vasculature evolution")
 
     # Create folder for all the data analysis
-    if not os.path.exists(dataPath):
-        os.makedirs(dataPath)
-        os.makedirs(TumorDataPath)
-        os.makedirs(CellsDataPath)
-        os.makedirs(VasculatureDataPath)
+    os.makedirs(dataPath, exist_ok = True)
+    os.makedirs(TumorDataPath, exist_ok = True)
+    os.makedirs(CellsDataPath, exist_ok = True)
+    os.makedirs(VasculatureDataPath, exist_ok = True)
 
-        print(f"\nSaving tumor data in the folder:", TumorDataPath)
-        print("Saving cells numbers data in the folder:", CellsDataPath)
-        print("Saving vasculature data in the folder:", VasculatureDataPath)
+    print(f"\nSaving tumor data in the folder:", TumorDataPath)
+    print("Saving cells numbers data in the folder:", CellsDataPath)
+    print("Saving vasculature data in the folder:", VasculatureDataPath)
     
     for grid_id in range(1, grids_number+1):
         print(f'\nGrid: {grid_id}')

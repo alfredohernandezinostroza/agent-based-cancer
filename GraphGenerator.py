@@ -178,7 +178,7 @@ def generate_graphs(name_of_the_simulation, amount_of_pictures=0):
     simulation_path = os.path.join(simulations_dir, name_of_the_simulation)
     configs_path = os.path.join(simulation_path, "configs.csv")
     Classes.configs.load_simulation_configs_for_data_generation(configs_path)
-    print(f'\tAnalyzing data in the folder {simulation_path}\n')
+    print(f'Analyzing data in the folder {simulation_path}\n')
 
     # Get the agents' data filename 
     csv_files_name = [f for f in os.listdir(simulation_path) if os.path.isfile(os.path.join(simulation_path, f)) and f.endswith(".csv")]
@@ -263,21 +263,21 @@ def generate_graphs(name_of_the_simulation, amount_of_pictures=0):
     all_histogram_images_path = os.path.join(imagesPath, "Positions histogram")
 
     # Create folder for all the Graphical analysis
-    if not os.path.exists(imagesPath):
-        os.makedirs(imagesPath)
-        os.makedirs(TumorImagesPath)
-        os.makedirs(Mmp2ImagesPath)
-        os.makedirs(EcmImagesPath)
-        os.makedirs(cells_images_path)
-        os.makedirs(vasculature_images_path)
-        os.makedirs(all_histogram_images_path)
+    
+    os.makedirs(imagesPath, exist_ok = True)
+    os.makedirs(TumorImagesPath, exist_ok = True)
+    os.makedirs(Mmp2ImagesPath, exist_ok = True)
+    os.makedirs(EcmImagesPath, exist_ok = True)
+    os.makedirs(cells_images_path, exist_ok = True)
+    os.makedirs(vasculature_images_path, exist_ok = True)
+    os.makedirs(all_histogram_images_path, exist_ok = True)
 
-        print(f"\nSaving tumor images in the folder:", TumorImagesPath)
-        print("Saving Mmp2 images in the folder:", Mmp2ImagesPath)
-        print("Saving Ecm images in the folder:", EcmImagesPath)
-        print("Saving cells numbers images in the folder:", cells_images_path)
-        print("Saving vasculature images in the folder:", vasculature_images_path)
-        print("Saving histogram images in the folder:", all_histogram_images_path)
+    print(f"\nSaving tumor images in the folder:", TumorImagesPath)
+    print("Saving Mmp2 images in the folder:", Mmp2ImagesPath)
+    print("Saving Ecm images in the folder:", EcmImagesPath)
+    print("Saving cells numbers images in the folder:", cells_images_path)
+    print("Saving vasculature images in the folder:", vasculature_images_path)
+    print("Saving histogram images in the folder:", all_histogram_images_path)
 
     # If there the Graphical analysis is already done, tell the user
     # else:
