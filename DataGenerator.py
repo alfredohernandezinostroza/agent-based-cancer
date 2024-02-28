@@ -61,8 +61,6 @@ def save_growth_data(all_cells_dataframe, stepsize, grid_id, CellsDataPath, step
     df = all_cells_dataframe[["Step", "Phenotype", "Grid"]]
     df = df.loc[(df["Grid"] == grid_id) & (df["Step"] <= step_number)]
 
-    # For mesenchymal
-    #stepsize = 3000 doubling rate, since it is different it will stay horizontal sometimes
     df_m = df.loc[(df["Step"] % stepsize == 0)]
     if df_m.empty:
         return
@@ -70,8 +68,6 @@ def save_growth_data(all_cells_dataframe, stepsize, grid_id, CellsDataPath, step
     steps = np.arange(0, max(df_m["Step"]) + 1, stepsize)
     numberMesenchymalEachStep = [df_m.loc[(df_m["Step"] == step) & (df_m["Phenotype"] == "mesenchymal")].shape[0] for step in steps]
 
-    # For epithelial
-    #stepsize = 2000 doubling rate
     df_e = df.loc[(df["Step"] % stepsize == 0)]
     if df_e.empty:
         return
@@ -79,7 +75,7 @@ def save_growth_data(all_cells_dataframe, stepsize, grid_id, CellsDataPath, step
     steps = np.arange(0, max(df_e["Step"]) + 1, stepsize)
     numberEpithelialEachStep = [df_e.loc[(df_e["Step"] == step) & (df_e["Phenotype"] == "epithelial")].shape[0] for step in steps]
     #save data from plot into csv
-    df_csv = pd.DataFrame({"Number of Epithelial Cells": numberEpithelialEachStep, "Number of Mesenchymal Cells": numberMesenchymalEachStep, "Days": real_time_at_step})
+    df_csv = pd.DataFrame({"Number of Epithelial Cells": numberEpithelialEachStep, "Number of Mesenchymal Cells": numberMesenchymalEachStep, "Days": real_time_at_step * step_number})
     df_csv.to_csv(path_to_save)
 
 def get_vasculature_state_at_step(pathToSave, vasculature_json_path, step):
@@ -188,7 +184,7 @@ def generate_data(nameOfTheSimulation):
         return
 
     step_size = Classes.configs.dataCollectionPeriod
-    real_time_at_step = 40 * Classes.configs.th/0.001 * step_size #the original ratio is 40 seconds/0.001 non-dimensional time
+    real_delta_time = 40 * Classes.configs.th/0.001 #in seconds (the original ratio is 40 seconds/0.001 non-dimensional time)
     grids_number = Classes.configs.grids_number
     configs_max_step = Classes.configs.maxSteps
     all_cells_dataframe = pd.read_csv(all_cells_filename, converters={"Position": ast.literal_eval})
@@ -224,6 +220,7 @@ def generate_data(nameOfTheSimulation):
         df_radius_diameter_history = pd.DataFrame(columns=['Centroid x', 'Centroid y', 'Radius', 'Diameter', 'Step', 'Grid Id'])
         for id, step in enumerate(range(step_size,max_step+1,step_size)):
             # ccells_coords = read_coords_for_plot(step, all_cells_dataframe, grid_id)
+            real_time_at_step = real_delta_time * step
             if grid_id == 1:
                 (centroid, radius, diameter) = save_cancer(all_cells_dataframe, grid_id, step, real_time_at_step, TumorDataPath)
                 new_row = pd.DataFrame({'Centroid x': [centroid[0]], 'Centroid y': [centroid[1]],'Radius': [radius], 'Diameter': [diameter], 'Step': [step], 'Grid Id': [grid_id]})
@@ -231,7 +228,7 @@ def generate_data(nameOfTheSimulation):
             else:
                 save_cancer(all_cells_dataframe, grid_id, step, real_time_at_step, TumorDataPath)
         if grid_id == 1:
-            path = os.path.join(TumorDataPath, f'Tumor radius and diameter history in grid {grid_id} at {real_time_at_step/(3600*24):.2f} days.csv')
+            path = os.path.join(TumorDataPath, f'Tumor radius and diameter history in grid {grid_id}.csv')
             if not os.path.isfile(path):
                 df_radius_diameter_history.to_csv(path)
 
@@ -239,6 +236,7 @@ def generate_data(nameOfTheSimulation):
         # Plot the growth of ephitelial and mesenchymal cells
         print(f'\tSaving cells numbers graph data...')
         for id, step in enumerate(range(step_size,max_step+1,step_size)):
+            real_time_at_step = real_delta_time * step
             save_growth_data(all_cells_dataframe, step_size, grid_id , CellsDataPath, step, real_time_at_step)
 
     # Plot the vasculature data
