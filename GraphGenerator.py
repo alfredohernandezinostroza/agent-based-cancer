@@ -22,7 +22,7 @@ def plot_cancer(figCounter, grid_id, step, real_time_at_step, simulation_path, T
     current_coords_path = os.path.join(all_coords_data_path, current_coords_filename)
     coords_list = pd.read_csv(current_coords_path, index_col=0)
     Xm, Ym, Xe, Ye, Xv, Yv, Xvr, Yvr = coords_list.iloc[0], coords_list.iloc[1], coords_list.iloc[2], coords_list.iloc[3], coords_list.iloc[4], coords_list.iloc[5], coords_list.iloc[6], coords_list.iloc[7]
-    plt.figure(figCounter, figsize=(6, 5))
+    plt.figure(figCounter, figsize=(6, 6))
     
     plt.scatter(Xm, Ym, marker='o', color='blue', alpha=0.10, label="Mesenchymal cells")
     plt.scatter(Xe, Ye, marker='h', color='orange', alpha=0.1, label="Epithelial cells")
