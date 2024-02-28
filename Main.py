@@ -63,7 +63,6 @@ def load_simulation_menu():
     Batch.main_Batch(total_steps, interval_steps, loadedSimulationPath=os.path.join(os.getcwd(),directory_path, selected_option))
 
 def postprocessing_menu():
-    frameRate = 1
     global selected_option, selected_option_index, banner_message, options_list
     directory_path = "Simulations"
     folder_names = ["Exit"] + get_folder_names(directory_path)
@@ -79,6 +78,7 @@ def postprocessing_menu():
     options_list = ["Exit", "Run all", "Begin data analysis", "Begin graphical analysis", "Generate videos"]
     selected_simulation = selected_option
     selected_option_index = 0
+    banner_message = f"Postprocessing simulation at {selected_simulation}"
     with keyboard.Listener(on_press = on_press) as listener:
         os.system('cls')
         print_menu()
@@ -90,16 +90,52 @@ def postprocessing_menu():
             time.sleep(3)
             GraphGenerator.generate_graphs(selected_simulation)
             time.sleep(3)
-            videoGenerator.generate_videos(selected_simulation, frameRate)
+            frame_rate = get_int_input("Select the framerate for the video.\nA framerate of 20 is sugggested \nfor large simulations:")
+            videoGenerator.generate_videos(selected_simulation, frame_rate)
             time.sleep(3)
         if selected_option == "Begin data analysis":
             DataGenerator.generate_data(selected_simulation)
             time.sleep(3)
-        if selected_option == "Begin visual analysis":
-            GraphGenerator.generate_graphs(selected_simulation)
-            time.sleep(3)
+        if selected_option == "Begin graphical analysis":
+            # GraphGenerator.generate_graphs(selected_simulation)
+            # time.sleep(3)
+            graphical_analysis_menu(selected_simulation)
+            # while graphical_analysis_menu(selected_simulation) < 1:
+            #     continue
         if selected_option == "Generate videos":
-            videoGenerator.generate_videos(selected_simulation, frameRate)
+            frame_rate = get_int_input("Select the framerate for the video.\nA framerate of 20 is sugggested \nfor large simulations:")
+            videoGenerator.generate_videos(selected_simulation, frame_rate)
+            time.sleep(3)
+
+
+
+def graphical_analysis_menu(selected_simulation):
+    global selected_option, selected_option_index, banner_message, options_list
+    directory_path = "Simulations"
+    options_list = ["Generate 5 picture summary", "Custom amount of pictures", "Generate All"]
+    selected_option_index = 0
+    banner_message = "Graphical analysis: select which frames are going to be plotted"
+
+    # cells_data_path = os.path.join("Simulations", selected_simulation, "CellsData.csv")
+    # df = pd.read_csv(cells_data_path)
+    # max_step = max(df["Step"])
+    # step_size = df.iloc[0]['Step']
+    # maximum_frames = int(max_step / step_size)
+    with keyboard.Listener(on_press = on_press) as listener:
+        os.system('cls')
+        print_menu()
+        listener.join()
+        if selected_option == "Exit":
+            os._exit(0)
+        if selected_option == "Generate 5 picture summary":
+            GraphGenerator.generate_graphs(selected_simulation, 5)
+            time.sleep(3)
+        if selected_option == "Custom amount of pictures":
+            amount_of_pictures = get_int_input(f"Select the amount of pictures that will be produced: ")
+            GraphGenerator.generate_graphs(selected_simulation, amount_of_pictures)
+            time.sleep(3)
+        if selected_option == "Generate All":
+            GraphGenerator.generate_graphs(selected_simulation)
             time.sleep(3)
 
 
@@ -146,7 +182,7 @@ def get_folder_names(directory_path):
 
 def get_int_input(text):
     result = ''
-    while not isinstance(result, int):
+    while not isinstance(result, int) or result < 0:
         while result == '':
             os.system('cls')
             result = input(text)
