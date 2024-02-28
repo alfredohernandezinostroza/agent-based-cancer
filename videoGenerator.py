@@ -107,7 +107,7 @@ def create_combined_video(images_by_grid_list, video_path, frameRate):
 def generate_videos(nameOfTheSimulation, frameRate):
     
     # Path where the folder of images are located
-    imagesFolder = "Visual analysis"
+    imagesFolder = "Graphical analysis"
     simulations_dir = "Simulations"
     ImagesFolderPath = os.path.join(simulations_dir, nameOfTheSimulation, imagesFolder)
     print(f'Analyzing images at: {ImagesFolderPath}')
@@ -128,7 +128,7 @@ def generate_videos(nameOfTheSimulation, frameRate):
     # Create folder for all the videos
     if not os.path.exists(VideosFolderPath):
         os.makedirs(VideosFolderPath)
-    # If there the visual analysis is already done, tell the user
+    # If there the Graphical analysis is already done, tell the user
     else:
         print(f"(Videos folder already exists)! \n\tVideos that already exist will not be overwritten)")
 
@@ -202,8 +202,8 @@ def generate_videos(nameOfTheSimulation, frameRate):
 if __name__ == "__main__":
 
     # CHANGE THIS LINE according to the simulation you want to plot the graphs
-    name_of_the_simulation = "Sim maxSteps-22 stepsize-2 N-388 gridsNumber-3"
-    frameRate = 1
+    name_of_the_simulation = "Sim maxSteps-48000 stepsize-150 N-388 gridsNumber-3"
+    frameRate = 20
 
     # This runs all the code to generate the videos
     generate_videos(name_of_the_simulation, frameRate)
