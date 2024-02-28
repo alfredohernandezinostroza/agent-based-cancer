@@ -54,7 +54,7 @@ def save_cancer(all_cells_dataframe, grid_id, step, real_time_at_step, TumorData
         return get_cluster_centroid_radius_and_diameter(df_positions, grid_id)
     return ([np.nan, np.nan], np.nan, np.nan)
 
-def save_growth_data(all_cells_dataframe, stepsize, grid_id, CellsDataPath, step_number, real_time_at_step):
+def save_growth_data(all_cells_dataframe, stepsize, grid_id, CellsDataPath, step_number, real_time_at_step, real_delta_time):
     path_to_save = os.path.join(CellsDataPath, f'CellsGrowth-grid{grid_id}-step{step_number} - {real_time_at_step/(3600*24):.2f} days.csv')
     if os.path.isfile(path_to_save):
         return
@@ -75,7 +75,7 @@ def save_growth_data(all_cells_dataframe, stepsize, grid_id, CellsDataPath, step
     steps = np.arange(0, max(df_e["Step"]) + 1, stepsize)
     numberEpithelialEachStep = [df_e.loc[(df_e["Step"] == step) & (df_e["Phenotype"] == "epithelial")].shape[0] for step in steps]
     #save data from plot into csv
-    df_csv = pd.DataFrame({"Number of Epithelial Cells": numberEpithelialEachStep, "Number of Mesenchymal Cells": numberMesenchymalEachStep, "Days": real_time_at_step * step_number})
+    df_csv = pd.DataFrame({"Number of Epithelial Cells": numberEpithelialEachStep, "Number of Mesenchymal Cells": numberMesenchymalEachStep, "Steps": steps, "Days": real_delta_time* steps/(3600*24)})
     df_csv.to_csv(path_to_save)
 
 def get_vasculature_state_at_step(pathToSave, vasculature_json_path, step):
@@ -237,7 +237,7 @@ def generate_data(nameOfTheSimulation):
         print(f'\tSaving cells numbers graph data...')
         for id, step in enumerate(range(step_size,max_step+1,step_size)):
             real_time_at_step = real_delta_time * step
-            save_growth_data(all_cells_dataframe, step_size, grid_id , CellsDataPath, step, real_time_at_step)
+            save_growth_data(all_cells_dataframe, step_size, grid_id , CellsDataPath, step, real_time_at_step, real_delta_time)
 
     # Plot the vasculature data
     print(f'Saving vasculature...')
