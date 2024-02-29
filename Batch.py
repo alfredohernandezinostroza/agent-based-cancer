@@ -14,6 +14,7 @@ import Classes.configs
 def main_Batch(maxSteps, dataCollectionPeriod, loadedSimulationPath=""):
 
     # load configs file from a previous simulation or loads the general configs file
+    loadedSimulationPath= loadedSimulationPath.strip('\"')
     if loadedSimulationPath != "":
         configs_path = os.path.join(loadedSimulationPath, "configs.csv")
         # config_var_names = Classes.configs.load_simulation_configs_for_data_generation(configs_path)
@@ -31,6 +32,7 @@ def main_Batch(maxSteps, dataCollectionPeriod, loadedSimulationPath=""):
 
     # Name of the directories
     simulations_dir = "Simulations"
+    os.makedirs(simulations_dir, exist_ok=True)
     if loadedSimulationPath != "":
         cells_path = os.path.join(loadedSimulationPath, "CellsData.csv")
         df = pd.read_csv(cells_path, converters={"Position": ast.literal_eval})
@@ -44,11 +46,6 @@ def main_Batch(maxSteps, dataCollectionPeriod, loadedSimulationPath=""):
         newSimulationFolder = f"Sim maxSteps-{loaded_max_step}+{maxSteps} stepsize-{dataCollectionPeriod} N-{N} gridsNumber-{grids_number}"
     else:
         newSimulationFolder = f"Sim maxSteps-{maxSteps} stepsize-{dataCollectionPeriod} N-{N} gridsNumber-{grids_number}"
-
-    # Create parent directory if it doesn't exist
-    if not os.path.exists(simulations_dir):
-        print(f'Creating the folder for this simulation at: {simulations_dir}')
-        os.makedirs(simulations_dir)
 
     # Creates the path for the new simulation
     path = os.path.join(simulations_dir, newSimulationFolder)
