@@ -86,11 +86,7 @@ class CancerCell(mesa.Agent):
                 for ccell in mesenchymal_ccells_to_travel + epithelial_ccells_to_travel:
                     ccell.grid.remove_agent(ccell)
                     ccell.model.schedule.remove(ccell)
-            
-                # print(self.grid.get_cell_list_contents([(new_position)]))
-                # print("Travelled!")
-                # self.model.grid[1].place_agent(self,(0,5))
         else:
-            # if carrying_capacity > len(get_amount_cells())
-            #     self.grid.move_agent(self, new_position)
-            self.grid.move_agent(self, new_position)
+            if carrying_capacity > len([cell for cell in self.grid.get_cell_list_contents([new_position]) if agent.agent_type == 'cell']):
+                self.grid.move_agent(self, new_position)
+            # self.grid.move_agent(self, new_position)
