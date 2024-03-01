@@ -202,7 +202,7 @@ if __name__ == "__main__":
         if sys.argv[2] == "video":
             raise Exception("\nError! No known command for postprocessing named\'video\'. Did you mean \'videos\'?")
         elif sys.argv[2] != "data":
-            raise Exception(f"\nError! No known command for postprocessing named \'{sys.argv[2]}\'. Use \'videos\' or \'graphics\'.")
+            raise Exception(f"\nError! No known command for postprocessing named \'{sys.argv[2]}\'. Use data, \'videos\' or \'graphics\'.")
     if len(sys.argv) == 2 or len(sys.argv) == 3:
         raise Exception("Incorrent amount of or unrecognized arguments!")
     elif len(sys.argv) == 4:
