@@ -23,6 +23,8 @@ def init_simulation_configs(path):
         error_string += "There must be as many Extravasation probabilities as the value of grids_number!\n"
     if len(secondary_sites_vessels) != grids_number-1:
         error_string += "There must be as many secondary site vessels as the value of grids_number - 1!\n"
+    if mesenchymal_proportion + epithelial_proportion != 1:
+        error_string += "Mesenchymal_proportion + epithelial_proportion must be 1!\n"
     if error_string != "":
         raise ValueError(error_string)
     return(list(df_configs["Names"]))
