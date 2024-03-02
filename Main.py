@@ -87,11 +87,12 @@ def postprocessing_menu():
         if selected_option == "Exit":
             os._exit(0)
         if selected_option == "Run all":
+            amount_of_pictures = get_int_input(f"Select the amount of pictures that will be produced for the graphical analysis: ")
+            frame_rate = get_int_input("Select the framerate for the video.\nA framerate of 20 is suggested \nfor large simulations: ")
             DataGenerator.generate_data(selected_simulation)
             time.sleep(3)
-            GraphGenerator.generate_graphs(selected_simulation)
+            GraphGenerator.generate_graphs(selected_simulation, amount_of_pictures)
             time.sleep(3)
-            frame_rate = get_int_input("Select the framerate for the video.\nA framerate of 20 is sugggested \nfor large simulations:")
             videoGenerator.generate_videos(selected_simulation, frame_rate)
             time.sleep(3)
         if selected_option == "Begin data analysis":
@@ -175,7 +176,7 @@ def on_press(key):
 def get_folder_names(directory_path):
     folder_names = []
     for folder_name in os.listdir(directory_path):
-        if os.path.isdir(os.path.join(directory_path, folder_name)) and folder_name.startswith("Sim"):
+        if os.path.isdir(os.path.join(directory_path, folder_name)) and (folder_name.startswith("Sim") or folder_name.startswith("Continu")):
             folder_names.append(folder_name)
     print(folder_names)
     folder_names.sort(key=lambda x: os.path.getmtime(f"{directory_path}\{x}"), reverse=True)
