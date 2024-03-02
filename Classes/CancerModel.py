@@ -120,6 +120,7 @@ class CancerModel(mesa.Model):
         #list of numpy arrays, representing mmp2 and ecm concentration in each grid
         self.mmp2 = [np.zeros((2, width, height), dtype=float) for _ in range(grids_number)]
         self.ecm = [np.ones((2, width, height), dtype=float) for _ in range(grids_number)]
+        self.loaded_max_step = 0
 
         if loadedSimulationPath != "":
             # configs_path = os.path.join(loadedSimulationPath, "configs.csv")
@@ -228,7 +229,7 @@ class CancerModel(mesa.Model):
         # if (self.schedule.time % doubling_time_E == 0 and self.schedule.time != 0):
         #     self.proliferate("epithelial")
 
-        print(f'step number: {self.schedule.time}')
+        print(f'Step number: {self.schedule.time + self.loaded_max_step}')
         self.schedule.step()
         self.datacollector.collect(self)
 
@@ -248,17 +249,17 @@ class CancerModel(mesa.Model):
             df_time_grids_got_populated = pd.DataFrame()
             for grid_id in self.grid_ids:
                 new_mmp2_df = pd.DataFrame(self.mmp2[grid_id-1][0,:,:])
-                mmp2CsvName = f"Mmp2-{grid_id}grid-{self.schedule.time}step.csv"
+                mmp2CsvName = f"Mmp2-{grid_id}grid-{self.schedule.time + self.loaded_max_step}step.csv"
                 pathToSave = os.path.join(self.simulations_dir, self.newSimulationFolder, "Mmp2", mmp2CsvName)
                 new_mmp2_df.to_csv(pathToSave)
 
                 new_ecm_df = pd.DataFrame(self.ecm[grid_id-1][0,:,:])
-                EcmCsvName = f"Ecm-{grid_id}grid-{self.schedule.time}step.csv"
+                EcmCsvName = f"Ecm-{grid_id}grid-{self.schedule.time + self.loaded_max_step}step.csv"
                 pathToSave = os.path.join(self.simulations_dir, self.newSimulationFolder, "Ecm", EcmCsvName)
                 new_ecm_df.to_csv(pathToSave)
 
                 df_time_grids_got_populated[f"Time when grid {grid_id} was first populated"] = [self.time_grid_got_populated[grid_id-1]]
-                df_time_grids_got_populated_csv_name = f"Cells-are-present-grid-{grid_id}-{self.schedule.time}step.csv"
+                df_time_grids_got_populated_csv_name = f"Cells-are-present-grid-{grid_id}-{self.schedule.time + self.loaded_max_step}step.csv"
             pathToSave = os.path.join(self.simulations_dir, self.newSimulationFolder, "Time when grids were populated", df_time_grids_got_populated_csv_name)
             df_time_grids_got_populated.to_csv(pathToSave)
 
@@ -266,7 +267,7 @@ class CancerModel(mesa.Model):
             vasculature_json = json.dumps(self.vasculature)
             # {key: list of clusters} -> {timestep: [(number of Mcells, number of Ecells), ..., (..., ...)]}
             
-            vasculatureJsonName = f"Vasculature-{self.schedule.time}step.json"
+            vasculatureJsonName = f"Vasculature-{self.schedule.time + self.loaded_max_step}step.json"
             pathToSave = os.path.join(self.simulations_dir, self.newSimulationFolder, "Vasculature", vasculatureJsonName)
             
             with open(pathToSave, 'w') as f:
@@ -279,7 +280,7 @@ class CancerModel(mesa.Model):
             for step in range(self.dataCollectionPeriod * 2, self.schedule.time, self.dataCollectionPeriod):
                 _, step_model_data = mesa.batchrunner._collect_data(self, step-1)
                 df_step_model_data = pd.DataFrame(step_model_data)
-                df_step_model_data["Step"] = step
+                df_step_model_data["Step"] = step + self.loaded_max_step
                 df_current_model_data = pd.concat([df_current_model_data, df_step_model_data])
             pathToSave = os.path.join(self.simulations_dir, self.newSimulationFolder, f'CellsData.csv')
             df_current_model_data.to_csv(pathToSave)
@@ -330,8 +331,7 @@ class CancerModel(mesa.Model):
         path = os.path.join(pathToSimulation, "CellsData.csv")
         previous_sim_df = pd.read_csv(path, converters={"Position": ast.literal_eval})
         last_step = previous_sim_df["Step"].max()
-        self.schedule.time= last_step
-        self.schedule.steps = last_step
+        self.loaded_max_step = last_step
         previous_sim_df = previous_sim_df[previous_sim_df["Step"] == last_step]
         last_step_cells = previous_sim_df[previous_sim_df["Agent Type"] == "cell"]
         last_step_vessels = previous_sim_df[previous_sim_df["Agent Type"] == "vessel"]
@@ -501,11 +501,9 @@ class CancerModel(mesa.Model):
                         +mmp2[i][0,x,y]*(1-4*dmmp*tha/xha**2-th*Lambda)+tha*theta*self.mesenchymalCount[i][x,y]
                 ecm[i][1,x,y] = ecm[i][0,x,y]*(1-tha*(gamma1*self.mesenchymalCount[i][x,y]+gamma2*mmp2[i][1,x,y]))
                 if ecm[i][1,x,y] < 0:
-                    print(f"<0 ecm in [i][1,{x},{y}] is {ecm[i][1,x,y]}")
-                    print(".")
+                    warnings.warn(f"<0 ecm in [i][1,{x},{y}] is {ecm[i][1,x,y]}")
                 if ecm[i][1,x,y] > 1:
-                    print(f">1 ecm in [i][1,{x},{y}] is {ecm[i][1,x,y]}")
-                    print(".")
+                    warnings.warn(f">1 ecm in [i][1,{x},{y}] is {ecm[i][1,x,y]}")
             mmp2[i][0,:,:] = mmp2[i][1,:,:]
             ecm[i][0,:,:] = ecm[i][1,:,:]
 

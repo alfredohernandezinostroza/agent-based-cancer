@@ -1,3 +1,4 @@
+import shutil
 import re
 import ast
 import numpy as np
@@ -34,59 +35,58 @@ def main_Batch(maxSteps, dataCollectionPeriod, loadedSimulationPath=""):
     simulations_dir = "Simulations"
     os.makedirs(simulations_dir, exist_ok=True)
     if loadedSimulationPath != "":
-        cells_path = os.path.join(loadedSimulationPath, "CellsData.csv")
-        df = pd.read_csv(cells_path, converters={"Position": ast.literal_eval})
+        new_simulation_folder = loadedSimulationPath.split('\\')[-1]
+        new_simulation_folder = "Continuing " + new_simulation_folder
+        new_simulation_path = os.path.join(simulations_dir, new_simulation_folder)
+        shutil.copytree(loadedSimulationPath, new_simulation_path)
+        cells_path = os.path.join(new_simulation_path, "CellsData.csv")
+        df = pd.read_csv(cells_path, index_col = 0, converters={"Position": ast.literal_eval})
         loaded_max_step = max(df["Step"])
-        # pattern = r'maxSteps-(\d+)'
-        # match = re.search(pattern, loadedSimulationPath)
-        # if match:
-        #     loadedMaxSteps = int(match.group(1))
-        # else:
-        #     raise ValueError("Error finding loaded simulation maxSteps!")
-        newSimulationFolder = f"Sim maxSteps-{loaded_max_step}+{maxSteps} stepsize-{dataCollectionPeriod} N-{N} gridsNumber-{grids_number}"
+        # new_simulation_folder = f"Sim maxSteps-{loaded_max_step}+{maxSteps} stepsize-{dataCollectionPeriod} N-{N} gridsNumber-{grids_number}"
     else:
-        newSimulationFolder = f"Sim maxSteps-{maxSteps} stepsize-{dataCollectionPeriod} N-{N} gridsNumber-{grids_number}"
+        loaded_max_step = 0
+        new_simulation_folder = f"Sim maxSteps-{maxSteps} stepsize-{dataCollectionPeriod} N-{N} gridsNumber-{grids_number}"
 
-    # Creates the path for the new simulation
-    path = os.path.join(simulations_dir, newSimulationFolder)
-    pathMmp2 = os.path.join(path, "Mmp2")
-    pathEcm = os.path.join(path, "Ecm")
-    pathVasculature = os.path.join(path, "Vasculature")
-    pathTimeOfPopulation = os.path.join(path, "Time when grids were populated")
+        # Creates the path for the new simulation
+        path = os.path.join(simulations_dir, new_simulation_folder)
+        pathMmp2 = os.path.join(path, "Mmp2")
+        pathEcm = os.path.join(path, "Ecm")
+        pathVasculature = os.path.join(path, "Vasculature")
+        pathTimeOfPopulation = os.path.join(path, "Time when grids were populated")
 
-    # Create folder for all cells analysis, for Mmp2 matrices and Ecm matrices
-    if not os.path.exists(path):
-        print(f'\t Folder for this simulation: {path}')
-        print(f'\t Saving agents data at: {path}')
-        print(f'\t Saving Mmp2 data at: {pathMmp2}')
-        print(f'\t Saving Ecm data at: {pathEcm}')
-        print(f'\t Saving Vasculature data at: {pathVasculature}')
+        # Create folder for all cells analysis, for Mmp2 matrices and Ecm matrices
+        if not os.path.exists(path):
+            print(f'\t Folder for this simulation: {path}')
+            print(f'\t Saving agents data at: {path}')
+            print(f'\t Saving Mmp2 data at: {pathMmp2}')
+            print(f'\t Saving Ecm data at: {pathEcm}')
+            print(f'\t Saving Vasculature data at: {pathVasculature}')
 
-        os.makedirs(path)
-        os.makedirs(pathMmp2)
-        os.makedirs(pathEcm)
-        os.makedirs(pathVasculature)
-        os.makedirs(pathTimeOfPopulation)
+            os.makedirs(path)
+            os.makedirs(pathMmp2)
+            os.makedirs(pathEcm)
+            os.makedirs(pathVasculature)
+            os.makedirs(pathTimeOfPopulation)
+        # If there is already a simulation you skip it
+        else:
+            return print("This simulation already exists!")
 
         # Run the simulation and saves the data
-        run_simulation(Classes.CancerModel, N, width, height, grids_number, maxSteps, dataCollectionPeriod, newSimulationFolder, simulations_dir, config_var_names, loadedSimulationPath)
+    run_simulation(Classes.CancerModel, N, width, height, grids_number, maxSteps, loaded_max_step, dataCollectionPeriod, new_simulation_folder, simulations_dir, config_var_names, df, loadedSimulationPath)
 
-    # If there is already a simulation you skip it
-    else:
-        return print("This simulation already exists!")
 
     return print('Finished the simulation')
 
 
-def run_simulation(CancerModel, N, width, height, grids_number, maxSteps, dataCollectionPeriod, newSimulationFolder, simulations_dir, config_var_names, loadedSimulationPath=""):
+def run_simulation(CancerModel, N, width, height, grids_number, maxSteps, loaded_max_step, dataCollectionPeriod, new_simulation_folder, simulations_dir, config_var_names, loaded_df, loadedSimulationPath=""):
 
     # Setting parameters for mesa.batch_run
-    params = {"N": N, "width": width, "height": height, "grids_number": grids_number, "maxSteps": maxSteps, "dataCollectionPeriod": dataCollectionPeriod, "newSimulationFolder": newSimulationFolder }
+    params = {"N": N, "width": width, "height": height, "grids_number": grids_number, "maxSteps": maxSteps, "dataCollectionPeriod": dataCollectionPeriod, "newSimulationFolder": new_simulation_folder }
     if loadedSimulationPath != "":
         params["loadedSimulationPath"] = loadedSimulationPath
 
     # Saves the simulation configuration
-    print(f"Saving all the simulations parameters at: {os.path.join(simulations_dir, newSimulationFolder, 'configs.csv')}")
+    print(f"Saving all the simulations parameters at: {os.path.join(simulations_dir, new_simulation_folder, 'configs.csv')}")
     values = [getattr(Classes.configs, i) for i in config_var_names]
     names = config_var_names
 
@@ -98,7 +98,7 @@ def run_simulation(CancerModel, N, width, height, grids_number, maxSteps, dataCo
     values += [maxSteps, dataCollectionPeriod]
     df_vars = pd.DataFrame({"Names": names, "Values": values})
     df_vars = df_vars.set_index("Names")
-    path = os.path.join(simulations_dir, newSimulationFolder, 'configs.csv')
+    path = os.path.join(simulations_dir, new_simulation_folder, 'configs.csv')
     df_vars.to_csv(path)
 
     # The whole simulation occurs here
@@ -110,18 +110,22 @@ def run_simulation(CancerModel, N, width, height, grids_number, maxSteps, dataCo
         max_steps=maxSteps,
         number_processes=None,
         data_collection_period=dataCollectionPeriod,
-        display_progress=True,
+        display_progress=False,
     )
 
     # Create data frames for the cells
     cells_df = pd.DataFrame(results)
     cells_df = cells_df[["AgentID","Step", "Position", "Phenotype", "Grid", "Agent Type", "Ruptured"]]
-    print(f'Example of data collected: {cells_df.head(10)}')
+    cells_df = cells_df.iloc[1:]
+    if loaded_max_step != 0:
+        cells_df["Step"] = cells_df["Step"] + loaded_max_step
+        cells_df = pd.concat([loaded_df, cells_df])
+    print(f'Example of data collected:\n{cells_df.head(10)}')
 
     # Saves data analysis
     nameOfCsv = f'CellsData.csv'
-    pathToSave = os.path.join(simulations_dir, newSimulationFolder, nameOfCsv)
-    cells_df[1:].to_csv(pathToSave)
+    pathToSave = os.path.join(simulations_dir, new_simulation_folder, nameOfCsv)
+    cells_df.to_csv(pathToSave)
     print(f'All data saved')
 
 if __name__ == "__main__":
