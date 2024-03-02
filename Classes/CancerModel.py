@@ -52,8 +52,6 @@ def count_total_cells(model):
         amount_of_cells (int): the total amount of cells in every site,
         NOT considering the vasculature    
     """
-    # amount_of_cells = len([1 for agent in model.schedule.agents if agent.agent_type == "cell"])
-    # print(amount_of_cells)
     return sum(model.cancer_cells_counter)
 
 def count_vasculature_cells(model):
@@ -129,11 +127,11 @@ class CancerModel(mesa.Model):
             # for var in config_var_names:
             #     globals()[var] = getattr(configs, var)
             #     self.load_previous_simulation(loadedSimulationPath)
-            self.load_previous_simulation(loadedSimulationPath)
             configs_path = os.path.join(loadedSimulationPath, "configs.csv")
             config_var_names = Classes.configs.load_simulation_configs_for_reloaded_simulation(configs_path)
             for var in config_var_names:
                 globals()[var] = getattr(Classes.configs, var)
+            self.load_previous_simulation(loadedSimulationPath)
         else:
             # load_simulation_configs("simulations_configs.csv")
 
@@ -142,10 +140,10 @@ class CancerModel(mesa.Model):
             for var in config_var_names:
                 globals()[var] = getattr(Classes.configs, var)
             self._initialize_grids()
+            self.doubling_time_counter_M = doubling_time_M
+            self.doubling_time_counter_E = doubling_time_E
         self.datacollector = mesa.DataCollector(
             model_reporters={"Total cells": count_total_cells}, agent_reporters={"Position": "pos", "Agent Type": "agent_type", "Phenotype": "phenotype", "Ruptured": "ruptured", "Grid": "grid_id"})
-        self.doubling_time_counter_M = doubling_time_M
-        self.doubling_time_counter_E = doubling_time_E
 
     def step(self):
         """Advance the model by one step.
@@ -316,7 +314,6 @@ class CancerModel(mesa.Model):
         Input: The simulation's path to be loaded
         Returns: none
         """
-        
         #load mmp2 and ecm
         for grid_number in range(self.grids_number):
             mmp2_files_path = os.path.join(pathToSimulation, "Mmp2")
@@ -333,6 +330,8 @@ class CancerModel(mesa.Model):
         path = os.path.join(pathToSimulation, "CellsData.csv")
         previous_sim_df = pd.read_csv(path, converters={"Position": ast.literal_eval})
         last_step = previous_sim_df["Step"].max()
+        self.schedule.time= last_step
+        self.schedule.steps = last_step
         previous_sim_df = previous_sim_df[previous_sim_df["Step"] == last_step]
         last_step_cells = previous_sim_df[previous_sim_df["Agent Type"] == "cell"]
         last_step_vessels = previous_sim_df[previous_sim_df["Agent Type"] == "vessel"]
@@ -365,7 +364,7 @@ class CancerModel(mesa.Model):
 
         #calculate state of doubling counters
         self.doubling_time_counter_E = doubling_time_E - (last_step % doubling_time_E)
-        self.doubling_time_counter_E = doubling_time_M - (last_step % doubling_time_M)
+        self.doubling_time_counter_M = doubling_time_M - (last_step % doubling_time_M)
 
 
     def _initialize_grids(self):
