@@ -15,6 +15,7 @@ import Classes.configs
 def main_Batch(maxSteps, dataCollectionPeriod, loadedSimulationPath=""):
 
     # load configs file from a previous simulation or loads the general configs file
+    print(loadedSimulationPath)
     loadedSimulationPath= loadedSimulationPath.strip('\"')
     if loadedSimulationPath != "":
         configs_path = os.path.join(loadedSimulationPath, "configs.csv")
