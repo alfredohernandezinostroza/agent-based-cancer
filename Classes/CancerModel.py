@@ -304,7 +304,7 @@ class CancerModel(mesa.Model):
                     self.current_agent_id += 1
                     self.schedule.add(new_cell)
                     agent.grid.place_agent(new_cell, (x,y))
-                    self.cancer_cells_counter[agent.grid_id] += 1
+                    self.cancer_cells_counter[agent.grid_id - 1] += 1
         
 
 
