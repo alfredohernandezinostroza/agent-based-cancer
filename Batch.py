@@ -45,6 +45,7 @@ def main_Batch(maxSteps, dataCollectionPeriod, loadedSimulationPath=""):
         loaded_max_step = max(df["Step"])
         # new_simulation_folder = f"Sim maxSteps-{loaded_max_step}+{maxSteps} stepsize-{dataCollectionPeriod} N-{N} gridsNumber-{grids_number}"
     else:
+        df = pd.DataFrame()
         loaded_max_step = 0
         new_simulation_folder = f"Sim_maxSteps-{maxSteps}_stepsize-{dataCollectionPeriod}_N-{N}_gridsNumber-{grids_number}"
 
