@@ -3,8 +3,8 @@ th,0.001
 tha,0.001
 xh,0.005
 xha,0.005
-dM,1e-10
-dE,5e-11
+dM,1e-4
+dE,5e-4
 phiM,0.0005
 phiE,0.0005
 dmmp,0.001
