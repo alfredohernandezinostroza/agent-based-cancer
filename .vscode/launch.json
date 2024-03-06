@@ -15,11 +15,11 @@
             "justMyCode": false
         },
         {
-            "name": "Python: Main.py",
+            "name": "Python: interactive.py",
             "type": "python",
             "request": "launch",
             // "program": "${file}",
-            "program": "D:\\OneDrive - Universidad de Chile\\CancerProjectApril\\Main.py",
+            "program": "D:\\OneDrive - Universidad de Chile\\CancerProjectApril\\interactive.py",
             "console": "integratedTerminal",
             "justMyCode": false
         }
