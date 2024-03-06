@@ -44,7 +44,7 @@ if __name__ == "__main__":
             Batch.main_Batch(total_steps, interval_steps, simulation_folder)
         elif sys.argv[1] == "postprocess" and sys.argv[2] == "graphics":
             simulation_folder = sys.argv[3]
-            amount_of_pictures = sys.argv[4]
+            amount_of_pictures = int(sys.argv[4])
             GraphGenerator.generate_graphs(simulation_folder, amount_of_pictures)
         elif sys.argv[1] == "postprocess" and sys.argv[2] == "videos":
             simulation_folder = sys.argv[3]
