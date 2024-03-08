@@ -53,6 +53,21 @@ def save_cancer(coords_list, grid_id, step, real_time_at_step, TumorDataPath):
         #this will return the radius and diameter of the processed tumor
         return get_cluster_centroid_radius_and_diameter(df_positions, grid_id)
     return ([np.nan, np.nan], np.nan, np.nan)
+    
+def save_growth_data_n(all_cells_dataframe, grid_id, CellsDataPath, step_number, real_time_at_step, real_delta_time, df_csv_last_step):
+    path_to_save = os.path.join(CellsDataPath, f'CellsGrowth-grid{grid_id}-step{step_number} - {real_time_at_step/(3600*24):.2f} days.csv')
+    if os.path.isfile(path_to_save):
+        return
+    df = all_cells_dataframe.loc[(all_cells_dataframe["Grid"] == grid_id) & (all_cells_dataframe["Step"] == step_number)]
+    amount_of_mesenchymal = len(df[df["Phenotype"] == "mesenchymal"])
+    amount_of_epithelial = len(df[df["Phenotype"] == "epithelial"])
+    df = pd.DataFrame({"Number of Epithelial Cells": [amount_of_epithelial], "Number of Mesenchymal Cells": [amount_of_mesenchymal], "Steps": [step_number], "Days": [real_delta_time*step_number/(3600*24)]})
+    if not df_csv_last_step.empty:
+        df_csv = pd.concat([df_csv_last_step, df], ignore_index=True)
+    else:
+        df_csv = df
+    df_csv.to_csv(path_to_save)
+    return df_csv
 
 def save_growth_data(all_cells_dataframe, stepsize, grid_id, CellsDataPath, step_number, real_time_at_step, real_delta_time):
     path_to_save = os.path.join(CellsDataPath, f'CellsGrowth-grid{grid_id}-step{step_number} - {real_time_at_step/(3600*24):.2f} days.csv')
@@ -235,9 +250,11 @@ def generate_data(nameOfTheSimulation):
 
         # Plot the growth of ephitelial and mesenchymal cells
         print(f'\tSaving cells numbers graph data...')
+        df_csv_last_step = pd.DataFrame()
         for id, step in enumerate(range(step_size,max_step+1,step_size)):
             real_time_at_step = real_delta_time * step
-            save_growth_data(all_cells_dataframe, step_size, grid_id , CellsDataPath, step, real_time_at_step, real_delta_time)
+            # save_growth_data(all_cells_dataframe, step_size, grid_id , CellsDataPath, step, real_time_at_step, real_delta_time)
+            df_csv_last_step = save_growth_data_n(all_cells_dataframe, grid_id , CellsDataPath, step, real_time_at_step, real_delta_time, df_csv_last_step)
 
     # Plot the vasculature data
     print(f'Saving vasculature...')
