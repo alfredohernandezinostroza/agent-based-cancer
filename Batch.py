@@ -26,7 +26,7 @@ def main_Batch(maxSteps, dataCollectionPeriod, loadedSimulationPath=""):
         config_var_names = Classes.configs.init_simulation_configs(configs_path)
     
     # Parameters for this simulation
-    N = 388 # Number of cancer cells
+    N = Classes.configs.number_of_initial_cells # Number of cancer cells
     gridsize     = Classes.configs.gridsize #PDF: 201
     grids_number = Classes.configs.grids_number #PDF: 201
     width        = gridsize
