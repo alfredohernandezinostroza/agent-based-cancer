@@ -125,7 +125,7 @@ def plot_vasculature_graphs(vasculature_df, pathToSave, max_step, real_delta_tim
         mesenchymal_data = vasculature_df["Mesenchymal cells"]
         epithelial_data = vasculature_df["Epithelial cells"]
         time_steps = vasculature_df["Time"]
-        plt.style.use("seaborn_v0_8-darkgrid")
+        plt.style.use("seaborn-v0_8-darkgrid")
 
         #second plot, clusters
         plt.figure()
@@ -179,7 +179,7 @@ def plot_radius_diameter_history(df, pathToSave, max_step, real_delta_time):
         radius = df["Radius"]*Classes.configs.xh*(0.001/0.005)*10  #getting distance in mm
         diameter = df["Diameter"]*Classes.configs.xh*(0.001/0.005)*10 #getting distance in mm
         time_steps = df["Step"]
-        plt.style.use("seaborn_v0_8-darkgrid")
+        plt.style.use("seaborn-v0_8-darkgrid")
 
         #second plot, clusters
         plt.figure()
@@ -316,7 +316,7 @@ def generate_graphs(name_of_the_simulation, amount_of_pictures=0):
     #     print("This Graphical analysis already exists!")
     #     return
     
-    plt.style.use("seaborn_v0_8-darkgrid")
+    plt.style.use("seaborn-v0_8-darkgrid")
     if amount_of_pictures != 0:
         range_of_pictures = get_equally_spaced_array(range(step_size,max_step+1,step_size), amount_of_pictures)
     else:
@@ -437,7 +437,7 @@ def generate_vasculature_graphs_only(name_of_the_simulation):
     imagesPath = os.path.join(simulation_path, imagesFolder)
     vasculature_images_path = os.path.join(imagesPath, "Vasculature evolution")
 
-    plt.style.use("seaborn_v0_8-darkgrid")
+    plt.style.use("seaborn-v0_8-darkgrid")
     figCounter = 1
     # Plot the vasculature data
     print(f'Plotting vasculature...')

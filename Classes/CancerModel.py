@@ -123,19 +123,14 @@ class CancerModel(mesa.Model):
         self.loaded_max_step = 0
 
         if loadedSimulationPath != "":
-            # configs_path = os.path.join(loadedSimulationPath, "configs.csv")
-            # config_var_names = configs.load_simulation_configs(configs_path)
-            # for var in config_var_names:
-            #     globals()[var] = getattr(configs, var)
-            #     self.load_previous_simulation(loadedSimulationPath)
+            print(f"Loaded simulation at {loadedSimulationPath}!")
             configs_path = os.path.join(loadedSimulationPath, "configs.csv")
             config_var_names = Classes.configs.load_simulation_configs_for_reloaded_simulation(configs_path)
             for var in config_var_names:
                 globals()[var] = getattr(Classes.configs, var)
             self.load_previous_simulation(loadedSimulationPath)
         else:
-            # load_simulation_configs("simulations_configs.csv")
-
+            print("Starting simulation from zero!")
             configs_path = "simulations_configs.csv"
             config_var_names = Classes.configs.init_simulation_configs(configs_path)
             for var in config_var_names:
