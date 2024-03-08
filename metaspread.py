@@ -6,9 +6,9 @@ import videoGenerator
 import warnings
 
 if __name__ == "__main__":
-    print(sys.argv)
     if len(sys.argv) == 1:
-        raise Exception("Incorrent amount of or unrecognized arguments!")
+        from interactive import *
+        main_menu()
     if len(sys.argv) >= 3 and sys.argv[1] == "postprocess":
         if sys.argv[2] == "graphic":
             raise Exception("\nError! No known command for postprocessing named \'graphic\'. Did you mean \'graphics\'?")
@@ -17,7 +17,13 @@ if __name__ == "__main__":
         elif sys.argv[2] != "data" and sys.argv[2] != "videos" and sys.argv[2] != "graphics":
             error_string = f"\nError! No known command for postprocessing named \'{sys.argv[2]}\'. Use \'data\', \'videos\' or \'graphics\'."
             raise Exception(error_string)
-    if len(sys.argv) == 2 or len(sys.argv) == 3:
+    if len(sys.argv) == 2:
+        if sys.argv[1] == "interactive":
+            from interactive import *
+            main_menu()
+        else:
+            raise Exception("Incorrent amount of or unrecognized arguments!")
+    if len(sys.argv) == 3:
         raise Exception("Incorrent amount of or unrecognized arguments!")
     elif len(sys.argv) == 4:
         #CORRECT ONES
@@ -54,4 +60,4 @@ if __name__ == "__main__":
             raise Exception("Incorrent amount or unrecognized arguments!")
     else:
         print(sys.argv)
-        raise Exception("Error with the arguments!")
+        raise Exception("Incorrent amount of or unrecognized arguments!")
