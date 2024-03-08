@@ -27,7 +27,5 @@ n_center_points_for_tumor,97
 n_center_points_for_Vessels,200
 gridsize,201
 grids_number,3
-patchsize,3
-middlePoint,5
 mesenchymal_proportion,0.6
 epithelial_proportion,0.4
