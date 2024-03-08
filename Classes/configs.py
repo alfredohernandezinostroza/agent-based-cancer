@@ -11,9 +11,9 @@ def init_simulation_configs(path):
     """ 
     df_configs = pd.read_csv(path, header=0, converters={"Values": ast.literal_eval})
     if len(df_configs) < 31:
-        raise Exception("Less than 32 configuration options! Are there some missing?")
+        raise Exception("Less than 31 configuration options! Are there some missing?")
     if len(df_configs) > 31:
-        raise Exception("More than 32 configuration options!")
+        raise Exception("More than 31 configuration options!")
     dict_configs = dict(zip(df_configs["Names"], df_configs["Values"]))
     globals().update(dict_configs)  
     error_string = ""
@@ -39,9 +39,9 @@ def load_simulation_configs_for_data_generation(path):
     """ 
     df_configs = pd.read_csv(path, header=0, converters={"Values": ast.literal_eval})
     if len(df_configs) < 33:
-        raise Exception("Less than 34 configuration options! Are there some missing?")
+        raise Exception("Less than 33 configuration options! Are there some missing?")
     if len(df_configs) > 33:
-        raise Exception("More than 34 configuration options!")
+        raise Exception("More than 33 configuration options!")
     dict_configs = dict(zip(df_configs["Names"], df_configs["Values"]))
     globals().update(dict_configs)  
     return(list(df_configs["Names"]))
@@ -59,11 +59,11 @@ def load_simulation_configs_for_reloaded_simulation(path):
     # simulation, drop the last three rows
     # they shoud not be loaded as they change for each simulation according to user input
     # (maxSteps, dataCollectionPeriod and grids_number)
-    df_configs = df_configs[:-2]
+    df_configs = df_configs[:-2] #we take out the inputs that are given by the user when prompted (max steps and step size)
     if len(df_configs) < 31:
-        raise Exception("Less than 32 configuration options! Are there some missing?")
+        raise Exception("Less than 33 configuration options! Are there some missing?")
     if len(df_configs) > 31:
-        raise Exception("More than 32 configuration options!")
+        raise Exception("More than 33 configuration options!")
     dict_configs = dict(zip(df_configs["Names"], df_configs["Values"]))
     globals().update(dict_configs)  
     return(list(df_configs["Names"]))
