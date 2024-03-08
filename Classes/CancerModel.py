@@ -100,7 +100,7 @@ class CancerModel(mesa.Model):
         super().__init__()  
         self.simulations_dir = "Simulations"
         self.vasculature = {}
-        self.num_agents = N
+        self.num_initial_agents = N
         self.width = width
         self.height = height
         self.phenotypes = ["mesenchymal", "epithelial"]
@@ -335,6 +335,7 @@ class CancerModel(mesa.Model):
         previous_sim_df = previous_sim_df[previous_sim_df["Step"] == last_step]
         last_step_cells = previous_sim_df[previous_sim_df["Agent Type"] == "cell"]
         last_step_vessels = previous_sim_df[previous_sim_df["Agent Type"] == "vessel"]
+        self.num_initial_agents = 0
         for index, row in last_step_cells.iterrows():
             current_grid_number = int(row["Grid"]) - 1
             ccell = CancerCell(self.current_agent_id, self, self.grids[current_grid_number], self.grid_ids[current_grid_number], row["Phenotype"], self.ecm[current_grid_number], self.mmp2[current_grid_number])
@@ -342,6 +343,7 @@ class CancerModel(mesa.Model):
             self.schedule.add(ccell)
             self.grids[current_grid_number].place_agent(ccell, row["Position"])
             self.cancer_cells_counter[current_grid_number] += 1
+            self.num_initial_agents += 1
         for index, row in last_step_vessels.iterrows():
             current_grid_number = int(row["Grid"]) - 1
             ruptured_state = bool(row["Ruptured"])
@@ -374,10 +376,10 @@ class CancerModel(mesa.Model):
         Input: none
         Returns: none
         """
-        mesenchymal_number = round(self.num_agents * mesenchymal_proportion)
+        mesenchymal_number = round(self.num_initial_agents * mesenchymal_proportion)
         possible_places = find_quasi_circle(n_center_points_for_tumor, self.width, self.height)[1]
         # Place all the agents in the quasi-circle area in the center of the grid
-        for i in range(self.num_agents):
+        for i in range(self.num_initial_agents):
             if mesenchymal_number > 0:
                 cell_type = "mesenchymal"
                 mesenchymal_number -= 1
