@@ -1,21 +1,23 @@
+import os
 import sys
 import warnings
-import metaspread.simrunner
+import metaspread.simrunner as simrunner
 import metaspread.datagenerator as datagenerator
 import metaspread.graphgenerator as graphgenerator
 import metaspread.videogenerator as videogenerator
 
 if __name__ == "__main__":
-    #simple checks for misspellings in the arguments
+    # simple checks for misspellings in the arguments
     if len(sys.argv) >= 3 and sys.argv[1] == "postprocess":
         if sys.argv[2] == "graphic":
             raise Exception("\nError! No known command for postprocessing named \'graphic\'. Did you mean \'graphics\'?")
         if sys.argv[2] == "video":
             raise Exception("\nError! No known command for postprocessing named\'video\'. Did you mean \'videos\'?")
         elif sys.argv[2] != "data" and sys.argv[2] != "videos" and sys.argv[2] != "graphics" and sys.argv[2] != "all":
-            error_string = f"\nError! No known command for postprocessing named \'{sys.argv[2]}\'. Use \'data\', \'videos\' or \'graphics\'."
+            error_string = f"\nError! No known command for postprocessing named \'{sys.argv[2]}\'. Use \'data\', \'videos\', \'graphics\' or \'all\'."
             raise Exception(error_string)
-    #actual processing of the arguments
+        
+    # actual processing of the arguments
     if len(sys.argv) == 1:
         from metaspread.interactive import *
         main_menu()
@@ -28,7 +30,6 @@ if __name__ == "__main__":
     elif len(sys.argv) == 3:
         raise Exception("Incorrent amount of or unrecognized arguments!")
     elif len(sys.argv) == 4:
-        #CORRECT ONES
         if sys.argv[1] == "run":
             total_steps     = int(sys.argv[2])
             interval_steps  = int(sys.argv[3])
@@ -41,12 +42,11 @@ if __name__ == "__main__":
             amount_of_pictures = 0 #this will generate all pictures!
             warnings.warn("No amount of pictures given to graphics. Generating all pictures.")
             graphgenerator.generate_graphs(simulation_folder, amount_of_pictures)
-        #ERRORS
         else:
             raise Exception("Incorrent amount of or unrecognized arguments!")
     elif len(sys.argv) == 5:
         if sys.argv[1] == "load":
-            simulation_folder = sys.argv[2]
+            simulation_folder = os.path.join("Simulations",sys.argv[2])
             total_steps     = int(sys.argv[3])
             interval_steps  = int(sys.argv[4])
             simrunner.main(total_steps, interval_steps, simulation_folder)
