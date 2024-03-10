@@ -1,0 +1,24 @@
+[project]
+name = "metaspread"
+version = "2024.0.1a"
+authors = [
+  { name="Alfredo Hernández-Inostroza", email="alfredo.hernandez@ug.uchile.cl" },
+]
+description = "A cancer and metastasis simulation package"
+readme = "README.md"
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: GNU Affero General Public License v3",
+    "Operating System :: OS Independent",
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Framework :: Matplotlib",
+    "Topic :: Scientific/Engineering :: Medical Science Apps.",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "Topic :: Scientific/Engineering :: Mathematics",
+]
+
+[project.urls]
+Homepage = "https://github.com/fredih/MetaSpread"
+Issues = "https://github.com/fredih/MetaSpread/issues"
