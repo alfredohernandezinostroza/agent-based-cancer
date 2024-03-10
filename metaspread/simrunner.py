@@ -1,14 +1,9 @@
-import shutil
-import re
-import ast
-import numpy as np
-import matplotlib.pyplot as plt
-import pandas as pd
-# from Classes.CancerModel import *
-import mesa
-import os
-# from Classes.configs import *
 import metaspread.configs
+import pandas as pd
+import shutil
+import mesa
+import ast
+import os
 
 # To run this code you must be in the parent folder of the program
 
@@ -19,14 +14,13 @@ def main(max_steps, data_collection_period, loaded_simulation_path=""):
     loaded_simulation_path= loaded_simulation_path.strip('\"')
     if loaded_simulation_path != "":
         configs_path = os.path.join(loaded_simulation_path, "configs.csv")
-        # config_var_names = Classes.configs.load_simulation_configs_for_data_generation(configs_path)
         config_var_names = metaspread.configs.load_simulation_configs_for_reloaded_simulation(configs_path)
     else:
         configs_path = "simulations_configs.csv"
         config_var_names = metaspread.configs.init_simulation_configs(configs_path)
     
     # Parameters for this simulation
-    N = metaspread.configs.number_of_initial_cells # Number of cancer cells
+    number_of_initial_cells = metaspread.configs.number_of_initial_cells # Number of cancer cells
     gridsize     = metaspread.configs.gridsize #PDF: 201
     grids_number = metaspread.configs.grids_number #PDF: 201
     width        = gridsize
@@ -46,7 +40,7 @@ def main(max_steps, data_collection_period, loaded_simulation_path=""):
     else:
         df = pd.DataFrame()
         loaded_max_step = 0
-        new_simulation_folder = f"Sim-max_steps-{max_steps}-stepsize-{data_collection_period}-cells-{N}-gridsNumber-{grids_number}"
+        new_simulation_folder = f"Sim-max_steps-{max_steps}-stepsize-{data_collection_period}-cells-{number_of_initial_cells}-gridsNumber-{grids_number}"
 
         # Creates the path for the new simulation
         path = os.path.join(simulations_dir, new_simulation_folder)
@@ -73,16 +67,16 @@ def main(max_steps, data_collection_period, loaded_simulation_path=""):
             return print("This simulation already exists!")
 
         # Run the simulation and saves the data
-    run_simulation(metaspread.CancerModel, N, width, height, grids_number, max_steps, loaded_max_step, data_collection_period, new_simulation_folder, simulations_dir, config_var_names, df, loaded_simulation_path)
+    run_simulation(metaspread.CancerModel, number_of_initial_cells, width, height, grids_number, max_steps, loaded_max_step, data_collection_period, new_simulation_folder, simulations_dir, config_var_names, df, loaded_simulation_path)
 
 
     return print('Finished the simulation')
 
 
-def run_simulation(CancerModel, N, width, height, grids_number, max_steps, loaded_max_step, data_collection_period, new_simulation_folder, simulations_dir, config_var_names, loaded_df, loaded_simulation_path=""):
+def run_simulation(CancerModel, number_of_initial_cells, width, height, grids_number, max_steps, loaded_max_step, data_collection_period, new_simulation_folder, simulations_dir, config_var_names, loaded_df, loaded_simulation_path=""):
 
     # Setting parameters for mesa.batch_run
-    params = {"N": N, "width": width, "height": height, "grids_number": grids_number, "max_steps": max_steps, "data_collection_period": data_collection_period, "new_simulation_folder": new_simulation_folder }
+    params = {"number_of_initial_cells": number_of_initial_cells, "width": width, "height": height, "grids_number": grids_number, "max_steps": max_steps, "data_collection_period": data_collection_period, "new_simulation_folder": new_simulation_folder }
     if loaded_simulation_path != "":
         params["loaded_simulation_path"] = loaded_simulation_path
 
