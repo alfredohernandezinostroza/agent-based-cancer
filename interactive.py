@@ -1,13 +1,10 @@
-import csv
 from pynput import keyboard
 import os
-import sys
 import DataGenerator
 import GraphGenerator
 import videoGenerator
 import time
 import Batch
-import warnings
 
 selected_option_index = 0
 selected_option = ""
@@ -33,12 +30,6 @@ def simulation_menu():
     print("==================================================================")
     print("New simulation")
     print("==================================================================")
-    # total_steps = input("Select  number of days: ") #change this to days, and convert this to steps using the relevant parameter
-    # total_steps = input("Select  number of hours: ") #change this to days, and convert this to steps using the relevant parameter
-    # total_steps = input("Select  number of minutes: ") #change this to days, and convert this to steps using the relevant parameter
-    # total_steps = input("Select  number of seconds: ") #change this to days, and convert this to steps using the relevant parameter
-    
-    # input()
     total_steps = get_int_input("Select the total timesteps the simulation will take: ") #convert this to time and show, asking if it;s ok instead of the other comments
     interval_steps = get_int_input("Select the size of the intervals for which the information will be collected: ")
     Batch.main_Batch(total_steps, interval_steps)
@@ -99,11 +90,7 @@ def postprocessing_menu():
             DataGenerator.generate_data(selected_simulation)
             time.sleep(3)
         if selected_option == "Begin graphical analysis":
-            # GraphGenerator.generate_graphs(selected_simulation)
-            # time.sleep(3)
             graphical_analysis_menu(selected_simulation)
-            # while graphical_analysis_menu(selected_simulation) < 1:
-            #     continue
         if selected_option == "Generate videos":
             frame_rate = get_int_input("Select the framerate for the video.\nA framerate of 20 is sugggested \nfor large simulations:")
             videoGenerator.generate_videos(selected_simulation, frame_rate)
@@ -117,12 +104,6 @@ def graphical_analysis_menu(selected_simulation):
     options_list = ["Generate 5 picture summary", "Custom amount of pictures", "Generate All"]
     selected_option_index = 0
     banner_message = "Graphical analysis: select which frames are going to be plotted"
-
-    # cells_data_path = os.path.join("Simulations", selected_simulation, "CellsData.csv")
-    # df = pd.read_csv(cells_data_path)
-    # max_step = max(df["Step"])
-    # step_size = df.iloc[0]['Step']
-    # maximum_frames = int(max_step / step_size)
     with keyboard.Listener(on_press = on_press) as listener:
         os.system('cls')
         print_menu()
@@ -170,7 +151,6 @@ def on_press(key):
         os.system('cls')
         return False
     elif key == keyboard.Key.esc:
-        # os.system('cls')
         os._exit(0)
 
 def get_folder_names(directory_path):
@@ -195,48 +175,4 @@ def get_int_input(text):
     return result
 
 if __name__ == "__main__":
-    # if len(sys.argv) == 1:
     main_menu()
-    # if len(sys.argv) >= 3 and sys.argv[1] == "postprocess":
-    #     if sys.argv[2] == "graphic":
-    #         raise Exception("\nError! No known command for postprocessing named \'graphic\'. Did you mean \'graphics\'?")
-    #     if sys.argv[2] == "video":
-    #         raise Exception("\nError! No known command for postprocessing named\'video\'. Did you mean \'videos\'?")
-    #     elif sys.argv[2] != "data":
-    #         error_string = f"\nError! No known command for postprocessing named \'{sys.argv[2]}\'. Use data, \'videos\' or \'graphics\'."
-    #         raise Exception(error_string)
-    # if len(sys.argv) == 2 or len(sys.argv) == 3:
-    #     raise Exception("Incorrent amount of or unrecognized arguments!")
-    # elif len(sys.argv) == 4:
-    #     #CORRECT ONES
-    #     if sys.argv[1] == "run":
-    #         total_steps     = int(sys.argv[2])
-    #         interval_steps  = int(sys.argv[3])
-    #         Batch.main_Batch(total_steps, interval_steps)
-    #     elif sys.argv[1] == "postprocess" and sys.argv[2] == "data":
-    #             simulation_folder = sys.argv[3]
-    #             DataGenerator.generate_data(simulation_folder)
-    #     elif sys.argv[1] == "postprocess" and sys.argv[2] == "graphics":
-    #         simulation_folder = sys.argv[3]
-    #         amount_of_pictures = 0 #this will generate all pictures!
-    #         warnings.warn("No amount of pictures given to graphics. Generating all pictures.")
-    #         GraphGenerator.generate_graphs(simulation_folder, amount_of_pictures)
-    #     #ERRORS
-    #     else:
-    #         raise Exception("Incorrent amount of or unrecognized arguments!")
-    # elif len(sys.argv) == 5:
-    #     if sys.argv[1] == "load":
-    #         simulation_folder = sys.argv[2]
-    #         total_steps     = int(sys.argv[3])
-    #         interval_steps  = int(sys.argv[4])
-    #         Batch.main_Batch(total_steps, interval_steps, simulation_folder)
-    #     elif sys.argv[1] == "postprocess" and sys.argv[2] == "graphics":
-    #         simulation_folder = sys.argv[3]
-    #         amount_of_pictures = sys.argv[4]
-    #         GraphGenerator.generate_graphs(simulation_folder, amount_of_pictures)
-    #     elif sys.argv[1] == "postprocess" and sys.argv[2] == "videos":
-    #         simulation_folder = sys.argv[3]
-    #         frame_rate = sys.argv[4]
-    #         videoGenerator.generate_videos(simulation_folder, frame_rate)
-    #     else:
-    #         raise Exception("Incorrent amount or unrecognized arguments!")
