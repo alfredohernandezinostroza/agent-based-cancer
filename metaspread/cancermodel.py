@@ -461,17 +461,14 @@ class CancerModel(mesa.Model):
         for i in range(len(mmp2)):
             for cell in self.grids[i].coord_iter():
                 cell_contents, (x, y) = cell
-                diff = 0
                 self.mesenchymal_count[i][x,y] = 0
                 self.epithelial_count[i][x,y] = 0
                 for cancer_cell in cell_contents:
                     if isinstance(cancer_cell, CancerCell):
                         if cancer_cell.phenotype == "mesenchymal":
                             self.mesenchymal_count[i][x,y] += 1
-                            diff = dM
                         elif cancer_cell.phenotype == "epithelial":
                             self.epithelial_count[i][x,y] += 1
-                            diff = dE
                         else:
                             raise Exception("Unknown phenotype")
                 on_left_border = self.grids[i].out_of_bounds((x-1,y))
