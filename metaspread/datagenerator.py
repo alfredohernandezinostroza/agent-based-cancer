@@ -57,7 +57,7 @@ def save_cancer(coords_list, grid_id, step, real_time_at_step, tumor_data_path):
 def save_growth_data(all_cells_dataframe, grid_id, cells_data_path, step_number, real_time_at_step, real_delta_time, df_csv_last_step):
     path_to_save = os.path.join(cells_data_path, f'CellsGrowth-grid{grid_id}-step{step_number} - {real_time_at_step/(3600*24):.2f} days.csv')
     if os.path.isfile(path_to_save):
-        return
+        return pd.DataFrame()
     df = all_cells_dataframe.loc[(all_cells_dataframe["Grid"] == grid_id) & (all_cells_dataframe["Step"] == step_number)]
     amount_of_mesenchymal = len(df[df["Phenotype"] == "mesenchymal"])
     amount_of_epithelial = len(df[df["Phenotype"] == "epithelial"])
