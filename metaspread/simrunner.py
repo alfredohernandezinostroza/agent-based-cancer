@@ -88,7 +88,7 @@ def run_simulation(CancerModel, N, width, height, grids_number, maxSteps, loaded
         params["loadedSimulationPath"] = loadedSimulationPath
 
     # Saves the simulation configuration
-    print(f"Saving all the simulations parameters at: {os.path.join(simulations_dir, new_simulation_folder, 'configs.csv')}")
+    print(f"\t Saving all the simulations parameters at: {os.path.join(simulations_dir, new_simulation_folder, 'configs.csv')}")
     values = [getattr(metaspread.configs, i) for i in config_var_names]
     names = config_var_names
 
