@@ -201,7 +201,7 @@ def generate_data(nameOfTheSimulation):
     step_size = metaspread.configs.dataCollectionPeriod
     real_delta_time = 40 * metaspread.configs.th/0.001 #in seconds (the original ratio is 40 seconds/0.001 non-dimensional time)
     grids_number = metaspread.configs.grids_number
-    configs_max_step = metaspread.configs.maxSteps
+    configs_max_step = metaspread.configs.max_steps
     all_cells_dataframe = pd.read_csv(all_cells_filename, converters={"Position": ast.literal_eval})
     all_cells_dataframe = all_cells_dataframe[["Step", "Position", "Phenotype", "Grid", "Agent Type", "Ruptured"]]
     max_step = max(all_cells_dataframe["Step"])
@@ -295,7 +295,7 @@ def generate_data_vasculature_only(nameOfTheSimulation):
 
     print("Loading CellsData.csv. This might take a minute...")
     step_size = metaspread.configs.dataCollectionPeriod
-    configs_max_step = metaspread.configs.maxSteps
+    configs_max_step = metaspread.configs.max_steps
     all_cells_dataframe = pd.read_csv(all_cells_filename, converters={"Position": ast.literal_eval})
     all_cells_dataframe = all_cells_dataframe[["Step", "Position", "Phenotype", "Grid", "Agent Type", "Ruptured"]]
     max_step = max(all_cells_dataframe["Step"])
@@ -362,7 +362,7 @@ def get_distance_matrix(vectors):
 if __name__ == "__main__":
 
     # CHANGE THIS LINE according to the simulation you want to plot the graphs  
-    name_of_the_simulation = "Sim maxSteps-48000 stepsize-150 N-388 gridsNumber-3"
+    name_of_the_simulation = "Sim max_steps-48000 stepsize-150 N-388 gridsNumber-3"
 
     # This runs all the code to generate the graphs in the folder
     generate_data(name_of_the_simulation)

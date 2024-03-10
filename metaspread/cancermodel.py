@@ -96,7 +96,7 @@ class CancerModel(mesa.Model):
         For a given time, it will dissagregate single cells from clusters
     """
 
-    def __init__(self, N, width, height, grids_number, maxSteps, dataCollectionPeriod, newSimulationFolder, loadedSimulationPath="", seed=None):
+    def __init__(self, N, width, height, grids_number, max_steps, dataCollectionPeriod, newSimulationFolder, loadedSimulationPath="", seed=None):
         super().__init__()  
         self.simulations_dir = "Simulations"
         self.vasculature = {}
@@ -106,7 +106,7 @@ class CancerModel(mesa.Model):
         self.phenotypes = ["mesenchymal", "epithelial"]
         self.grid_vessels_positions = [[]] * grids_number
         self.current_agent_id = 0
-        self.maxSteps = maxSteps
+        self.max_steps = max_steps
         self.dataCollectionPeriod = dataCollectionPeriod
         self.newSimulationFolder  = newSimulationFolder
         self.mesenchymalCount = [np.zeros((width, height), dtype=float) for _ in range(grids_number)]
@@ -230,7 +230,7 @@ class CancerModel(mesa.Model):
 
         # Saving of non agents data
         if (self.schedule.time != 0 and (self.schedule.time % self.dataCollectionPeriod == 0)) \
-            or self.schedule.time == self.maxSteps:
+            or self.schedule.time == self.max_steps:
             #pickling a model could be an option in the future
             # backup_file_path = os.path.join(self.simulations_dir, self.newSimulationFolder, "Backup", "backup.p")
             # with open(backup_file_path, "wb") as f:
