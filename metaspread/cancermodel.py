@@ -126,6 +126,7 @@ class CancerModel(mesa.Model):
             print(f"Loaded simulation at {loaded_simulation_path}!")
             configs_path = os.path.join(loaded_simulation_path, "configs.csv")
             config_var_names = metaspread.configs.load_simulation_configs_for_reloaded_simulation(configs_path)
+            #load the configs so we can use them in this module as globals
             for var in config_var_names:
                 globals()[var] = getattr(metaspread.configs, var)
             self.load_previous_simulation(loaded_simulation_path)
@@ -133,6 +134,7 @@ class CancerModel(mesa.Model):
             print("Starting simulation from zero!")
             configs_path = "simulations_configs.csv"
             config_var_names = metaspread.configs.init_simulation_configs(configs_path)
+            #load the configs so we can use them in this module as globals
             for var in config_var_names:
                 globals()[var] = getattr(metaspread.configs, var)
             self._initialize_grids()
