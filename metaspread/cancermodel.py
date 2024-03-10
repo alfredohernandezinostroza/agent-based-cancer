@@ -486,6 +486,7 @@ class CancerModel(mesa.Model):
                     warnings.warn(f"<0 ecm in [i][1,{x},{y}] is {ecm[i][1,x,y]}")
                 if ecm[i][1,x,y] > 1:
                     warnings.warn(f">1 ecm in [i][1,{x},{y}] is {ecm[i][1,x,y]}")
+                    print("ECM is greater than 1! Your MMP2 diffusion rate is probably too high")
             mmp2[i][0,:,:] = mmp2[i][1,:,:]
             ecm[i][0,:,:] = ecm[i][1,:,:]
 
