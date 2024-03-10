@@ -12,7 +12,7 @@ import metaspread.configs
 
 # To run this code you must be in the parent folder of the program
 
-def main(max_steps, dataCollectionPeriod, loadedSimulationPath=""):
+def main(max_steps, data_collection_period, loadedSimulationPath=""):
 
     # load configs file from a previous simulation or loads the general configs file
     print(loadedSimulationPath)
@@ -46,7 +46,7 @@ def main(max_steps, dataCollectionPeriod, loadedSimulationPath=""):
     else:
         df = pd.DataFrame()
         loaded_max_step = 0
-        new_simulation_folder = f"Sim-max_steps-{max_steps}-stepsize-{dataCollectionPeriod}-cells-{N}-gridsNumber-{grids_number}"
+        new_simulation_folder = f"Sim-max_steps-{max_steps}-stepsize-{data_collection_period}-cells-{N}-gridsNumber-{grids_number}"
 
         # Creates the path for the new simulation
         path = os.path.join(simulations_dir, new_simulation_folder)
@@ -73,16 +73,16 @@ def main(max_steps, dataCollectionPeriod, loadedSimulationPath=""):
             return print("This simulation already exists!")
 
         # Run the simulation and saves the data
-    run_simulation(metaspread.CancerModel, N, width, height, grids_number, max_steps, loaded_max_step, dataCollectionPeriod, new_simulation_folder, simulations_dir, config_var_names, df, loadedSimulationPath)
+    run_simulation(metaspread.CancerModel, N, width, height, grids_number, max_steps, loaded_max_step, data_collection_period, new_simulation_folder, simulations_dir, config_var_names, df, loadedSimulationPath)
 
 
     return print('Finished the simulation')
 
 
-def run_simulation(CancerModel, N, width, height, grids_number, max_steps, loaded_max_step, dataCollectionPeriod, new_simulation_folder, simulations_dir, config_var_names, loaded_df, loadedSimulationPath=""):
+def run_simulation(CancerModel, N, width, height, grids_number, max_steps, loaded_max_step, data_collection_period, new_simulation_folder, simulations_dir, config_var_names, loaded_df, loadedSimulationPath=""):
 
     # Setting parameters for mesa.batch_run
-    params = {"N": N, "width": width, "height": height, "grids_number": grids_number, "max_steps": max_steps, "dataCollectionPeriod": dataCollectionPeriod, "newSimulationFolder": new_simulation_folder }
+    params = {"N": N, "width": width, "height": height, "grids_number": grids_number, "max_steps": max_steps, "data_collection_period": data_collection_period, "newSimulationFolder": new_simulation_folder }
     if loadedSimulationPath != "":
         params["loadedSimulationPath"] = loadedSimulationPath
 
@@ -92,8 +92,8 @@ def run_simulation(CancerModel, N, width, height, grids_number, max_steps, loade
     names = config_var_names
 
     #add configurations that are not in the global variables
-    names += ['max_steps', 'dataCollectionPeriod']
-    values += [max_steps, dataCollectionPeriod]
+    names += ['max_steps', 'data_collection_period']
+    values += [max_steps, data_collection_period]
     df_vars = pd.DataFrame({"Names": names, "Values": values})
     df_vars = df_vars.set_index("Names")
     path = os.path.join(simulations_dir, new_simulation_folder, 'configs.csv')
@@ -107,7 +107,7 @@ def run_simulation(CancerModel, N, width, height, grids_number, max_steps, loade
         iterations=1, # for the code to run and save in the specified folders this must be always 1
         max_steps=max_steps,
         number_processes=None,
-        data_collection_period=dataCollectionPeriod,
+        data_collection_period=data_collection_period,
         display_progress=False,
     )
 

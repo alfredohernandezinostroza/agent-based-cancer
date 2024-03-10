@@ -96,7 +96,7 @@ class CancerModel(mesa.Model):
         For a given time, it will dissagregate single cells from clusters
     """
 
-    def __init__(self, N, width, height, grids_number, max_steps, dataCollectionPeriod, newSimulationFolder, loadedSimulationPath="", seed=None):
+    def __init__(self, N, width, height, grids_number, max_steps, data_collection_period, newSimulationFolder, loadedSimulationPath="", seed=None):
         super().__init__()  
         self.simulations_dir = "Simulations"
         self.vasculature = {}
@@ -107,7 +107,7 @@ class CancerModel(mesa.Model):
         self.grid_vessels_positions = [[]] * grids_number
         self.current_agent_id = 0
         self.max_steps = max_steps
-        self.dataCollectionPeriod = dataCollectionPeriod
+        self.data_collection_period = data_collection_period
         self.newSimulationFolder  = newSimulationFolder
         self.mesenchymalCount = [np.zeros((width, height), dtype=float) for _ in range(grids_number)]
         self.epithelialCount = [np.zeros((width, height), dtype=float) for _ in range(grids_number)]
@@ -229,7 +229,7 @@ class CancerModel(mesa.Model):
                     self.time_grid_got_populated[index] = self.schedule.time
 
         # Saving of non agents data
-        if (self.schedule.time != 0 and (self.schedule.time % self.dataCollectionPeriod == 0)) \
+        if (self.schedule.time != 0 and (self.schedule.time % self.data_collection_period == 0)) \
             or self.schedule.time == self.max_steps:
             #pickling a model could be an option in the future
             # backup_file_path = os.path.join(self.simulations_dir, self.newSimulationFolder, "Backup", "backup.p")
@@ -263,10 +263,10 @@ class CancerModel(mesa.Model):
                 f.write(vasculature_json)
                 
             # Saves cancer cells data as a backup in case the simulation fails
-            _, current_model_data = mesa.batchrunner._collect_data(self, self.dataCollectionPeriod-1)
+            _, current_model_data = mesa.batchrunner._collect_data(self, self.data_collection_period-1)
             df_current_model_data = pd.DataFrame(current_model_data)
-            df_current_model_data["Step"] = self.dataCollectionPeriod
-            for step in range(self.dataCollectionPeriod * 2, self.schedule.time, self.dataCollectionPeriod):
+            df_current_model_data["Step"] = self.data_collection_period
+            for step in range(self.data_collection_period * 2, self.schedule.time, self.data_collection_period):
                 _, step_model_data = mesa.batchrunner._collect_data(self, step-1)
                 df_step_model_data = pd.DataFrame(step_model_data)
                 df_step_model_data["Step"] = step + self.loaded_max_step

@@ -198,7 +198,7 @@ def generate_data(nameOfTheSimulation):
         print("No .json vasculature data found in directory:", SimulationPath)
         return
 
-    step_size = metaspread.configs.dataCollectionPeriod
+    step_size = metaspread.configs.data_collection_period
     real_delta_time = 40 * metaspread.configs.th/0.001 #in seconds (the original ratio is 40 seconds/0.001 non-dimensional time)
     grids_number = metaspread.configs.grids_number
     configs_max_step = metaspread.configs.max_steps
@@ -294,7 +294,7 @@ def generate_data_vasculature_only(nameOfTheSimulation):
         return
 
     print("Loading CellsData.csv. This might take a minute...")
-    step_size = metaspread.configs.dataCollectionPeriod
+    step_size = metaspread.configs.data_collection_period
     configs_max_step = metaspread.configs.max_steps
     all_cells_dataframe = pd.read_csv(all_cells_filename, converters={"Position": ast.literal_eval})
     all_cells_dataframe = all_cells_dataframe[["Step", "Position", "Phenotype", "Grid", "Agent Type", "Ruptured"]]

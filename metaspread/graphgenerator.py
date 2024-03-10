@@ -263,7 +263,7 @@ def generate_graphs(name_of_the_simulation, amount_of_pictures=0):
     Mmp2DataPath = os.path.join(dataPath, "Mmp2 evolution")
     VasculatureDataPath = os.path.join(dataPath, "Vasculature evolution")
 
-    step_size = metaspread.configs.dataCollectionPeriod
+    step_size = metaspread.configs.data_collection_period
     real_delta_time = 40 * metaspread.configs.th/0.001 #in seconds (the original ratio is 40 seconds/0.001 non-dimensional time)
     grids_number = metaspread.configs.grids_number
     configs_max_step = metaspread.configs.max_steps
@@ -429,7 +429,7 @@ def generate_vasculature_graphs_only(name_of_the_simulation):
     VasculatureDataPath = os.path.join(dataPath, "Vasculature evolution")
 
     max_step = metaspread.configs.max_steps
-    step_size = metaspread.configs.dataCollectionPeriod
+    step_size = metaspread.configs.data_collection_period
     grids_number = metaspread.configs.grids_number
 
     # Path to save all the images:
