@@ -4,7 +4,7 @@ from metaspread.configs import *
 
 class CancerCell(mesa.Agent):
 
-    def __init__(self, unique_id, model, grid, grid_id, phenotype, ecm, mmp2): #constructor
+    def __init__(self, unique_id, model, grid, grid_id, phenotype, ecm, mmp2):
         super().__init__(unique_id, model)
         self.grid = grid
         self.grid_id = grid_id
@@ -39,7 +39,6 @@ class CancerCell(mesa.Agent):
         p_top = 0 if on_top_border else (th/xh**2*(self.diff_coeff+self.phi/4*(0 if on_bottom_border else self.ecm[0,x,y+1]-self.ecm[0,x,y-1])))
         p_bottom = 0 if on_bottom_border else (th/xh**2*(self.diff_coeff-self.phi/4*(0 if on_top_border else self.ecm[0,x,y+1]-self.ecm[0,x,y-1])))
         p_stay = 1-(p_left+p_right+p_top+p_bottom)
-        print(f"Probs: {p_left},{p_right},{p_top},{p_bottom},{p_stay}")
 
         weights=[]
         for x2,y2 in possible_steps:

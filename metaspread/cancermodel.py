@@ -221,17 +221,20 @@ class CancerModel(mesa.Model):
 
         print(f'Step number: {self.schedule.time + self.loaded_max_step}')
         self.schedule.step()
-        self.datacollector.collect(self)
-
+        
         #At the end of each step, check if the grid has been populated, and if it happened, store the time step when it did
         for index, time in enumerate(self.time_grid_got_populated):
             if time == -1: #if it has not been populated already, we check:
                 if self.cancer_cells_counter[index] > 0:
                     self.time_grid_got_populated[index] = self.schedule.time
 
-        # Saving of non agents data
+        # Saving of non agents data every data_collection_interval steps
         if (self.schedule.time != 0 and (self.schedule.time % self.data_collection_period == 0)) \
             or self.schedule.time == self.max_steps:
+            self.datacollector.collect(self)
+            current_agents_state = self.datacollector.get_agent_vars_dataframe()
+            path_to_save = os.path.join(self.simulations_dir, self.new_simulation_folder, f'CellsData.csv')
+            current_agents_state.to_csv(path_to_save)
             #pickling a model could be an option in the future
             # backup_file_path = os.path.join(self.simulations_dir, self.new_simulation_folder, "Backup", "backup.p")
             # with open(backup_file_path, "wb") as f:
@@ -264,16 +267,16 @@ class CancerModel(mesa.Model):
                 f.write(vasculature_json)
                 
             # Saves cancer cells data as a backup in case the simulation fails
-            _, current_model_data = mesa.batchrunner._collect_data(self, self.data_collection_period-1)
-            df_current_model_data = pd.DataFrame(current_model_data)
-            df_current_model_data["Step"] = self.data_collection_period
-            for step in range(self.data_collection_period * 2, self.schedule.time, self.data_collection_period):
-                _, step_model_data = mesa.batchrunner._collect_data(self, step-1)
-                df_step_model_data = pd.DataFrame(step_model_data)
-                df_step_model_data["Step"] = step + self.loaded_max_step
-                df_current_model_data = pd.concat([df_current_model_data, df_step_model_data])
-            path_to_save = os.path.join(self.simulations_dir, self.new_simulation_folder, f'CellsData.csv')
-            df_current_model_data.to_csv(path_to_save)
+            # _, current_model_data = mesa.batchrunner._collect_data(self, self.data_collection_period-1)
+            # df_current_model_data = pd.DataFrame(current_model_data)
+            # df_current_model_data["Step"] = self.data_collection_period
+            # for step in range(self.data_collection_period * 2, self.schedule.time, self.data_collection_period):
+            #     _, step_model_data = mesa.batchrunner._collect_data(self, step-1)
+            #     df_step_model_data = pd.DataFrame(step_model_data)
+            #     df_step_model_data["Step"] = step + self.loaded_max_step
+            #     df_current_model_data = pd.concat([df_current_model_data, df_step_model_data])
+            # path_to_save = os.path.join(self.simulations_dir, self.new_simulation_folder, f'CellsData.csv')
+            # df_current_model_data.to_csv(path_to_save)
 
 
 
