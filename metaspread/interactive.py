@@ -32,7 +32,7 @@ def simulation_menu():
     print("==================================================================")
     total_steps = get_int_input("Select the total timesteps the simulation will take: ") #convert this to time and show, asking if it;s ok instead of the other comments
     interval_steps = get_int_input("Select the size of the intervals for which the information will be collected: ")
-    simrunner.main_Batch(total_steps, interval_steps)
+    simrunner.main(total_steps, interval_steps)
 
 
 def load_simulation_menu():
@@ -50,9 +50,8 @@ def load_simulation_menu():
             os._exit(0)
     total_steps = get_int_input("Select additional number of steps until the loaded simulation will continue: ")
     interval_steps = get_int_input("Select the size of the intervals for which the information will be collected: ")
-    os.system('cls')
     print("Loading simulation...")
-    simrunner.main_Batch(total_steps, interval_steps, loadedSimulationPath=os.path.join(os.getcwd(),directory_path, selected_option))
+    simrunner.main(total_steps, interval_steps, loadedSimulationPath=os.path.join(os.getcwd(),directory_path, selected_option))
 
 def postprocessing_menu():
     global selected_option, selected_option_index, banner_message, options_list

@@ -57,10 +57,10 @@ def load_simulation_configs_for_reloaded_simulation(path):
     """ 
     df_configs = pd.read_csv(path, header=0, converters={"Values": ast.literal_eval})
     # if the configs were loaded to continue from a previous 
-    # simulation, drop the last three rows
+    # simulation, drop the last two rows
     # they shoud not be loaded as they change for each simulation according to user input
-    # (maxSteps, dataCollectionPeriod and grids_number)
-    df_configs = df_configs[:-2] #we take out the inputs that are given by the user when prompted (max steps and step size)
+    # (max steps and step size)
+    df_configs = df_configs[:-2]
     if len(df_configs) < 31:
         raise Exception("Less than 33 configuration options! Are there some missing?")
     if len(df_configs) > 31:

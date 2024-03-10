@@ -30,7 +30,7 @@ if __name__ == "__main__":
         if sys.argv[1] == "run":
             total_steps     = int(sys.argv[2])
             interval_steps  = int(sys.argv[3])
-            simrunner.main_Batch(total_steps, interval_steps)
+            simrunner.main(total_steps, interval_steps)
         elif sys.argv[1] == "postprocess" and sys.argv[2] == "data":
                 simulation_folder = sys.argv[3]
                 datagenerator.generate_data(simulation_folder)
@@ -47,7 +47,7 @@ if __name__ == "__main__":
             simulation_folder = sys.argv[2]
             total_steps     = int(sys.argv[3])
             interval_steps  = int(sys.argv[4])
-            simrunner.main_Batch(total_steps, interval_steps, simulation_folder)
+            simrunner.main(total_steps, interval_steps, simulation_folder)
         elif sys.argv[1] == "postprocess" and sys.argv[2] == "graphics":
             simulation_folder = sys.argv[3]
             amount_of_pictures = int(sys.argv[4])
