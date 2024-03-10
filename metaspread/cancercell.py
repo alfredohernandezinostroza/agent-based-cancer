@@ -11,8 +11,10 @@ class CancerCell(mesa.Agent):
         self.phenotype = phenotype
         if self.phenotype == "mesenchymal":
             self.diff_coeff = dM
+            self.phi = phiM
         else:
             self.diff_coeff = dE
+            self.phi = phiE
         self.ecm = ecm
         self.mmp2 = mmp2
         self.agent_type = "cell"
@@ -28,28 +30,29 @@ class CancerCell(mesa.Agent):
             moore=False,
             include_center=True)
         x, y = self.pos
-        onLeftBorder    = self.grid.out_of_bounds((x-1,y))
-        onRightBorder   = self.grid.out_of_bounds((x+1,y))
-        onTopBorder     = self.grid.out_of_bounds((x,y+1))
-        onBottomBorder  = self.grid.out_of_bounds((x,y-1))
-        Pleft = 0 if onLeftBorder else (th/xh**2*(self.diff_coeff-phiE/4*(0 if onRightBorder else self.ecm[0,x+1,y]-self.ecm[0,x-1,y])))
-        Pright = 0 if onRightBorder else (th/xh**2*(self.diff_coeff+phiE/4*(0 if onLeftBorder else self.ecm[0,x+1,y]-self.ecm[0,x-1,y])))
-        Ptop = 0 if onTopBorder else (th/xh**2*(self.diff_coeff+phiE/4*(0 if onBottomBorder else self.ecm[0,x,y+1]-self.ecm[0,x,y-1])))
-        Pbottom = 0 if onBottomBorder else (th/xh**2*(self.diff_coeff-phiE/4*(0 if onTopBorder else self.ecm[0,x,y+1]-self.ecm[0,x,y-1])))
-        Pstay = 1-(Pleft+Pright+Ptop+Pbottom)
+        on_left_border    = self.grid.out_of_bounds((x-1,y))
+        on_right_border   = self.grid.out_of_bounds((x+1,y))
+        on_top_border     = self.grid.out_of_bounds((x,y+1))
+        on_bottom_border  = self.grid.out_of_bounds((x,y-1))
+        p_left = 0 if on_left_border else (th/xh**2*(self.diff_coeff-self.phi/4*(0 if on_right_border else self.ecm[0,x+1,y]-self.ecm[0,x-1,y])))
+        p_right = 0 if on_right_border else (th/xh**2*(self.diff_coeff+self.phi/4*(0 if on_left_border else self.ecm[0,x+1,y]-self.ecm[0,x-1,y])))
+        p_top = 0 if on_top_border else (th/xh**2*(self.diff_coeff+self.phi/4*(0 if on_bottom_border else self.ecm[0,x,y+1]-self.ecm[0,x,y-1])))
+        p_bottom = 0 if on_bottom_border else (th/xh**2*(self.diff_coeff-self.phi/4*(0 if on_top_border else self.ecm[0,x,y+1]-self.ecm[0,x,y-1])))
+        p_stay = 1-(p_left+p_right+p_top+p_bottom)
+        print(f"Probs: {p_left},{p_right},{p_top},{p_bottom},{p_stay}")
 
         weights=[]
         for x2,y2 in possible_steps:
             if x2 < x:
-                weights.append(Pleft)
+                weights.append(p_left)
             elif x2>x:
-                weights.append(Pright)
+                weights.append(p_right)
             elif y2<y:
-                weights.append(Pbottom)
+                weights.append(p_bottom)
             elif y2>y:
-                weights.append(Ptop)
+                weights.append(p_top)
             else:
-                weights.append(Pstay)
+                weights.append(p_stay)
 
 
         # new_position = (x,y+1)
@@ -64,20 +67,20 @@ class CancerCell(mesa.Agent):
         if is_vessel:
             if is_ruptured or self.phenotype == "mesenchymal":                
                 x, y = new_position
-                onLeftBorder    = self.grid.out_of_bounds((x-1,y))
-                onRightBorder   = self.grid.out_of_bounds((x+1,y))
-                onTopBorder     = self.grid.out_of_bounds((x,y+1))
-                onBottomBorder  = self.grid.out_of_bounds((x,y-1))
+                on_left_border    = self.grid.out_of_bounds((x-1,y))
+                on_right_border   = self.grid.out_of_bounds((x+1,y))
+                on_top_border     = self.grid.out_of_bounds((x,y+1))
+                on_bottom_border  = self.grid.out_of_bounds((x,y-1))
                 mesenchymal_ccells_to_travel  = [agent for agent in self.grid.get_cell_list_contents([(x,y)]) if agent.agent_type == 'cell' and agent.phenotype == "mesenchymal"]
-                mesenchymal_ccells_to_travel += [] if onLeftBorder   else [agent for agent in self.grid.get_cell_list_contents([(x-1,y)]) if agent.agent_type == 'cell' and agent.phenotype == "mesenchymal"]
-                mesenchymal_ccells_to_travel += [] if onRightBorder  else [agent for agent in self.grid.get_cell_list_contents([(x+1,y)]) if agent.agent_type == 'cell' and agent.phenotype == "mesenchymal"]
-                mesenchymal_ccells_to_travel += [] if onTopBorder    else [agent for agent in self.grid.get_cell_list_contents([(x,y-1)]) if agent.agent_type == 'cell' and agent.phenotype == "mesenchymal"]
-                mesenchymal_ccells_to_travel += [] if onBottomBorder else [agent for agent in self.grid.get_cell_list_contents([(x,y+1)]) if agent.agent_type == 'cell' and agent.phenotype == "mesenchymal"]
+                mesenchymal_ccells_to_travel += [] if on_left_border   else [agent for agent in self.grid.get_cell_list_contents([(x-1,y)]) if agent.agent_type == 'cell' and agent.phenotype == "mesenchymal"]
+                mesenchymal_ccells_to_travel += [] if on_right_border  else [agent for agent in self.grid.get_cell_list_contents([(x+1,y)]) if agent.agent_type == 'cell' and agent.phenotype == "mesenchymal"]
+                mesenchymal_ccells_to_travel += [] if on_top_border    else [agent for agent in self.grid.get_cell_list_contents([(x,y-1)]) if agent.agent_type == 'cell' and agent.phenotype == "mesenchymal"]
+                mesenchymal_ccells_to_travel += [] if on_bottom_border else [agent for agent in self.grid.get_cell_list_contents([(x,y+1)]) if agent.agent_type == 'cell' and agent.phenotype == "mesenchymal"]
                 epithelial_ccells_to_travel  = [agent for agent in self.grid.get_cell_list_contents([(x,y)]) if agent.agent_type == 'cell' and agent.phenotype == "epithelial"]
-                epithelial_ccells_to_travel += [] if onLeftBorder   else [agent for agent in self.grid.get_cell_list_contents([(x-1,y)]) if agent.agent_type == 'cell' and agent.phenotype == "epithelial"]
-                epithelial_ccells_to_travel += [] if onRightBorder  else [agent for agent in self.grid.get_cell_list_contents([(x+1,y)]) if agent.agent_type == 'cell' and agent.phenotype == "epithelial"]
-                epithelial_ccells_to_travel += [] if onTopBorder    else [agent for agent in self.grid.get_cell_list_contents([(x,y-1)]) if agent.agent_type == 'cell' and agent.phenotype == "epithelial"]
-                epithelial_ccells_to_travel += [] if onBottomBorder else [agent for agent in self.grid.get_cell_list_contents([(x,y+1)]) if agent.agent_type == 'cell' and agent.phenotype == "epithelial"]
+                epithelial_ccells_to_travel += [] if on_left_border   else [agent for agent in self.grid.get_cell_list_contents([(x-1,y)]) if agent.agent_type == 'cell' and agent.phenotype == "epithelial"]
+                epithelial_ccells_to_travel += [] if on_right_border  else [agent for agent in self.grid.get_cell_list_contents([(x+1,y)]) if agent.agent_type == 'cell' and agent.phenotype == "epithelial"]
+                epithelial_ccells_to_travel += [] if on_top_border    else [agent for agent in self.grid.get_cell_list_contents([(x,y-1)]) if agent.agent_type == 'cell' and agent.phenotype == "epithelial"]
+                epithelial_ccells_to_travel += [] if on_bottom_border else [agent for agent in self.grid.get_cell_list_contents([(x,y+1)]) if agent.agent_type == 'cell' and agent.phenotype == "epithelial"]
         
                 #if there are not clusters at that time in the vasculature dict, create a new key for that time
                 #and add the tuple
