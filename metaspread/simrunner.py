@@ -82,7 +82,7 @@ def main(max_steps, data_collection_period, loadedSimulationPath=""):
 def run_simulation(CancerModel, N, width, height, grids_number, max_steps, loaded_max_step, data_collection_period, new_simulation_folder, simulations_dir, config_var_names, loaded_df, loadedSimulationPath=""):
 
     # Setting parameters for mesa.batch_run
-    params = {"N": N, "width": width, "height": height, "grids_number": grids_number, "max_steps": max_steps, "data_collection_period": data_collection_period, "newSimulationFolder": new_simulation_folder }
+    params = {"N": N, "width": width, "height": height, "grids_number": grids_number, "max_steps": max_steps, "data_collection_period": data_collection_period, "new_simulation_folder": new_simulation_folder }
     if loadedSimulationPath != "":
         params["loadedSimulationPath"] = loadedSimulationPath
 
