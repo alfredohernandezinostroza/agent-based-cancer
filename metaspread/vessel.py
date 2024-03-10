@@ -8,7 +8,7 @@ class Vessel(mesa.Agent):
         self.grid = grid
         self.grid_id = grid_id
         self.agent_type = "vessel"
-        self.phenotype = False #need to be able do use data collector on agents
+        self.phenotype = False #needed to be able do use data collector on agents
 
     def step(self):
         pass
