@@ -47,7 +47,7 @@ def main(maxSteps, dataCollectionPeriod, loadedSimulationPath=""):
     else:
         df = pd.DataFrame()
         loaded_max_step = 0
-        new_simulation_folder = f"Sim_maxSteps-{maxSteps}_stepsize-{dataCollectionPeriod}_N-{N}_gridsNumber-{grids_number}"
+        new_simulation_folder = f"Sim-max_steps-{max_steps}-stepsize-{dataCollectionPeriod}-cells-{N}-gridsNumber-{grids_number}"
 
         # Creates the path for the new simulation
         path = os.path.join(simulations_dir, new_simulation_folder)
