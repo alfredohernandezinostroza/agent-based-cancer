@@ -22,6 +22,24 @@
             "program": "D:\\OneDrive - Universidad de Chile\\CancerProjectApril\\interactive.py",
             "console": "integratedTerminal",
             "justMyCode": false
+        },
+        {
+            "name": "Python: run",
+            "type": "python",
+            "request": "launch",
+            "python": "C:\\Users\\alfre\\miniconda3\\envs\\cancer\\python.exe",
+            "module": "metaspread",
+            "args": ["run", "30", "2"],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "name": "Python: postprocess data",
+            "type": "python",
+            "request": "launch",
+            "python": "C:\\Users\\alfre\\miniconda3\\envs\\cancer\\python.exe",
+            "module": "metaspread",
+            "args": ["postprocess", "data", "Continuing_Continuing_Sim-max_steps-20-collection_period-2-cells-388-grids_number-3"],
+            "cwd": "${workspaceFolder}"
         }
     ]
 }
