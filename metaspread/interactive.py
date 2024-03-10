@@ -51,7 +51,7 @@ def load_simulation_menu():
     total_steps = get_int_input("Select additional number of steps until the loaded simulation will continue: ")
     interval_steps = get_int_input("Select the size of the intervals for which the information will be collected: ")
     print("Loading simulation...")
-    simrunner.main(total_steps, interval_steps, loadedSimulationPath=os.path.join(os.getcwd(),directory_path, selected_option))
+    simrunner.main(total_steps, interval_steps, loaded_simulation_path=os.path.join(os.getcwd(),directory_path, selected_option))
 
 def postprocessing_menu():
     global selected_option, selected_option_index, banner_message, options_list

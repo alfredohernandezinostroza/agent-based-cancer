@@ -12,13 +12,13 @@ import metaspread.configs
 
 # To run this code you must be in the parent folder of the program
 
-def main(max_steps, data_collection_period, loadedSimulationPath=""):
+def main(max_steps, data_collection_period, loaded_simulation_path=""):
 
     # load configs file from a previous simulation or loads the general configs file
-    print(loadedSimulationPath)
-    loadedSimulationPath= loadedSimulationPath.strip('\"')
-    if loadedSimulationPath != "":
-        configs_path = os.path.join(loadedSimulationPath, "configs.csv")
+    print(loaded_simulation_path)
+    loaded_simulation_path= loaded_simulation_path.strip('\"')
+    if loaded_simulation_path != "":
+        configs_path = os.path.join(loaded_simulation_path, "configs.csv")
         # config_var_names = Classes.configs.load_simulation_configs_for_data_generation(configs_path)
         config_var_names = metaspread.configs.load_simulation_configs_for_reloaded_simulation(configs_path)
     else:
@@ -35,11 +35,11 @@ def main(max_steps, data_collection_period, loadedSimulationPath=""):
     # Name of the directories
     simulations_dir = "Simulations"
     os.makedirs(simulations_dir, exist_ok=True)
-    if loadedSimulationPath != "":
-        new_simulation_folder = loadedSimulationPath.split('\\')[-1]
+    if loaded_simulation_path != "":
+        new_simulation_folder = loaded_simulation_path.split('\\')[-1]
         new_simulation_folder = "Continuing_" + new_simulation_folder
         new_simulation_path = os.path.join(simulations_dir, new_simulation_folder)
-        shutil.copytree(loadedSimulationPath, new_simulation_path)
+        shutil.copytree(loaded_simulation_path, new_simulation_path)
         cells_path = os.path.join(new_simulation_path, "CellsData.csv")
         df = pd.read_csv(cells_path, index_col = 0, converters={"Position": ast.literal_eval})
         loaded_max_step = max(df["Step"])
@@ -73,18 +73,18 @@ def main(max_steps, data_collection_period, loadedSimulationPath=""):
             return print("This simulation already exists!")
 
         # Run the simulation and saves the data
-    run_simulation(metaspread.CancerModel, N, width, height, grids_number, max_steps, loaded_max_step, data_collection_period, new_simulation_folder, simulations_dir, config_var_names, df, loadedSimulationPath)
+    run_simulation(metaspread.CancerModel, N, width, height, grids_number, max_steps, loaded_max_step, data_collection_period, new_simulation_folder, simulations_dir, config_var_names, df, loaded_simulation_path)
 
 
     return print('Finished the simulation')
 
 
-def run_simulation(CancerModel, N, width, height, grids_number, max_steps, loaded_max_step, data_collection_period, new_simulation_folder, simulations_dir, config_var_names, loaded_df, loadedSimulationPath=""):
+def run_simulation(CancerModel, N, width, height, grids_number, max_steps, loaded_max_step, data_collection_period, new_simulation_folder, simulations_dir, config_var_names, loaded_df, loaded_simulation_path=""):
 
     # Setting parameters for mesa.batch_run
     params = {"N": N, "width": width, "height": height, "grids_number": grids_number, "max_steps": max_steps, "data_collection_period": data_collection_period, "new_simulation_folder": new_simulation_folder }
-    if loadedSimulationPath != "":
-        params["loadedSimulationPath"] = loadedSimulationPath
+    if loaded_simulation_path != "":
+        params["loaded_simulation_path"] = loaded_simulation_path
 
     # Saves the simulation configuration
     print(f"\t Saving all the simulations parameters at: {os.path.join(simulations_dir, new_simulation_folder, 'configs.csv')}")
