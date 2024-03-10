@@ -30,9 +30,11 @@ def main(max_steps, data_collection_period, loaded_simulation_path=""):
     simulations_dir = "Simulations"
     os.makedirs(simulations_dir, exist_ok=True)
     if loaded_simulation_path != "":
-        new_simulation_folder = loaded_simulation_path.split('\\')[-1]
+        new_simulation_folder = os.path.normpath(loaded_simulation_path)
+        new_simulation_folder = os.path.basename(new_simulation_folder)
         new_simulation_folder = "Continuing_" + new_simulation_folder
         new_simulation_path = os.path.join(simulations_dir, new_simulation_folder)
+        print(f"Copying simulation in {loaded_simulation_path} to {new_simulation_path}")
         shutil.copytree(loaded_simulation_path, new_simulation_path)
         cells_path = os.path.join(new_simulation_path, "CellsData.csv")
         df = pd.read_csv(cells_path, index_col = 0, converters={"Position": ast.literal_eval})
@@ -40,7 +42,7 @@ def main(max_steps, data_collection_period, loaded_simulation_path=""):
     else:
         df = pd.DataFrame()
         loaded_max_step = 0
-        new_simulation_folder = f"Sim-max_steps-{max_steps}-stepsize-{data_collection_period}-cells-{number_of_initial_cells}-gridsNumber-{grids_number}"
+        new_simulation_folder = f"Sim-max_steps-{max_steps}-collection_period-{data_collection_period}-cells-{number_of_initial_cells}-grids_number-{grids_number}"
 
         # Creates the path for the new simulation
         path = os.path.join(simulations_dir, new_simulation_folder)
