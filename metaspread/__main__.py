@@ -6,9 +6,7 @@ import metaspread.graphgenerator as graphgenerator
 import metaspread.videogenerator as videogenerator
 
 if __name__ == "__main__":
-    if len(sys.argv) == 1:
-        from metaspread.interactive import *
-        main_menu()
+    #simple checks for misspellings in the arguments
     if len(sys.argv) >= 3 and sys.argv[1] == "postprocess":
         if sys.argv[2] == "graphic":
             raise Exception("\nError! No known command for postprocessing named \'graphic\'. Did you mean \'graphics\'?")
@@ -17,13 +15,17 @@ if __name__ == "__main__":
         elif sys.argv[2] != "data" and sys.argv[2] != "videos" and sys.argv[2] != "graphics":
             error_string = f"\nError! No known command for postprocessing named \'{sys.argv[2]}\'. Use \'data\', \'videos\' or \'graphics\'."
             raise Exception(error_string)
-    if len(sys.argv) == 2:
+    #actual processing of the arguments
+    if len(sys.argv) == 1:
+        from metaspread.interactive import *
+        main_menu()
+    elif len(sys.argv) == 2:
         if sys.argv[1] == "interactive":
             from metaspread.interactive import *
             main_menu()
         else:
             raise Exception("Incorrent amount of or unrecognized arguments!")
-    if len(sys.argv) == 3:
+    elif len(sys.argv) == 3:
         raise Exception("Incorrent amount of or unrecognized arguments!")
     elif len(sys.argv) == 4:
         #CORRECT ONES
