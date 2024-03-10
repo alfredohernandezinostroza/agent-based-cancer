@@ -9,7 +9,7 @@ class CancerCell(mesa.Agent):
         self.grid = grid
         self.grid_id = grid_id
         self.phenotype = phenotype
-        if self.phenotype == mesenchymal:
+        if self.phenotype == "mesenchymal":
             self.diff_coeff = dM
         else:
             self.diff_coeff = dE
