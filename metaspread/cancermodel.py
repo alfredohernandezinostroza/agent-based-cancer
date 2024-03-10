@@ -151,8 +151,7 @@ class CancerModel(mesa.Model):
 
         Input: none
         Returns: none
-        """        
-        # print("=========================================")
+        """       
         if self.schedule.time in self.vasculature: # Add keys
             self.disaggregate_clusters(self.schedule.time)
             surviving_clusters = [cluster for cluster in self.vasculature[self.schedule.time] if self.random.random() < get_cluster_survival_probability(cluster)]
