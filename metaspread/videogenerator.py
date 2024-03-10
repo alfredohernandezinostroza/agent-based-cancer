@@ -199,13 +199,3 @@ def generate_videos(nameOfTheSimulation, frameRate):
     print(f'\nFinished!')
 
 
-if __name__ == "__main__":
-
-    # CHANGE THIS LINE according to the simulation you want to plot the graphs
-    name_of_the_simulation = "Sim maxSteps-48000 stepsize-150 N-388 gridsNumber-3"
-    frameRate = 20
-
-    # This runs all the code to generate the videos
-    generate_videos(name_of_the_simulation, frameRate)
-
-

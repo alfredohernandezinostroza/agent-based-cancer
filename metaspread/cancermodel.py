@@ -7,13 +7,13 @@ import pandas as pd
 import os
 import json
 import ast
-from Classes.CancerCell import CancerCell
-from Classes.Vessel import Vessel
-from Classes.QuasiCircle import find_quasi_circle
+from metaspread.cancercell import CancerCell
+from metaspread.vessel import Vessel
+from metaspread.quasicircle import find_quasi_circle
 from matplotlib import pyplot as plt
 from matplotlib import cm
 # from Classes.configs import *
-import Classes.configs
+import metaspread.configs
 # import pickle
 
 
@@ -125,16 +125,16 @@ class CancerModel(mesa.Model):
         if loadedSimulationPath != "":
             print(f"Loaded simulation at {loadedSimulationPath}!")
             configs_path = os.path.join(loadedSimulationPath, "configs.csv")
-            config_var_names = Classes.configs.load_simulation_configs_for_reloaded_simulation(configs_path)
+            config_var_names = metaspread.configs.load_simulation_configs_for_reloaded_simulation(configs_path)
             for var in config_var_names:
-                globals()[var] = getattr(Classes.configs, var)
+                globals()[var] = getattr(metaspread.configs, var)
             self.load_previous_simulation(loadedSimulationPath)
         else:
             print("Starting simulation from zero!")
             configs_path = "simulations_configs.csv"
-            config_var_names = Classes.configs.init_simulation_configs(configs_path)
+            config_var_names = metaspread.configs.init_simulation_configs(configs_path)
             for var in config_var_names:
-                globals()[var] = getattr(Classes.configs, var)
+                globals()[var] = getattr(metaspread.configs, var)
             self._initialize_grids()
             self.doubling_time_counter_M = doubling_time_M
             self.doubling_time_counter_E = doubling_time_E
@@ -202,10 +202,10 @@ class CancerModel(mesa.Model):
                             self.schedule.add(ccell)
                         ccells_amount -= 1
                     
-        #Calculo do quimico que fomenta haptotaxis e da matriz extracelular
+        #Perform ECM and MMP@ calculations
         self.calculateEnvironment(self.mmp2, self.ecm)
         
-        # Reprodução
+        # Proliferation
         # Counters are used so when loading a simulation the behaviour does not change, compared to use self.schedule.time % doubling_time_M == 0
         if (self.doubling_time_counter_M == 0 and self.schedule.time != 0):
             self.proliferate("mesenchymal")
@@ -218,26 +218,20 @@ class CancerModel(mesa.Model):
         self.doubling_time_counter_E -= 1
         self.doubling_time_counter_M -= 1
 
-        # if (self.schedule.time % doubling_time_M == 0 and self.schedule.time != 0):
-        #     self.proliferate("mesenchymal")
-
-        # if (self.schedule.time % doubling_time_E == 0 and self.schedule.time != 0):
-        #     self.proliferate("epithelial")
-
         print(f'Step number: {self.schedule.time + self.loaded_max_step}')
         self.schedule.step()
         self.datacollector.collect(self)
 
-        #at the end of each step, check if the grid has been populated, and if it happened, store the time step when it did
+        #At the end of each step, check if the grid has been populated, and if it happened, store the time step when it did
         for index, time in enumerate(self.time_grid_got_populated):
             if time == -1: #if it has not been populated already, we check:
-                # cell_count = len([1 for agent in self.schedule.agents if agent.agent_type == "cell" and (agent.grid_id - 1) == index])
                 if self.cancer_cells_counter[index] > 0:
                     self.time_grid_got_populated[index] = self.schedule.time
 
         # Saving of non agents data
         if (self.schedule.time != 0 and (self.schedule.time % self.dataCollectionPeriod == 0)) \
             or self.schedule.time == self.maxSteps:
+            #pickling a model could be an option in the future
             # backup_file_path = os.path.join(self.simulations_dir, self.newSimulationFolder, "Backup", "backup.p")
             # with open(backup_file_path, "wb") as f:
             #     pickle.dump(self, f)
@@ -259,8 +253,8 @@ class CancerModel(mesa.Model):
             df_time_grids_got_populated.to_csv(pathToSave)
 
             # Saves vasculature data
-            vasculature_json = json.dumps(self.vasculature)
             # {key: list of clusters} -> {timestep: [(number of Mcells, number of Ecells), ..., (..., ...)]}
+            vasculature_json = json.dumps(self.vasculature)
             
             vasculatureJsonName = f"Vasculature-{self.schedule.time + self.loaded_max_step}step.json"
             pathToSave = os.path.join(self.simulations_dir, self.newSimulationFolder, "Vasculature", vasculatureJsonName)
@@ -391,15 +385,15 @@ class CancerModel(mesa.Model):
             self.grids[0].place_agent(a, (x, y))
             self.cancer_cells_counter[0] += 1
 
-            # Remove the point after it has 4 cells
+            # Remove the point after it has an amount of cells equal to the carrying capacity
             possible_places[j][2] += 1
             if possible_places[j][2] == carrying_capacity:
                 possible_places.pop(j)
 
 
         # Create agents at second grid. Useful for debugging.
-        amount_of_second_grid_CAcells = 0
-        for i in range(amount_of_second_grid_CAcells):
+        amount_of_second_grid_cancer_cells = 0
+        for i in range(amount_of_second_grid_cancer_cells):
             a = CancerCell(self.current_agent_id, self, self.grids[1], self.grid_ids[1], "mesenchymal", self.ecm[1], self.mmp2[1])
             self.current_agent_id += 1
             self.schedule.add(a)
@@ -413,10 +407,7 @@ class CancerModel(mesa.Model):
         # Create vessels
         num_normal_vessels = normal_vessels_primary
         num_ruptured_vessels = ruptured_vessels_primary
-        numVesselsSecondary = 10
-        numVesselsThird = 10 # just to test it, final code will not have 1 var to each grid
 
-        # bad code, reduce number of for and make a counter to save the index to de put in each vessel
         # creates grid with 1 where vessels must not be placed
         not_possible_array = find_quasi_circle(n_center_points_for_Vessels, self.width, self.height)[0]
         not_possible_array[:2,:] = 1
@@ -426,8 +417,6 @@ class CancerModel(mesa.Model):
         possible_places = np.where(not_possible_array == 0)
         pos_coords = [list(tup) for tup in zip(possible_places[0], possible_places[1])]
 
-        # range(2) for 1 secondary site
-        #for i in range(2):
         for i in range(len(self.grids)):
             if i == 0: # primary grid
                 temp = num_ruptured_vessels
@@ -439,7 +428,6 @@ class CancerModel(mesa.Model):
                         self.current_agent_id += 1
                         self.schedule.add(a)
                         self.grids[0].place_agent(a, (int(cell_to_place[0]), int(cell_to_place[1])))
-                        # tenho que adicionar a cruz de ruptured e remover 5 cells de pos coords
                         not_possible_array[cell_to_place[0], cell_to_place[1]] = 1
                         pos_coords.remove(cell_to_place)
                         temp -= 1
@@ -459,7 +447,6 @@ class CancerModel(mesa.Model):
                         temp -= 1
             elif i > 0: # secondary and third grid
                     for m in range(secondary_sites_vessels[i-1]):
-                        # make if to only create a vessel if given random value of x and y doesnt already has a vessel
                         a = Vessel(self.current_agent_id, self, False, self.grids[i], self.grid_ids[i])
                         self.current_agent_id += 1
                         self.schedule.add(a)

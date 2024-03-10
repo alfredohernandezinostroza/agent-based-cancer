@@ -1,6 +1,6 @@
 import mesa
-from Classes.Vessel import Vessel
-from Classes.configs import *
+from metaspread.vessel import Vessel
+from metaspread.configs import *
 
 class CancerCell(mesa.Agent):
 
@@ -89,4 +89,3 @@ class CancerCell(mesa.Agent):
         else:
             if carrying_capacity > len([cell for cell in self.grid.get_cell_list_contents([new_position]) if agent.agent_type == 'cell']):
                 self.grid.move_agent(self, new_position)
-            # self.grid.move_agent(self, new_position)

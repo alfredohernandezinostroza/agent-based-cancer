@@ -8,11 +8,11 @@ import pandas as pd
 import mesa
 import os
 # from Classes.configs import *
-import Classes.configs
+import metaspread.configs
 
 # To run this code you must be in the parent folder of the program
 
-def main_Batch(maxSteps, dataCollectionPeriod, loadedSimulationPath=""):
+def main(maxSteps, dataCollectionPeriod, loadedSimulationPath=""):
 
     # load configs file from a previous simulation or loads the general configs file
     print(loadedSimulationPath)
@@ -20,15 +20,15 @@ def main_Batch(maxSteps, dataCollectionPeriod, loadedSimulationPath=""):
     if loadedSimulationPath != "":
         configs_path = os.path.join(loadedSimulationPath, "configs.csv")
         # config_var_names = Classes.configs.load_simulation_configs_for_data_generation(configs_path)
-        config_var_names = Classes.configs.load_simulation_configs_for_reloaded_simulation(configs_path)
+        config_var_names = metaspread.configs.load_simulation_configs_for_reloaded_simulation(configs_path)
     else:
         configs_path = "simulations_configs.csv"
-        config_var_names = Classes.configs.init_simulation_configs(configs_path)
+        config_var_names = metaspread.configs.init_simulation_configs(configs_path)
     
     # Parameters for this simulation
-    N = Classes.configs.number_of_initial_cells # Number of cancer cells
-    gridsize     = Classes.configs.gridsize #PDF: 201
-    grids_number = Classes.configs.grids_number #PDF: 201
+    N = metaspread.configs.number_of_initial_cells # Number of cancer cells
+    gridsize     = metaspread.configs.gridsize #PDF: 201
+    grids_number = metaspread.configs.grids_number #PDF: 201
     width        = gridsize
     height       = gridsize
 
@@ -74,7 +74,7 @@ def main_Batch(maxSteps, dataCollectionPeriod, loadedSimulationPath=""):
             return print("This simulation already exists!")
 
         # Run the simulation and saves the data
-    run_simulation(Classes.CancerModel, N, width, height, grids_number, maxSteps, loaded_max_step, dataCollectionPeriod, new_simulation_folder, simulations_dir, config_var_names, df, loadedSimulationPath)
+    run_simulation(metaspread.CancerModel, N, width, height, grids_number, maxSteps, loaded_max_step, dataCollectionPeriod, new_simulation_folder, simulations_dir, config_var_names, df, loadedSimulationPath)
 
 
     return print('Finished the simulation')
@@ -89,7 +89,7 @@ def run_simulation(CancerModel, N, width, height, grids_number, maxSteps, loaded
 
     # Saves the simulation configuration
     print(f"Saving all the simulations parameters at: {os.path.join(simulations_dir, new_simulation_folder, 'configs.csv')}")
-    values = [getattr(Classes.configs, i) for i in config_var_names]
+    values = [getattr(metaspread.configs, i) for i in config_var_names]
     names = config_var_names
 
     #add configurations that are not in the global variables
@@ -129,9 +129,3 @@ def run_simulation(CancerModel, N, width, height, grids_number, maxSteps, loaded
     pathToSave = os.path.join(simulations_dir, new_simulation_folder, nameOfCsv)
     cells_df.to_csv(pathToSave)
     print(f'All data saved')
-
-if __name__ == "__main__":
-    maxSteps = 100
-    dataCollectionPeriod = 10
-    # This runs all the code to create folders, run the simulation and save the data
-    main_Batch(maxSteps, dataCollectionPeriod)

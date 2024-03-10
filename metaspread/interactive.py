@@ -1,10 +1,10 @@
 from pynput import keyboard
 import os
-import DataGenerator
-import GraphGenerator
-import videoGenerator
+import metaspread.datagenerator
+import metaspread.graphgenerator
+import metaspread.videogenerator
 import time
-import Batch
+import metaspread.simrunner as simrunner
 
 selected_option_index = 0
 selected_option = ""
@@ -32,7 +32,7 @@ def simulation_menu():
     print("==================================================================")
     total_steps = get_int_input("Select the total timesteps the simulation will take: ") #convert this to time and show, asking if it;s ok instead of the other comments
     interval_steps = get_int_input("Select the size of the intervals for which the information will be collected: ")
-    Batch.main_Batch(total_steps, interval_steps)
+    simrunner.main_Batch(total_steps, interval_steps)
 
 
 def load_simulation_menu():
@@ -52,7 +52,7 @@ def load_simulation_menu():
     interval_steps = get_int_input("Select the size of the intervals for which the information will be collected: ")
     os.system('cls')
     print("Loading simulation...")
-    Batch.main_Batch(total_steps, interval_steps, loadedSimulationPath=os.path.join(os.getcwd(),directory_path, selected_option))
+    simrunner.main_Batch(total_steps, interval_steps, loadedSimulationPath=os.path.join(os.getcwd(),directory_path, selected_option))
 
 def postprocessing_menu():
     global selected_option, selected_option_index, banner_message, options_list
@@ -80,20 +80,20 @@ def postprocessing_menu():
         if selected_option == "Run all":
             amount_of_pictures = get_int_input(f"Select the amount of pictures that will be produced for the graphical analysis: ")
             frame_rate = get_int_input("Select the framerate for the video.\nA framerate of 20 is suggested \nfor large simulations: ")
-            DataGenerator.generate_data(selected_simulation)
+            datagenerator.generate_data(selected_simulation)
             time.sleep(3)
-            GraphGenerator.generate_graphs(selected_simulation, amount_of_pictures)
+            graphgenerator.generate_graphs(selected_simulation, amount_of_pictures)
             time.sleep(3)
-            videoGenerator.generate_videos(selected_simulation, frame_rate)
+            videogenerator.generate_videos(selected_simulation, frame_rate)
             time.sleep(3)
         if selected_option == "Begin data analysis":
-            DataGenerator.generate_data(selected_simulation)
+            datagenerator.generate_data(selected_simulation)
             time.sleep(3)
         if selected_option == "Begin graphical analysis":
             graphical_analysis_menu(selected_simulation)
         if selected_option == "Generate videos":
             frame_rate = get_int_input("Select the framerate for the video.\nA framerate of 20 is sugggested \nfor large simulations:")
-            videoGenerator.generate_videos(selected_simulation, frame_rate)
+            videogenerator.generate_videos(selected_simulation, frame_rate)
             time.sleep(3)
 
 
@@ -111,14 +111,14 @@ def graphical_analysis_menu(selected_simulation):
         if selected_option == "Exit":
             os._exit(0)
         if selected_option == "Generate 5 picture summary":
-            GraphGenerator.generate_graphs(selected_simulation, 5)
+            graphgenerator.generate_graphs(selected_simulation, 5)
             time.sleep(3)
         if selected_option == "Custom amount of pictures":
             amount_of_pictures = get_int_input(f"Select the amount of pictures that will be produced: ")
-            GraphGenerator.generate_graphs(selected_simulation, amount_of_pictures)
+            graphgenerator.generate_graphs(selected_simulation, amount_of_pictures)
             time.sleep(3)
         if selected_option == "Generate All":
-            GraphGenerator.generate_graphs(selected_simulation)
+            graphgenerator.generate_graphs(selected_simulation)
             time.sleep(3)
 
 

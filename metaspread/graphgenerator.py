@@ -5,7 +5,7 @@ import numpy as np
 import re
 import os
 import sys
-import Classes.configs
+import metaspread.configs
 
 def get_equally_spaced_array(passed_array, number_of_elems):
     passed_array = np.array(passed_array)
@@ -28,11 +28,11 @@ def plot_cancer(figCounter, grid_id, step, real_time_at_step, simulation_path, T
     plt.scatter(Xe, Ye, marker='h', color='orange', alpha=0.1, label="Epithelial cells")
     plt.scatter(Xv, Yv, marker='.', color='red', alpha=0.8, label="Vasculature points")
     plt.scatter(Xvr, Yvr, marker='+', color='darkred', alpha=0.8, label="Ruptured vasculature points")
-    plt.xlim(0, Classes.configs.gridsize)
-    plt.ylim(0, Classes.configs.gridsize)
+    plt.xlim(0, metaspread.configs.gridsize)
+    plt.ylim(0, metaspread.configs.gridsize)
 
-    xticks = np.arange(0, Classes.configs.gridsize, step=int(Classes.configs.gridsize/6)) # 6 ticks
-    xticklabels = [str(round(j,1)) for j in np.arange(0, 2.1, step = 2/201*(Classes.configs.gridsize/6))]
+    xticks = np.arange(0, metaspread.configs.gridsize, step=int(metaspread.configs.gridsize/6)) # 6 ticks
+    xticklabels = [str(round(j,1)) for j in np.arange(0, 2.1, step = 2/201*(metaspread.configs.gridsize/6))]
     plt.xticks(xticks, xticklabels)
     plt.yticks(xticks, xticklabels)
     plt.xlabel("mm")
@@ -88,11 +88,11 @@ def plot_MMP2_or_ECM(i, step, real_time_at_step, files_path, figCounter, grid_id
         
     plt.colorbar()
 
-    plt.xlim(0, Classes.configs.gridsize)
-    plt.ylim(0, Classes.configs.gridsize)
+    plt.xlim(0, metaspread.configs.gridsize)
+    plt.ylim(0, metaspread.configs.gridsize)
 
-    xticks = np.arange(0, Classes.configs.gridsize, step=int(Classes.configs.gridsize/6)) # 6 ticks
-    xticklabels = [str(round(j,1)) for j in np.arange(0, 2.1, step = 2/201*(Classes.configs.gridsize/6))]
+    xticks = np.arange(0, metaspread.configs.gridsize, step=int(metaspread.configs.gridsize/6)) # 6 ticks
+    xticklabels = [str(round(j,1)) for j in np.arange(0, 2.1, step = 2/201*(metaspread.configs.gridsize/6))]
     plt.xticks(xticks, xticklabels)
     plt.yticks(xticks, xticklabels)
     plt.xlabel("mm")
@@ -114,8 +114,8 @@ def plot_histogram(histogram_csv_file_path, all_histogram_images_path, step, rea
     plt.ylabel('Nr. grid-points with\na given nr. of cells')
     plt.title('Vasculature Cell Counts')
     plt.bar(histogram['Bins'], histogram['Frequency'])
-    plt.xticks(range(Classes.configs.carrying_capacity + 1))
-    plt.xlim([-1, Classes.configs.carrying_capacity + 1])
+    plt.xticks(range(metaspread.configs.carrying_capacity + 1))
+    plt.xlim([-1, metaspread.configs.carrying_capacity + 1])
     plt.savefig(path_to_save)
 
 def plot_vasculature_graphs(vasculature_df, pathToSave, max_step, real_delta_time):
@@ -176,8 +176,8 @@ def plot_radius_diameter_history(df, pathToSave, max_step, real_delta_time):
     figure_path = os.path.join(pathToSave, 'Radius and diameter for Grid 1.png')
     if not os.path.isfile(figure_path):
         # Prepare the data for the bar chart
-        radius = df["Radius"]*Classes.configs.xh*(0.001/0.005)*10  #getting distance in mm
-        diameter = df["Diameter"]*Classes.configs.xh*(0.001/0.005)*10 #getting distance in mm
+        radius = df["Radius"]*metaspread.configs.xh*(0.001/0.005)*10  #getting distance in mm
+        diameter = df["Diameter"]*metaspread.configs.xh*(0.001/0.005)*10 #getting distance in mm
         time_steps = df["Step"]
         plt.style.use("seaborn-v0_8-darkgrid")
 
@@ -206,7 +206,7 @@ def generate_graphs(name_of_the_simulation, amount_of_pictures=0):
     simulations_dir = "Simulations"
     simulation_path = os.path.join(simulations_dir, name_of_the_simulation)
     configs_path = os.path.join(simulation_path, "configs.csv")
-    Classes.configs.load_simulation_configs_for_data_generation(configs_path)
+    metaspread.configs.load_simulation_configs_for_data_generation(configs_path)
     print(f'Analyzing data in the folder {simulation_path}\n')
 
     # Get the agents' data filename 
@@ -263,10 +263,10 @@ def generate_graphs(name_of_the_simulation, amount_of_pictures=0):
     Mmp2DataPath = os.path.join(dataPath, "Mmp2 evolution")
     VasculatureDataPath = os.path.join(dataPath, "Vasculature evolution")
 
-    step_size = Classes.configs.dataCollectionPeriod
-    real_delta_time = 40 * Classes.configs.th/0.001 #in seconds (the original ratio is 40 seconds/0.001 non-dimensional time)
-    grids_number = Classes.configs.grids_number
-    configs_max_step = Classes.configs.maxSteps
+    step_size = metaspread.configs.dataCollectionPeriod
+    real_delta_time = 40 * metaspread.configs.th/0.001 #in seconds (the original ratio is 40 seconds/0.001 non-dimensional time)
+    grids_number = metaspread.configs.grids_number
+    configs_max_step = metaspread.configs.maxSteps
     df = pd.read_csv(first_csv_path, converters={"Position": ast.literal_eval})
     df = df[["Step", "Position", "Phenotype", "Grid", "Agent Type", "Ruptured"]]
     max_step = max(df["Step"])
@@ -409,7 +409,7 @@ def generate_vasculature_graphs_only(name_of_the_simulation):
     simulations_dir = "Simulations"
     simulation_path = os.path.join(simulations_dir, name_of_the_simulation)
     configs_path = os.path.join(simulation_path, "configs.csv")
-    Classes.configs.load_simulation_configs_for_data_generation(configs_path)
+    metaspread.configs.load_simulation_configs_for_data_generation(configs_path)
     print(f'\tAnalyzing data in the folder {simulation_path}\n')
 
     # Get the vasculature data filename
@@ -428,9 +428,9 @@ def generate_vasculature_graphs_only(name_of_the_simulation):
     dataPath = os.path.join(simulation_path, dataFolder)
     VasculatureDataPath = os.path.join(dataPath, "Vasculature evolution")
 
-    max_step = Classes.configs.maxSteps
-    step_size = Classes.configs.dataCollectionPeriod
-    grids_number = Classes.configs.grids_number
+    max_step = metaspread.configs.maxSteps
+    step_size = metaspread.configs.dataCollectionPeriod
+    grids_number = metaspread.configs.grids_number
 
     # Path to save all the images:
     imagesFolder = "Graphical analysis"

@@ -2,7 +2,9 @@ from collections import defaultdict
 from mesa.visualization.ModularVisualization import VisualizationElement
 
 class MultipleCanvasGrid(VisualizationElement):
-    """A CanvasGrid object uses a user-provided portrayal method to generate a
+    """MESA's modified CanvasGrid to allow fow having multiple secondary sites
+    
+    A CanvasGrid object uses a user-provided portrayal method to generate a
     portrayal for each object. A portrayal is a JSON-ready dictionary which
     tells the relevant JavaScript code (GridDraw.js) where to draw what shape.
 
@@ -101,4 +103,3 @@ class MultipleCanvasGrid(VisualizationElement):
                         grid_state[portrayal["Layer"]].append(portrayal)
 
         return grid_state
-

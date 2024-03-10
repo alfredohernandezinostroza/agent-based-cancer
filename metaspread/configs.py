@@ -1,4 +1,5 @@
 import pandas as pd
+import os
 import ast
 
 def init_simulation_configs(path):
@@ -19,8 +20,8 @@ def init_simulation_configs(path):
     error_string = ""
     if sum(extravasation_probs) != 1:
         error_string += "Extravasation probabilities must sum 1!\n"
-    if len(extravasation_probs) != grids_number:
-        error_string += "There must be as many Extravasation probabilities as the value of grids_number!\n"
+    if len(extravasation_probs) != grids_number - 1:
+        error_string += "There must be as many Extravasation probabilities as the value of (grids_number - 1)!\n"
     if len(secondary_sites_vessels) != grids_number-1:
         error_string += "There must be as many secondary site vessels as the value of grids_number - 1!\n"
     if mesenchymal_proportion + epithelial_proportion != 1:
@@ -67,3 +68,18 @@ def load_simulation_configs_for_reloaded_simulation(path):
     dict_configs = dict(zip(df_configs["Names"], df_configs["Values"]))
     globals().update(dict_configs)  
     return(list(df_configs["Names"]))
+
+def generate_default_configs():
+    """Creates a default simulation_configs.csv file"""
+    names = ["th","tha","xh","xha","dM","dE","phiM","phiE","dmmp","theta","Lambda","gamma1","gamma2","vasculature_time","doubling_time_M","doubling_time_E","single_cell_survival","cluster_survival","extravasation_probs","dissagreggation_prob","carrying_capacity","normal_vessels_primary","ruptured_vessels_primary","secondary_sites_vessels","n_center_points_for_tumor","n_center_points_for_Vessels","gridsize","grids_number","mesenchymal_proportion","epithelial_proportion","number_of_initial_cells"]
+    values = [0.001,0.001,0.005,0.005,1e-4,5e-4,0.0005,0.0005,0.001,0.195,0.1,1,1,180,2000,3000,5e-04,0.025,[0.75, 0.25],0.5,4,8,2,[10, 10],97,200,201,3,0.6,0.4,388]
+    default_configs = pd.DataFrame({"Names": names, "Values": values})
+    default_configs.to_csv("simulations_configs.csv", index=False)
+
+def check_if_configs_are_present():
+    """Checks if a configs file is present in the current directory"""
+    if not os.path.isfile("simulations_configs.csv"):
+        print("Configs file simulations_configs.csv not found! Creating a configs file with default values.")
+        generate_default_configs()
+    else:
+        print("Configs file found!")

@@ -6,7 +6,7 @@ import numpy as np
 import re
 import os
 import json
-import Classes.configs
+import metaspread.configs
 
 # To run this code you must be in the parent folder of agent-based-cancer
 
@@ -46,7 +46,7 @@ def save_cancer(coords_list, grid_id, step, real_time_at_step, TumorDataPath):
         position_repetition_count = df_positions['Position'].value_counts()
         histogram = position_repetition_count.value_counts()
         histogram = pd.DataFrame({'Bins': histogram.index, 'Frequency': histogram.values})
-        number_of_empty_positions = Classes.configs.gridsize * Classes.configs.gridsize - len(position_repetition_count)
+        number_of_empty_positions = metaspread.configs.gridsize * metaspread.configs.gridsize - len(position_repetition_count)
         new_row = pd.DataFrame({'Bins': [0], 'Frequency': [number_of_empty_positions]})
         histogram = pd.concat([histogram, new_row])
         histogram.to_csv(path)
@@ -155,7 +155,7 @@ def generate_data(nameOfTheSimulation):
     SimulationPath = os.path.join("Simulations", nameOfTheSimulation)
     
     configs_path = os.path.join(SimulationPath, "configs.csv")
-    Classes.configs.load_simulation_configs_for_data_generation(configs_path)
+    metaspread.configs.load_simulation_configs_for_data_generation(configs_path)
     
     print(f'\tAnalyzing data in the folder {SimulationPath}\n')
 
@@ -198,10 +198,10 @@ def generate_data(nameOfTheSimulation):
         print("No .json vasculature data found in directory:", SimulationPath)
         return
 
-    step_size = Classes.configs.dataCollectionPeriod
-    real_delta_time = 40 * Classes.configs.th/0.001 #in seconds (the original ratio is 40 seconds/0.001 non-dimensional time)
-    grids_number = Classes.configs.grids_number
-    configs_max_step = Classes.configs.maxSteps
+    step_size = metaspread.configs.dataCollectionPeriod
+    real_delta_time = 40 * metaspread.configs.th/0.001 #in seconds (the original ratio is 40 seconds/0.001 non-dimensional time)
+    grids_number = metaspread.configs.grids_number
+    configs_max_step = metaspread.configs.maxSteps
     all_cells_dataframe = pd.read_csv(all_cells_filename, converters={"Position": ast.literal_eval})
     all_cells_dataframe = all_cells_dataframe[["Step", "Position", "Phenotype", "Grid", "Agent Type", "Ruptured"]]
     max_step = max(all_cells_dataframe["Step"])
@@ -272,7 +272,7 @@ def generate_data_vasculature_only(nameOfTheSimulation):
     SimulationPath = os.path.join("Simulations", nameOfTheSimulation)
     
     configs_path = os.path.join(SimulationPath, "configs.csv")
-    Classes.configs.load_simulation_configs_for_data_generation
+    metaspread.configs.load_simulation_configs_for_data_generation
 
     # Get the vasculature data filename
     VasculaturePath = os.path.join(SimulationPath, "Vasculature")
@@ -294,8 +294,8 @@ def generate_data_vasculature_only(nameOfTheSimulation):
         return
 
     print("Loading CellsData.csv. This might take a minute...")
-    step_size = Classes.configs.dataCollectionPeriod
-    configs_max_step = Classes.configs.maxSteps
+    step_size = metaspread.configs.dataCollectionPeriod
+    configs_max_step = metaspread.configs.maxSteps
     all_cells_dataframe = pd.read_csv(all_cells_filename, converters={"Position": ast.literal_eval})
     all_cells_dataframe = all_cells_dataframe[["Step", "Position", "Phenotype", "Grid", "Agent Type", "Ruptured"]]
     max_step = max(all_cells_dataframe["Step"])
