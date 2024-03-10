@@ -88,15 +88,15 @@ class CancerModel(mesa.Model):
     ---------------
     _initialize_grids__()
         initialize the grid with the initial bessel and cancer cell population
-    proliferate(cellType)
-        Duplicates every cancer cell in the model of the cellType phenotype
-    calculateEnvironments(mmp2, ecm)
+    proliferate(cell_type)
+        Duplicates every cancer cell in the model of the cell_type phenotype
+    calculate_environments(mmp2, ecm)
         Calculates the next step for the given arrays of mmp2 and ecm concentrations
     disaggregate_clusters(time)
         For a given time, it will dissagregate single cells from clusters
     """
 
-    def __init__(self, N, width, height, grids_number, max_steps, data_collection_period, new_simulation_folder, loadedSimulationPath="", seed=None):
+    def __init__(self, N, width, height, grids_number, max_steps, data_collection_period, new_simulation_folder, loaded_simulation_path="", seed=None):
         super().__init__()  
         self.simulations_dir = "Simulations"
         self.vasculature = {}
@@ -109,8 +109,8 @@ class CancerModel(mesa.Model):
         self.max_steps = max_steps
         self.data_collection_period = data_collection_period
         self.new_simulation_folder  = new_simulation_folder
-        self.mesenchymalCount = [np.zeros((width, height), dtype=float) for _ in range(grids_number)]
-        self.epithelialCount = [np.zeros((width, height), dtype=float) for _ in range(grids_number)]
+        self.mesenchymal_count = [np.zeros((width, height), dtype=float) for _ in range(grids_number)]
+        self.epithelial_count = [np.zeros((width, height), dtype=float) for _ in range(grids_number)]
         self.grids_number = grids_number
         self.grids = [mesa.space.MultiGrid(width, height, False) for _ in range(self.grids_number)]
         self.grid_ids = [i+1 for i in range(self.grids_number)]
@@ -122,13 +122,13 @@ class CancerModel(mesa.Model):
         self.ecm = [np.ones((2, width, height), dtype=float) for _ in range(grids_number)]
         self.loaded_max_step = 0
 
-        if loadedSimulationPath != "":
-            print(f"Loaded simulation at {loadedSimulationPath}!")
-            configs_path = os.path.join(loadedSimulationPath, "configs.csv")
+        if loaded_simulation_path != "":
+            print(f"Loaded simulation at {loaded_simulation_path}!")
+            configs_path = os.path.join(loaded_simulation_path, "configs.csv")
             config_var_names = metaspread.configs.load_simulation_configs_for_reloaded_simulation(configs_path)
             for var in config_var_names:
                 globals()[var] = getattr(metaspread.configs, var)
-            self.load_previous_simulation(loadedSimulationPath)
+            self.load_previous_simulation(loaded_simulation_path)
         else:
             print("Starting simulation from zero!")
             configs_path = "simulations_configs.csv"
@@ -160,10 +160,10 @@ class CancerModel(mesa.Model):
                 selected_site = self.random.choices(range(1,self.grids_number), weights=extravasation_probs[0:self.grids_number-1])[0]
                 arriving_point = self.random.choice(self.grid_vessels_positions[selected_site])
                 x,y = arriving_point
-                onLeftBorder    = self.grids[selected_site].out_of_bounds((x-1,y))
-                onRightBorder   = self.grids[selected_site].out_of_bounds((x+1,y))
-                onTopBorder     = self.grids[selected_site].out_of_bounds((x,y+1))
-                onBottomBorder  = self.grids[selected_site].out_of_bounds((x,y-1))
+                on_left_border    = self.grids[selected_site].out_of_bounds((x-1,y))
+                on_right_border   = self.grids[selected_site].out_of_bounds((x+1,y))
+                on_top_border     = self.grids[selected_site].out_of_bounds((x,y+1))
+                on_bottom_border  = self.grids[selected_site].out_of_bounds((x,y-1))
                 possible_places = self.grids[selected_site].get_neighborhood(arriving_point, moore=False, include_center=False)
                 number_of_ccells_in_arriving_point ={}
                 for x2,y2 in possible_places:
@@ -171,28 +171,28 @@ class CancerModel(mesa.Model):
                 for tuple_index, ccells_amount in enumerate(cluster):
                     cell_type = "mesenchymal" if tuple_index == 0 else "epithelial"
                     while ccells_amount > 0:
-                        if not onLeftBorder and carrying_capacity > number_of_ccells_in_arriving_point[x-1,y]:
+                        if not on_left_border and carrying_capacity > number_of_ccells_in_arriving_point[x-1,y]:
                             ccell = CancerCell(self.current_agent_id, self, self.grids[selected_site], self.grid_ids[selected_site], cell_type, self.ecm[selected_site], self.mmp2[selected_site])
                             self.current_agent_id += 1
                             self.grids[selected_site].place_agent(ccell, (x-1,y)) 
                             number_of_ccells_in_arriving_point[x-1,y] += 1
                             self.cancer_cells_counter[selected_site] += 1
                             self.schedule.add(ccell)
-                        elif not onRightBorder and carrying_capacity > number_of_ccells_in_arriving_point[x+1,y]:
+                        elif not on_right_border and carrying_capacity > number_of_ccells_in_arriving_point[x+1,y]:
                             ccell = CancerCell(self.current_agent_id, self, self.grids[selected_site], self.grid_ids[selected_site], cell_type, self.ecm[selected_site], self.mmp2[selected_site])
                             self.current_agent_id += 1
                             self.grids[selected_site].place_agent(ccell, (x+1,y))
                             number_of_ccells_in_arriving_point[x+1,y] += 1
                             self.cancer_cells_counter[selected_site] += 1
                             self.schedule.add(ccell)
-                        elif not onBottomBorder and carrying_capacity > number_of_ccells_in_arriving_point[x,y-1]:
+                        elif not on_bottom_border and carrying_capacity > number_of_ccells_in_arriving_point[x,y-1]:
                             ccell = CancerCell(self.current_agent_id, self, self.grids[selected_site], self.grid_ids[selected_site], cell_type, self.ecm[selected_site], self.mmp2[selected_site])
                             self.current_agent_id += 1
                             self.grids[selected_site].place_agent(ccell, (x,y-1))
                             number_of_ccells_in_arriving_point[x,y-1] += 1
                             self.cancer_cells_counter[selected_site] += 1
                             self.schedule.add(ccell)
-                        elif not onTopBorder and carrying_capacity > number_of_ccells_in_arriving_point[x,y+1]:
+                        elif not on_top_border and carrying_capacity > number_of_ccells_in_arriving_point[x,y+1]:
                             ccell = CancerCell(self.current_agent_id, self, self.grids[selected_site], self.grid_ids[selected_site], cell_type, self.ecm[selected_site], self.mmp2[selected_site])
                             self.current_agent_id += 1
                             self.grids[selected_site].place_agent(ccell, (x,y+1))
@@ -202,7 +202,7 @@ class CancerModel(mesa.Model):
                         ccells_amount -= 1
                     
         #Perform ECM and MMP@ calculations
-        self.calculateEnvironment(self.mmp2, self.ecm)
+        self.calculate_environment(self.mmp2, self.ecm)
         
         # Proliferation
         # Counters are used so when loading a simulation the behaviour does not change, compared to use self.schedule.time % doubling_time_M == 0
@@ -238,27 +238,27 @@ class CancerModel(mesa.Model):
             for grid_id in self.grid_ids:
                 new_mmp2_df = pd.DataFrame(self.mmp2[grid_id-1][0,:,:])
                 mmp2CsvName = f"Mmp2-{grid_id}grid-{self.schedule.time + self.loaded_max_step}step.csv"
-                pathToSave = os.path.join(self.simulations_dir, self.new_simulation_folder, "Mmp2", mmp2CsvName)
-                new_mmp2_df.to_csv(pathToSave)
+                path_to_save = os.path.join(self.simulations_dir, self.new_simulation_folder, "Mmp2", mmp2CsvName)
+                new_mmp2_df.to_csv(path_to_save)
 
                 new_ecm_df = pd.DataFrame(self.ecm[grid_id-1][0,:,:])
                 EcmCsvName = f"Ecm-{grid_id}grid-{self.schedule.time + self.loaded_max_step}step.csv"
-                pathToSave = os.path.join(self.simulations_dir, self.new_simulation_folder, "Ecm", EcmCsvName)
-                new_ecm_df.to_csv(pathToSave)
+                path_to_save = os.path.join(self.simulations_dir, self.new_simulation_folder, "Ecm", EcmCsvName)
+                new_ecm_df.to_csv(path_to_save)
 
                 df_time_grids_got_populated[f"Time when grid {grid_id} was first populated"] = [self.time_grid_got_populated[grid_id-1]]
                 df_time_grids_got_populated_csv_name = f"Cells-are-present-grid-{grid_id}-{self.schedule.time + self.loaded_max_step}step.csv"
-            pathToSave = os.path.join(self.simulations_dir, self.new_simulation_folder, "Time when grids were populated", df_time_grids_got_populated_csv_name)
-            df_time_grids_got_populated.to_csv(pathToSave)
+            path_to_save = os.path.join(self.simulations_dir, self.new_simulation_folder, "Time when grids were populated", df_time_grids_got_populated_csv_name)
+            df_time_grids_got_populated.to_csv(path_to_save)
 
             # Saves vasculature data
             # {key: list of clusters} -> {timestep: [(number of Mcells, number of Ecells), ..., (..., ...)]}
             vasculature_json = json.dumps(self.vasculature)
             
             vasculature_json_name = f"Vasculature-{self.schedule.time + self.loaded_max_step}step.json"
-            pathToSave = os.path.join(self.simulations_dir, self.new_simulation_folder, "Vasculature", vasculature_json_name)
+            path_to_save = os.path.join(self.simulations_dir, self.new_simulation_folder, "Vasculature", vasculature_json_name)
             
-            with open(pathToSave, 'w') as f:
+            with open(path_to_save, 'w') as f:
                 f.write(vasculature_json)
                 
             # Saves cancer cells data as a backup in case the simulation fails
@@ -270,14 +270,14 @@ class CancerModel(mesa.Model):
                 df_step_model_data = pd.DataFrame(step_model_data)
                 df_step_model_data["Step"] = step + self.loaded_max_step
                 df_current_model_data = pd.concat([df_current_model_data, df_step_model_data])
-            pathToSave = os.path.join(self.simulations_dir, self.new_simulation_folder, f'CellsData.csv')
-            df_current_model_data.to_csv(pathToSave)
+            path_to_save = os.path.join(self.simulations_dir, self.new_simulation_folder, f'CellsData.csv')
+            df_current_model_data.to_csv(path_to_save)
 
 
 
-    def proliferate(self, cellType):
+    def proliferate(self, cell_type):
         """"
-        Duplicates every cell of cellType phenotype in every site of the model
+        Duplicates every cell of cell_type phenotype in every site of the model
 
         Input: none
         Returns: none
@@ -286,7 +286,7 @@ class CancerModel(mesa.Model):
             if agent.agent_type == "cell":
                 x, y = agent.pos
                 amount_of_cells = len([cell for cell in agent.grid.get_cell_list_contents([(x, y)]) if cell.agent_type == "cell"])
-                if carrying_capacity > amount_of_cells and agent.phenotype == cellType:
+                if carrying_capacity > amount_of_cells and agent.phenotype == cell_type:
                     # print("Created new cell!!")
                     new_cell = CancerCell(self.current_agent_id, self, agent.grid, agent.grid_id, agent.phenotype, agent.ecm, agent.mmp2)
                     self.current_agent_id += 1
@@ -296,7 +296,7 @@ class CancerModel(mesa.Model):
         
 
 
-    def load_previous_simulation(self, pathToSimulation):
+    def load_previous_simulation(self, path_to_simulation):
         """
         Loads the last step of a previously computed simulation as the initial condition of this model
 
@@ -305,8 +305,8 @@ class CancerModel(mesa.Model):
         """
         #load mmp2 and ecm
         for grid_number in range(self.grids_number):
-            mmp2_files_path = os.path.join(pathToSimulation, "Mmp2")
-            ecm_files_path  = os.path.join(pathToSimulation, "Ecm")
+            mmp2_files_path = os.path.join(path_to_simulation, "Mmp2")
+            ecm_files_path  = os.path.join(path_to_simulation, "Ecm")
             mmp2_files = os.listdir(mmp2_files_path)
             ecm_files  = os.listdir(ecm_files_path)
             mmp2_files.sort(key = lambda file_name: int(file_name.split('step')[0][11:]))
@@ -316,7 +316,7 @@ class CancerModel(mesa.Model):
             self.ecm[grid_number][0,:,:]  = pd.read_csv(last_state_of_ecm_filepath, index_col=0).to_numpy(dtype=float)
             self.mmp2[grid_number][0,:,:] = pd.read_csv(last_state_of_mmp2_filepath, index_col=0).to_numpy(dtype=float)
 
-        path = os.path.join(pathToSimulation, "CellsData.csv")
+        path = os.path.join(path_to_simulation, "CellsData.csv")
         previous_sim_df = pd.read_csv(path, converters={"Position": ast.literal_eval})
         last_step = previous_sim_df["Step"].max()
         self.loaded_max_step = last_step
@@ -342,7 +342,7 @@ class CancerModel(mesa.Model):
             self.grid_vessels_positions[current_grid_number] += [row["Position"]]
 
         #load vasculature
-        vasculature_path = os.path.join(pathToSimulation, "Vasculature")
+        vasculature_path = os.path.join(path_to_simulation, "Vasculature")
         vasculature_files = os.listdir(vasculature_path)
         vasculature_files.sort(key = lambda file_name: int(file_name.split('step')[0][12:]))
         last_state_of_vasculature_filepath = os.path.join(vasculature_path,vasculature_files[-1])
@@ -454,35 +454,35 @@ class CancerModel(mesa.Model):
                         self.grids[i].place_agent(a, (x,y))
                         self.grid_vessels_positions[i] += [(x,y)]
                 
-    def calculateEnvironment(self, mmp2, ecm):
+    def calculate_environment(self, mmp2, ecm):
         global th
         for i in range(len(mmp2)):
             for cell in self.grids[i].coord_iter():
                 cell_contents, (x, y) = cell
                 diff = 0
-                self.mesenchymalCount[i][x,y] = 0
-                self.epithelialCount[i][x,y] = 0
-                for cancerCell in cell_contents:
-                    if isinstance(cancerCell, CancerCell):
-                        if cancerCell.phenotype == "mesenchymal":
-                            self.mesenchymalCount[i][x,y] += 1
+                self.mesenchymal_count[i][x,y] = 0
+                self.epithelial_count[i][x,y] = 0
+                for cancer_cell in cell_contents:
+                    if isinstance(cancer_cell, CancerCell):
+                        if cancer_cell.phenotype == "mesenchymal":
+                            self.mesenchymal_count[i][x,y] += 1
                             diff = dM
-                        elif cancerCell.phenotype == "epithelial":
-                            self.epithelialCount[i][x,y] += 1
+                        elif cancer_cell.phenotype == "epithelial":
+                            self.epithelial_count[i][x,y] += 1
                             diff = dE
                         else:
                             raise Exception("Unknown phenotype")
-                onLeftBorder = self.grids[i].out_of_bounds((x-1,y))
-                onRightBorder = self.grids[i].out_of_bounds((x+1,y))
-                onTopBorder = self.grids[i].out_of_bounds((x,y-1))
-                onBottomBorder = self.grids[i].out_of_bounds((x,y+1))
-                mmp2[i][1,x,y]=dmmp*tha/xha**2*((mmp2[i][0,x+1,y] if not onRightBorder else mmp2[i][0,x-1,y])\
-                        +(mmp2[i][0,x-1,y] if not onLeftBorder else mmp2[i][0,x+1,y])\
-                        +(mmp2[i][0,x,y+1] if not onBottomBorder else mmp2[i][0,x,y-1])\
-                        +(mmp2[i][0,x,y-1] if not onTopBorder else mmp2[i][0,x,y+1])\
+                on_left_border = self.grids[i].out_of_bounds((x-1,y))
+                on_right_border = self.grids[i].out_of_bounds((x+1,y))
+                on_top_border = self.grids[i].out_of_bounds((x,y-1))
+                on_bottom_border = self.grids[i].out_of_bounds((x,y+1))
+                mmp2[i][1,x,y]=dmmp*tha/xha**2*((mmp2[i][0,x+1,y] if not on_right_border else mmp2[i][0,x-1,y])\
+                        +(mmp2[i][0,x-1,y] if not on_left_border else mmp2[i][0,x+1,y])\
+                        +(mmp2[i][0,x,y+1] if not on_bottom_border else mmp2[i][0,x,y-1])\
+                        +(mmp2[i][0,x,y-1] if not on_top_border else mmp2[i][0,x,y+1])\
                         )\
-                        +mmp2[i][0,x,y]*(1-4*dmmp*tha/xha**2-th*Lambda)+tha*theta*self.mesenchymalCount[i][x,y]
-                ecm[i][1,x,y] = ecm[i][0,x,y]*(1-tha*(gamma1*self.mesenchymalCount[i][x,y]+gamma2*mmp2[i][1,x,y]))
+                        +mmp2[i][0,x,y]*(1-4*dmmp*tha/xha**2-th*Lambda)+tha*theta*self.mesenchymal_count[i][x,y]
+                ecm[i][1,x,y] = ecm[i][0,x,y]*(1-tha*(gamma1*self.mesenchymal_count[i][x,y]+gamma2*mmp2[i][1,x,y]))
                 if ecm[i][1,x,y] < 0:
                     warnings.warn(f"<0 ecm in [i][1,{x},{y}] is {ecm[i][1,x,y]}")
                 if ecm[i][1,x,y] > 1:
