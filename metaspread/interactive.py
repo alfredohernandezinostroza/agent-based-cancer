@@ -155,7 +155,7 @@ def on_press(key):
 def get_folder_names(directory_path):
     folder_names = []
     for folder_name in os.listdir(directory_path):
-        if os.path.isdir(os.path.join(directory_path, folder_name)) and (folder_name.startswith("Sim") or folder_name.startswith("Continu")):
+        if os.path.isdir(os.path.join(directory_path, folder_name)):
             folder_names.append(folder_name)
     print(folder_names)
     folder_names.sort(key=lambda x: os.path.getmtime(f"{directory_path}\{x}"), reverse=True)
