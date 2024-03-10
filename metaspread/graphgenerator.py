@@ -12,8 +12,8 @@ def get_equally_spaced_array(passed_array, number_of_elems):
     indexes = np.round(np.linspace(0, len(passed_array)-1, number_of_elems)).astype(int)
     return list(zip(indexes,passed_array[indexes]))
 
-def plot_cancer(figCounter, grid_id, step, real_time_at_step, simulation_path, TumorImagesPath):
-    figure_path = os.path.join(TumorImagesPath, f'Cells-grid{grid_id}-step{step} - Tumor size at {real_time_at_step/(3600*24):.2f} days.png')
+def plot_cancer(fig_counter, grid_id, step, real_time_at_step, simulation_path, tumor_images_path):
+    figure_path = os.path.join(tumor_images_path, f'Cells-grid{grid_id}-step{step} - Tumor size at {real_time_at_step/(3600*24):.2f} days.png')
     if os.path.isfile(figure_path):
         return
     
@@ -22,7 +22,7 @@ def plot_cancer(figCounter, grid_id, step, real_time_at_step, simulation_path, T
     current_coords_path = os.path.join(all_coords_data_path, current_coords_filename)
     coords_list = pd.read_csv(current_coords_path, index_col=0)
     Xm, Ym, Xe, Ye, Xv, Yv, Xvr, Yvr = coords_list.iloc[0], coords_list.iloc[1], coords_list.iloc[2], coords_list.iloc[3], coords_list.iloc[4], coords_list.iloc[5], coords_list.iloc[6], coords_list.iloc[7]
-    plt.figure(figCounter, figsize=(6, 6))
+    plt.figure(fig_counter, figsize=(6, 6))
     
     plt.scatter(Xm, Ym, marker='o', color='blue', alpha=0.10, label="Mesenchymal cells")
     plt.scatter(Xe, Ye, marker='h', color='orange', alpha=0.1, label="Epithelial cells")
@@ -68,23 +68,21 @@ def plot_growth_data(simulation_path, cells_images_path, grid_id, step, real_tim
     # save the figure
     plt.savefig(path_to_save)
 
-def plot_MMP2_or_ECM(i, step, real_time_at_step, files_path, figCounter, grid_id, pathToSave, type="Mmp2"):
+def plot_MMP2_or_ECM(i, step, real_time_at_step, files_path, fig_counter, grid_id, path_to_save, type="Mmp2"):
     if type=="Mmp2":
-        figure_path = os.path.join(pathToSave, f'{type}-grid{grid_id}-step{step} - {real_time_at_step/(3600*24):.2f} days.png')
+        figure_path = os.path.join(path_to_save, f'{type}-grid{grid_id}-step{step} - {real_time_at_step/(3600*24):.2f} days.png')
     elif type=="Ecm":
-        figure_path = os.path.join(pathToSave, f'{type}-grid{grid_id}-step{step} - {real_time_at_step/(3600*24):.2f} days.png')
+        figure_path = os.path.join(path_to_save, f'{type}-grid{grid_id}-step{step} - {real_time_at_step/(3600*24):.2f} days.png')
     if os.path.isfile(figure_path):
         return
 
     df = pd.read_csv(files_path[i], index_col=0)
-    plt.figure(figCounter, figsize=(6, 5))
+    plt.figure(fig_counter, figsize=(6, 5))
 
     if type=="Mmp2":
-        plt.imshow(df.T, vmin=0, vmax=2) #vmax = 3 in PDF
-        #print(f'mmp2 max at step {step} is {df.values.max()}')
+        plt.imshow(df.T, vmin=0, vmax=2)
     elif type == "Ecm":
         plt.imshow(df.T , vmin=0, vmax=1)
-        #print(f'ecm min at step {step} is {df.values.min()}')
         
     plt.colorbar()
 
@@ -118,8 +116,8 @@ def plot_histogram(histogram_csv_file_path, all_histogram_images_path, step, rea
     plt.xlim([-1, metaspread.configs.carrying_capacity + 1])
     plt.savefig(path_to_save)
 
-def plot_vasculature_graphs(vasculature_df, pathToSave, max_step, real_delta_time):
-    figure_path = os.path.join(pathToSave, f'Vasculature-cells-step{max_step}.png')
+def plot_vasculature_graphs(vasculature_df, path_to_save, max_step, real_delta_time):
+    figure_path = os.path.join(path_to_save, f'Vasculature-cells-step{max_step}.png')
     if not os.path.isfile(figure_path):
         # Prepare the data for the bar chart
         mesenchymal_data = vasculature_df["Mesenchymal cells"]
@@ -147,7 +145,7 @@ def plot_vasculature_graphs(vasculature_df, pathToSave, max_step, real_delta_tim
         plt.savefig(figure_path)
         plt.close()
 
-    figure_path = os.path.join(pathToSave, f'Vasculature-clusters-step{max_step}.png')
+    figure_path = os.path.join(path_to_save, f'Vasculature-clusters-step{max_step}.png')
     if not os.path.isfile(figure_path):
         total_cluster_data = vasculature_df["Total clusters"]
         multicellular_cluster_data = vasculature_df["Multicellular clusters"]
@@ -172,8 +170,8 @@ def plot_vasculature_graphs(vasculature_df, pathToSave, max_step, real_delta_tim
         plt.savefig(figure_path)
         plt.close()
 
-def plot_radius_diameter_history(df, pathToSave, max_step, real_delta_time):
-    figure_path = os.path.join(pathToSave, 'Radius and diameter for Grid 1.png')
+def plot_radius_diameter_history(df, path_to_save, max_step, real_delta_time):
+    figure_path = os.path.join(path_to_save, 'Radius and diameter for Grid 1.png')
     if not os.path.isfile(figure_path):
         # Prepare the data for the bar chart
         radius = df["Radius"]*metaspread.configs.xh*(0.001/0.005)*10  #getting distance in mm
@@ -219,8 +217,8 @@ def generate_graphs(name_of_the_simulation, amount_of_pictures=0):
     mmp2_files_name = [f for f in sorted(os.listdir(Mmp2Path), key=lambda x: int(re.findall(r'\d+(?=step)', x)[0])) if os.path.isfile(os.path.join(Mmp2Path, f)) and f.endswith(".csv")]
 
     # Get the vasculature data filename
-    VasculaturePath = os.path.join(simulation_path, "Vasculature")
-    vasculature_files_name = [f for f in os.listdir(VasculaturePath) if os.path.isfile(os.path.join(VasculaturePath, f)) and f.endswith(".json")]
+    vasculture_path = os.path.join(simulation_path, "Vasculature")
+    vasculature_files_name = [f for f in os.listdir(vasculture_path) if os.path.isfile(os.path.join(vasculture_path, f)) and f.endswith(".json")]
 
     if csv_files_name:
         first_csv_name = csv_files_name[0]
@@ -245,24 +243,17 @@ def generate_graphs(name_of_the_simulation, amount_of_pictures=0):
         return
 
     if vasculature_files_name:
-        # first_vasculature_name = vasculature_files_name[0]
-        # first_vasculature_path = os.path.join(VasculaturePath, first_vasculature_name)
-        print("Using vasculature data at:", VasculaturePath)
+        print("Using vasculature data at:", vasculture_path)
     else:
         print("No .json vasculature data found in directory:", simulation_path)
         return
 
 
     #Path of the data
-    dataFolder = "Data analysis"
-    dataPath = os.path.join(simulation_path, dataFolder)
+    data_folder = "Data analysis"
+    data_path = os.path.join(simulation_path, data_folder)
 
-    tumor_data_path = os.path.join(dataPath, "Tumor growth")
-    CellsDataPath = os.path.join(dataPath, "Cells growth")
-    EcmDataPath = os.path.join(dataPath, "Ecm evolution")
-    Mmp2DataPath = os.path.join(dataPath, "Mmp2 evolution")
-    VasculatureDataPath = os.path.join(dataPath, "Vasculature evolution")
-
+    tumor_data_path = os.path.join(data_path, "Tumor growth")
     step_size = metaspread.configs.data_collection_period
     real_delta_time = 40 * metaspread.configs.th/0.001 #in seconds (the original ratio is 40 seconds/0.001 non-dimensional time)
     grids_number = metaspread.configs.grids_number
@@ -281,62 +272,55 @@ def generate_graphs(name_of_the_simulation, amount_of_pictures=0):
         amount_of_pictures = 0 #to print all the pictures
     
     # Path to save all the images:
-    imagesFolder = "Graphical analysis"
-    imagesPath = os.path.join(simulation_path, imagesFolder)
+    images_folder = "Graphical analysis"
+    images_path = os.path.join(simulation_path, images_folder)
 
-    TumorImagesPath = os.path.join(imagesPath, "Tumor growth")
-    cells_images_path = os.path.join(imagesPath, "Cells growth")
-    EcmImagesPath = os.path.join(imagesPath, "Ecm evolution")
-    Mmp2ImagesPath = os.path.join(imagesPath, "Mmp2 evolution")
-    vasculature_images_path = os.path.join(imagesPath, "Vasculature evolution")
-    all_histogram_images_path = os.path.join(imagesPath, "Positions histogram")
-    radius_diameter_images_path = os.path.join(imagesPath, "Radius and diameter")
+    tumor_images_path = os.path.join(images_path, "Tumor growth")
+    cells_images_path = os.path.join(images_path, "Cells growth")
+    ecm_images_path = os.path.join(images_path, "Ecm evolution")
+    mmp2_images_path = os.path.join(images_path, "Mmp2 evolution")
+    vasculature_images_path = os.path.join(images_path, "Vasculature evolution")
+    all_histogram_images_path = os.path.join(images_path, "Positions histogram")
+    radius_diameter_images_path = os.path.join(images_path, "Radius and diameter")
 
     # Create folder for all the Graphical analysis
 
-    os.makedirs(imagesPath, exist_ok = True)
-    os.makedirs(TumorImagesPath, exist_ok = True)
-    os.makedirs(Mmp2ImagesPath, exist_ok = True)
-    os.makedirs(EcmImagesPath, exist_ok = True)
+    os.makedirs(images_path, exist_ok = True)
+    os.makedirs(tumor_images_path, exist_ok = True)
+    os.makedirs(mmp2_images_path, exist_ok = True)
+    os.makedirs(ecm_images_path, exist_ok = True)
     os.makedirs(cells_images_path, exist_ok = True)
     os.makedirs(vasculature_images_path, exist_ok = True)
     os.makedirs(all_histogram_images_path, exist_ok = True)
     os.makedirs(radius_diameter_images_path, exist_ok = True)
 
-    print(f"\nSaving tumor images in the folder:", TumorImagesPath)
-    print("Saving Mmp2 images in the folder:", Mmp2ImagesPath)
-    print("Saving Ecm images in the folder:", EcmImagesPath)
+    print(f"\nSaving tumor images in the folder:", tumor_images_path)
+    print("Saving Mmp2 images in the folder:", mmp2_images_path)
+    print("Saving Ecm images in the folder:", ecm_images_path)
     print("Saving cells numbers images in the folder:", cells_images_path)
     print("Saving vasculature images in the folder:", vasculature_images_path)
     print("Saving histogram images in the folder:", all_histogram_images_path)
     print("Saving histogram image in the folder:", radius_diameter_images_path)
 
-    # If there the Graphical analysis is already done, tell the user
-    # else:
-    #     print("This Graphical analysis already exists!")
-    #     return
-    
     plt.style.use("seaborn-v0_8-darkgrid")
     if amount_of_pictures != 0:
         range_of_pictures = get_equally_spaced_array(range(step_size,max_step+1,step_size), amount_of_pictures)
     else:
         range_of_pictures = enumerate(range(step_size,max_step+1,step_size))
-    figCounter = 1
+    fig_counter = 1
     for grid_id in range(1, grids_number+1):
         print(f'\nGrid: {grid_id}')
 
         # Plot the cells graphs
         print(f'\tPlotting tumor graphs...')
-        # for id, step in enumerate(range(step_size,max_step+1,step_size)):
         for id, step in range_of_pictures:
             real_time_at_step = real_delta_time * step
-            plot_cancer(figCounter, grid_id, step, real_time_at_step, simulation_path, TumorImagesPath)
+            plot_cancer(fig_counter, grid_id, step, real_time_at_step, simulation_path, tumor_images_path)
             plt.close()
-            figCounter += 1
+            fig_counter += 1
 
         # Plot the histogram graphs
         print(f'\tPlotting histogram graphs...')
-        # for id, step in enumerate(range(step_size,max_step+1,step_size)):
         csv_histogram_files_names = [f for f in os.listdir(tumor_data_path) if os.path.isfile(os.path.join(tumor_data_path, f)) and "Histogram" in f]
         for id, step in range_of_pictures:
             real_time_at_step = real_delta_time * step
@@ -344,40 +328,36 @@ def generate_graphs(name_of_the_simulation, amount_of_pictures=0):
             histogram_csv_file_path = os.path.join(tumor_data_path, histogram_csv_file_name)
             plot_histogram(histogram_csv_file_path, all_histogram_images_path, step, real_time_at_step, grid_id)
             plt.close()
-            figCounter += 1
+            fig_counter += 1
 
         # Plot the Mmp2 graphs
         print(f'\tPlotting Mmp2 graphs...')
-        # for id, step in enumerate(range(step_size,max_step+1,step_size)):
         for id, step in range_of_pictures:
             real_time_at_step = real_delta_time * step
             mmp2_files_path_this_grid = [path for path in mmp2_files_path if f"Mmp2-{grid_id}grid-" in path]
-            plot_MMP2_or_ECM(id, step, real_time_at_step, mmp2_files_path_this_grid, figCounter, grid_id, Mmp2ImagesPath, type="Mmp2")
+            plot_MMP2_or_ECM(id, step, real_time_at_step, mmp2_files_path_this_grid, fig_counter, grid_id, mmp2_images_path, type="Mmp2")
             plt.close()
-            figCounter += 1
+            fig_counter += 1
 
         # Plot the Ecm graphs
         print(f'\tPlotting Ecm graphs...')
-        # for id, step in enumerate(range(step_size,max_step+1,step_size)):
         for id, step in range_of_pictures:
             real_time_at_step = real_delta_time * step
             ecm_files_path_this_grid = [path for path in ecm_files_path if f"Ecm-{grid_id}grid-" in path]
-            plot_MMP2_or_ECM(id, step, real_time_at_step, ecm_files_path_this_grid, figCounter, grid_id, EcmImagesPath, type="Ecm")
+            plot_MMP2_or_ECM(id, step, real_time_at_step, ecm_files_path_this_grid, fig_counter, grid_id, ecm_images_path, type="Ecm")
             plt.close()
-            figCounter += 1
+            fig_counter += 1
 
         # Plot the growth of ephitelial and mesenchymal cells
         print(f'\tPlotting cells numbers graph...')
-        # for id, step in enumerate(range(step_size,max_step+1,step_size)):
         for id, step in range_of_pictures:
             real_time_at_step = real_delta_time * step
             plot_growth_data(simulation_path, cells_images_path, grid_id, step, real_time_at_step)
             plt.close()
-            figCounter += 1
+            fig_counter += 1
 
     # Plot the vasculature data
     print(f'Plotting vasculature...')
-    # for id, step in enumerate(range(step_size,max_step+1,step_size)):
     for id, step in range_of_pictures:
         folder_path = os.path.join(simulation_path, "Data analysis", "Vasculature evolution")
         try:
@@ -389,7 +369,7 @@ def generate_graphs(name_of_the_simulation, amount_of_pictures=0):
             os._exit(1)
         plot_vasculature_graphs(vasculature_data, vasculature_images_path, step, real_delta_time)
         plt.close()
-        figCounter += 1
+        fig_counter += 1
     #plotting the radius and diameter history graph
     print(f'Plotting radius and diameter history graph...')
     folder_path = os.path.join(simulation_path, "Data analysis", "Tumor growth")
@@ -398,7 +378,7 @@ def generate_graphs(name_of_the_simulation, amount_of_pictures=0):
     radius_history_df = pd.read_csv(file_path)#, header=0)
     plot_radius_diameter_history(radius_history_df, radius_diameter_images_path, step, real_delta_time)
     plt.close()
-    figCounter += 1
+    fig_counter += 1
 
     plt.show()
     plt.close()
@@ -413,32 +393,26 @@ def generate_vasculature_graphs_only(name_of_the_simulation):
     print(f'\tAnalyzing data in the folder {simulation_path}\n')
 
     # Get the vasculature data filename
-    VasculaturePath = os.path.join(simulation_path, "Vasculature")
-    vasculature_files_name = [f for f in os.listdir(VasculaturePath) if os.path.isfile(os.path.join(VasculaturePath, f)) and f.endswith(".json")]
+    vasculture_path = os.path.join(simulation_path, "Vasculature")
+    vasculature_files_name = [f for f in os.listdir(vasculture_path) if os.path.isfile(os.path.join(vasculture_path, f)) and f.endswith(".json")]
     if vasculature_files_name:
     #     first_vasculature_name = vasculature_files_name[0]
-    #     first_vasculature_path = os.path.join(VasculaturePath, first_vasculature_name)
-        print("Using vasculature data at:", VasculaturePath)
+    #     first_vasculature_path = os.path.join(vasculture_path, first_vasculature_name)
+        print("Using vasculature data at:", vasculture_path)
     else:
         print("No .json vasculature data found in directory:", simulation_path)
         return
-
-    #Path of the data
-    dataFolder = "Data analysis"
-    dataPath = os.path.join(simulation_path, dataFolder)
-    VasculatureDataPath = os.path.join(dataPath, "Vasculature evolution")
-
+    
     max_step = metaspread.configs.max_steps
     step_size = metaspread.configs.data_collection_period
-    grids_number = metaspread.configs.grids_number
 
     # Path to save all the images:
-    imagesFolder = "Graphical analysis"
-    imagesPath = os.path.join(simulation_path, imagesFolder)
-    vasculature_images_path = os.path.join(imagesPath, "Vasculature evolution")
+    images_folder = "Graphical analysis"
+    images_path = os.path.join(simulation_path, images_folder)
+    vasculature_images_path = os.path.join(images_path, "Vasculature evolution")
 
     plt.style.use("seaborn-v0_8-darkgrid")
-    figCounter = 1
+    fig_counter = 1
     # Plot the vasculature data
     print(f'Plotting vasculature...')
     for id, step in enumerate(range(step_size,max_step+1,step_size)):
@@ -452,22 +426,10 @@ def generate_vasculature_graphs_only(name_of_the_simulation):
             os._exit(1)
         plot_vasculature_graphs(vasculature_data, vasculature_images_path, step)
         plt.close()
-        figCounter += 1
+        fig_counter += 1
 
     plt.show()
     plt.close()
-
-
-###########################################################################################################
-
-if __name__ == "__main__":
-
-    # CHANGE THIS LINE according to the simulation you want to plot the graphs
-    name_of_the_simulation = "Sim max_steps-48000 stepsize-150 N-388 gridsNumber-3"
-
-    # This runs all the code to generate the graphs in the folder
-    generate_graphs(name_of_the_simulation, amount_of_pictures=50)
-    # generate_vasculature_graphs_only(name_of_the_simulation)
 
 
 
