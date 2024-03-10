@@ -1,10 +1,10 @@
 from pynput import keyboard
 import os
-import metaspread.datagenerator
-import metaspread.graphgenerator
-import metaspread.videogenerator
-import time
+import metaspread.datagenerator as datagenerator
+import metaspread.graphgenerator as graphgenerator
+import metaspread.videogenerator as videogenerator
 import metaspread.simrunner as simrunner
+import time
 
 selected_option_index = 0
 selected_option = ""
