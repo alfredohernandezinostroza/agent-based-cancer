@@ -82,4 +82,4 @@ def check_if_configs_are_present():
         print("Configs file simulations_configs.csv not found! Creating a configs file with default values.")
         generate_default_configs()
     else:
-        print("Configs file found!")
+        print("Configs file for new simulation found!")
