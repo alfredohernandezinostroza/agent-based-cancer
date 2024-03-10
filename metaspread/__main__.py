@@ -12,7 +12,7 @@ if __name__ == "__main__":
             raise Exception("\nError! No known command for postprocessing named \'graphic\'. Did you mean \'graphics\'?")
         if sys.argv[2] == "video":
             raise Exception("\nError! No known command for postprocessing named\'video\'. Did you mean \'videos\'?")
-        elif sys.argv[2] != "data" and sys.argv[2] != "videos" and sys.argv[2] != "graphics":
+        elif sys.argv[2] != "data" and sys.argv[2] != "videos" and sys.argv[2] != "graphics" and sys.argv[2] != "all":
             error_string = f"\nError! No known command for postprocessing named \'{sys.argv[2]}\'. Use \'data\', \'videos\' or \'graphics\'."
             raise Exception(error_string)
     #actual processing of the arguments
@@ -58,6 +58,15 @@ if __name__ == "__main__":
             simulation_folder = sys.argv[3]
             frame_rate = int(sys.argv[4])
             videogenerator.generate_videos(simulation_folder, frame_rate)
+    elif len(sys.argv) == 6:
+        if sys.argv[1] == "postprocess" and sys.argv[2] == "all":
+                simulation_folder  = sys.argv[3]
+                amount_of_pictures = int(sys.argv[4])
+                frame_rate = int(sys.argv[5])
+                datagenerator.generate_data(simulation_folder)
+                datagenerator.generate_data(simulation_folder)
+                graphgenerator.generate_graphs(simulation_folder, amount_of_pictures)
+                videogenerator.generate_videos(simulation_folder, frame_rate)
         else:
             raise Exception("Incorrent amount or unrecognized arguments!")
     else:
