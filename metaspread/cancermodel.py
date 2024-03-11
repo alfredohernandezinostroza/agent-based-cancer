@@ -228,7 +228,7 @@ class CancerModel(mesa.Model):
         for index, time in enumerate(self.time_grid_got_populated):
             if time == -1: #if it has not been populated already, we check:
                 if self.cancer_cells_counter[index] > 0:
-                    self.time_grid_got_populated[index] = self.schedule.time
+                    self.time_grid_got_populated[index] = self.schedule.time + self.loaded_max_step
 
         # Saving of non agents data every data_collection_interval steps
         if (self.schedule.time != 0 and (self.schedule.time % self.data_collection_period == 0)) \
@@ -368,6 +368,14 @@ class CancerModel(mesa.Model):
         #calculate state of doubling counters
         self.doubling_time_counter_E = doubling_time_E - (last_step % doubling_time_E)
         self.doubling_time_counter_M = doubling_time_M - (last_step % doubling_time_M)
+
+        #load time_grid_got_populated
+        time_grid_got_populated_path = os.path.join(path_to_simulation, "Time when grids were populated")
+        time_grid_got_populated_files = os.listdir(time_grid_got_populated_path)
+        time_grid_got_populated_files.sort(key = lambda file_name: int(file_name.split('step')[0][25:]))
+        time_grid_got_populated_filepath = os.path.join(time_grid_got_populated_path,time_grid_got_populated_files[-1])
+        df_time_grid_got_populated = pd.read_csv(time_grid_got_populated_filepath, index_col=0)
+        self.time_grid_got_populated = df_time_grid_got_populated.loc[0, :].values.flatten().tolist()
 
 
     def _initialize_grids(self):
