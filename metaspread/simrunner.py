@@ -30,15 +30,15 @@ def main(max_steps, data_collection_period, loaded_simulation_path=""):
     simulations_dir = "Simulations"
     os.makedirs(simulations_dir, exist_ok=True)
     if loaded_simulation_path != "":
+        cells_path = os.path.join(loaded_simulation_path, "CellsData.csv")
+        df = pd.read_csv(cells_path)
+        loaded_max_step = max(df["Step"])
         new_simulation_folder = os.path.normpath(loaded_simulation_path)
         new_simulation_folder = os.path.basename(new_simulation_folder)
-        new_simulation_folder = "Continuing_" + new_simulation_folder
+        new_simulation_folder = f"Continue-from-{loaded_max_step}-until-{max_steps}" + new_simulation_folder
         new_simulation_path = os.path.join(simulations_dir, new_simulation_folder)
         print(f"Copying simulation in {loaded_simulation_path} to {new_simulation_path}")
         shutil.copytree(loaded_simulation_path, new_simulation_path)
-        cells_path = os.path.join(new_simulation_path, "CellsData.csv")
-        df = pd.read_csv(cells_path, converters={"Position": ast.literal_eval})
-        loaded_max_step = max(df["Step"])
     else:
         df = pd.DataFrame()
         loaded_max_step = 0
