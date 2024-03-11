@@ -233,11 +233,15 @@ class CancerModel(mesa.Model):
         # Saving of non agents data every data_collection_interval steps
         if (self.schedule.time != 0 and (self.schedule.time % self.data_collection_period == 0)) \
             or self.schedule.time == self.max_steps:
+            if self.schedule.time == self.max_steps:
+                    print("final time!")
             self.datacollector.collect(self)
             current_agents_state = self.datacollector.get_agent_vars_dataframe()
+            current_agents_state = current_agents_state.reset_index(level="Step")
             path_to_save = os.path.join(self.simulations_dir, self.new_simulation_folder, f'CellsData.csv')
             if not self.previous_cell_data.empty:
-                current_agents_state = pd.concat(self.previous_cell_data, current_agents_state)
+                current_agents_state["Step"] += self.loaded_max_step
+                current_agents_state = pd.concat([self.previous_cell_data, current_agents_state])
             current_agents_state.to_csv(path_to_save)
             #pickling a model could be an option in the future
             # backup_file_path = os.path.join(self.simulations_dir, self.new_simulation_folder, "Backup", "backup.p")
