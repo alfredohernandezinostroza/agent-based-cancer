@@ -37,7 +37,7 @@ def main(max_steps, data_collection_period, loaded_simulation_path=""):
         print(f"Copying simulation in {loaded_simulation_path} to {new_simulation_path}")
         shutil.copytree(loaded_simulation_path, new_simulation_path)
         cells_path = os.path.join(new_simulation_path, "CellsData.csv")
-        df = pd.read_csv(cells_path, index_col = 0, converters={"Position": ast.literal_eval})
+        df = pd.read_csv(cells_path, converters={"Position": ast.literal_eval})
         loaded_max_step = max(df["Step"])
     else:
         df = pd.DataFrame()
