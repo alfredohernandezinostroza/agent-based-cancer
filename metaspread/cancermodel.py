@@ -121,15 +121,17 @@ class CancerModel(mesa.Model):
         self.mmp2 = [np.zeros((2, width, height), dtype=float) for _ in range(grids_number)]
         self.ecm = [np.ones((2, width, height), dtype=float) for _ in range(grids_number)]
         self.loaded_max_step = 0
+        self.previous_cell_data = pd.DataFrame()
 
         if loaded_simulation_path != "":
-            print(f"Loaded simulation at {loaded_simulation_path}!")
+            print(f"Loading simulation at {loaded_simulation_path}!")
             configs_path = os.path.join(loaded_simulation_path, "configs.csv")
             config_var_names = metaspread.configs.load_simulation_configs_for_reloaded_simulation(configs_path)
             #load the configs so we can use them in this module as globals
             for var in config_var_names:
                 globals()[var] = getattr(metaspread.configs, var)
             self.load_previous_simulation(loaded_simulation_path)
+            self.previous_cell_data = pd.read_csv(os.path.join(loaded_simulation_path, "CellsData.csv"))
         else:
             print("Starting simulation from zero!")
             configs_path = "simulations_configs.csv"
@@ -234,6 +236,8 @@ class CancerModel(mesa.Model):
             self.datacollector.collect(self)
             current_agents_state = self.datacollector.get_agent_vars_dataframe()
             path_to_save = os.path.join(self.simulations_dir, self.new_simulation_folder, f'CellsData.csv')
+            if not self.previous_cell_data.empty:
+                current_agents_state = pd.concat(self.previous_cell_data, current_agents_state)
             current_agents_state.to_csv(path_to_save)
             #pickling a model could be an option in the future
             # backup_file_path = os.path.join(self.simulations_dir, self.new_simulation_folder, "Backup", "backup.p")
