@@ -111,9 +111,9 @@ def run_simulation(CancerModel, number_of_initial_cells, width, height, grids_nu
     cells_df = pd.DataFrame(results)
     cells_df = cells_df[["AgentID","Step", "Position", "Phenotype", "Grid", "Agent Type", "Ruptured"]]
     cells_df = cells_df.iloc[1:]
-    if loaded_max_step != 0:
-        cells_df["Step"] = cells_df["Step"] + loaded_max_step
-        cells_df = pd.concat([loaded_df, cells_df])
+    # if loaded_max_step != 0:
+    #     cells_df["Step"] = cells_df["Step"] + loaded_max_step
+    #     cells_df = pd.concat([loaded_df, cells_df])
     print(f'Example of data collected:\n{cells_df.head(10)}')
 
     # Saves data analysis
