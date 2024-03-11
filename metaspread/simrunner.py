@@ -35,7 +35,7 @@ def main(max_steps, data_collection_period, loaded_simulation_path=""):
         loaded_max_step = max(df["Step"])
         new_simulation_folder = os.path.normpath(loaded_simulation_path)
         new_simulation_folder = os.path.basename(new_simulation_folder)
-        new_simulation_folder = f"Continue-from-{loaded_max_step}-until-{max_steps}" + new_simulation_folder
+        new_simulation_folder = f"Continue-from-{loaded_max_step}-until-{loaded_max_step+max_steps}-" + new_simulation_folder
         new_simulation_path = os.path.join(simulations_dir, new_simulation_folder)
         print(f"Copying simulation in {loaded_simulation_path} to {new_simulation_path}")
         shutil.copytree(loaded_simulation_path, new_simulation_path)
