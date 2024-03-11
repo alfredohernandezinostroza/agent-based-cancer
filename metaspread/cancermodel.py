@@ -131,7 +131,7 @@ class CancerModel(mesa.Model):
             for var in config_var_names:
                 globals()[var] = getattr(metaspread.configs, var)
             self.load_previous_simulation(loaded_simulation_path)
-            self.previous_cell_data = pd.read_csv(os.path.join(loaded_simulation_path, "CellsData.csv"))
+            self.previous_cell_data = pd.read_csv(os.path.join(loaded_simulation_path, "CellsData.csv"), index_col=0)
         else:
             print("Starting simulation from zero!")
             configs_path = "simulations_configs.csv"
@@ -233,11 +233,9 @@ class CancerModel(mesa.Model):
         # Saving of non agents data every data_collection_interval steps
         if (self.schedule.time != 0 and (self.schedule.time % self.data_collection_period == 0)) \
             or self.schedule.time == self.max_steps:
-            if self.schedule.time == self.max_steps:
-                    print("final time!")
             self.datacollector.collect(self)
             current_agents_state = self.datacollector.get_agent_vars_dataframe()
-            current_agents_state = current_agents_state.reset_index(level="Step")
+            current_agents_state = current_agents_state.reset_index(level=["Step", "AgentID"])
             path_to_save = os.path.join(self.simulations_dir, self.new_simulation_folder, f'CellsData.csv')
             if not self.previous_cell_data.empty:
                 current_agents_state["Step"] += self.loaded_max_step
