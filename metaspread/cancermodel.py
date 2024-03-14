@@ -104,7 +104,7 @@ class CancerModel(mesa.Model):
         self.width = width
         self.height = height
         self.phenotypes = ["mesenchymal", "epithelial"]
-        self.grid_vessels_positions = [[]] * grids_number
+        self.grid_vessels_positions = [[] for _ in range(grids_number)]
         self.current_agent_id = 0
         self.max_steps = max_steps
         self.data_collection_period = data_collection_period
