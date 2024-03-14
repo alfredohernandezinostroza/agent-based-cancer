@@ -77,8 +77,10 @@ def plot_MMP2_or_ECM(i, step, real_time_at_step, files_path, fig_counter, grid_i
         figure_path = os.path.join(path_to_save, f'{type}-grid{grid_id}-step{step} - {real_time_at_step/(3600*24):.2f} days.png')
     if os.path.isfile(figure_path):
         return
-
-    df = pd.read_csv(files_path[i], index_col=0)
+    try:
+        df = pd.read_csv(files_path[i], index_col=0)
+    except:
+        raise Exception(f"Corrupted or empty file {files_path[i]}")
     plt.figure(fig_counter, figsize=(6, 5), facecolor='white')
 
     if type=="Mmp2":
