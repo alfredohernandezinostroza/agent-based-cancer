@@ -17,7 +17,7 @@ doubling_time_M,2000
 doubling_time_E,3000
 single_cell_survival,0.0005
 cluster_survival,0.025
-extravasation_probs,"[0.5461, 0.2553, 0.1986]"
+extravasation_probs,"[0.75, 0.25]"
 dissagreggation_prob,0.5
 carrying_capacity,4
 normal_vessels_primary,8
