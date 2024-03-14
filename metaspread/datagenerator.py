@@ -272,9 +272,7 @@ def get_cluster_centroid_radius_and_diameter(ccells_positions, grid_id):
     """
     if ccells_positions.empty or grid_id != 1:
         return ([np.nan, np.nan], np.nan, np.nan)
-    #centroid = ccells_positions.mean(axis=0)
     ccells_positions= list(ccells_positions['Position'].unique())
-    # ccells_positions= list(set(ccells_positions))#delete repeated entries to spped up computation
     centroid = np.average(ccells_positions, axis=0)
     #calculating radius
     radii  = np.linalg.norm(ccells_positions - centroid, axis=1)
@@ -299,13 +297,3 @@ def get_distance_matrix(vectors):
     xx = np.matmul(vectors,vectors.T)
     x2 = x.reshape(-1,1) #transposing the vector
     return np.sqrt(x2-2*xx+x)
-
-
-if __name__ == "__main__":
-
-    # CHANGE THIS LINE according to the simulation you want to plot the graphs  
-    name_of_the_simulation = "Sim max_steps-48000 stepsize-150 N-388 grids_number-3"
-
-    # This runs all the code to generate the graphs in the folder
-    generate_data(name_of_the_simulation)
-    # generate_data_vasculature_only(name_of_the_simulation)
