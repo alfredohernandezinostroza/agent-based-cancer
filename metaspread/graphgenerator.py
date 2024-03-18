@@ -84,7 +84,7 @@ def plot_MMP2_or_ECM(i, step, real_time_at_step, files_path, fig_counter, grid_i
     plt.figure(fig_counter, figsize=(6, 5), facecolor='white')
 
     if type=="Mmp2":
-        plt.imshow(df.T, vmin=0, vmax=2)
+        plt.imshow(df.T, vmin=0, vmax=3)
     elif type == "Ecm":
         plt.imshow(df.T , vmin=0, vmax=1)
         
