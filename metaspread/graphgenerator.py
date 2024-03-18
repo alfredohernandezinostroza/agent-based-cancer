@@ -268,7 +268,7 @@ def generate_graphs(name_of_the_simulation, amount_of_pictures=0):
     df = pd.read_csv(first_csv_path, converters={"Position": ast.literal_eval})
     df = df[["Step", "Position", "Phenotype", "Grid", "Agent Type", "Ruptured"]]
     max_step = max(df["Step"])
-    if configs_max_step != max_step:
+    if configs_max_step >= max_step:
         print(f"Warning: the run for this simulation terminated early")
         print(f"Max step reached is {max_step} while {configs_max_step} was expected.")
     step_size = df.iloc[0]['Step']

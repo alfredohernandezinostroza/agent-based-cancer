@@ -148,7 +148,7 @@ def generate_data(nameOfTheSimulation):
     all_cells_dataframe = pd.read_csv(all_cells_filename, converters={"Position": ast.literal_eval})
     all_cells_dataframe = all_cells_dataframe[["Step", "Position", "Phenotype", "Grid", "Agent Type", "Ruptured"]]
     max_step = max(all_cells_dataframe["Step"])
-    if configs_max_step != max_step:
+    if configs_max_step >= max_step:
         print(f"Warning: the run for this simulation terminated early")
         print(f"Max step reached is {max_step} while {configs_max_step} was expected.")
 
@@ -241,7 +241,7 @@ def generate_data_vasculature_only(nameOfTheSimulation):
     all_cells_dataframe = pd.read_csv(all_cells_filename, converters={"Position": ast.literal_eval})
     all_cells_dataframe = all_cells_dataframe[["Step", "Position", "Phenotype", "Grid", "Agent Type", "Ruptured"]]
     max_step = max(all_cells_dataframe["Step"])
-    if configs_max_step != max_step:
+    if configs_max_step >= max_step:
         print(f"Warning: the run for this simulation terminated early")
         print(f"Max step reached is {max_step} while {configs_max_step} was expected.")
 
