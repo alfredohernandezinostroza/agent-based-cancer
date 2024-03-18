@@ -72,7 +72,7 @@ def load_simulation_configs_for_reloaded_simulation(path):
 def generate_default_configs():
     """Creates a default simulation_configs.csv file"""
     names = ["th","tha","xh","xha","dM","dE","phiM","phiE","dmmp","theta","Lambda","gamma1","gamma2","vasculature_time","doubling_time_M","doubling_time_E","single_cell_survival","cluster_survival","extravasation_probs","dissagreggation_prob","carrying_capacity","normal_vessels_primary","ruptured_vessels_primary","secondary_sites_vessels","n_center_points_for_tumor","n_center_points_for_Vessels","gridsize","grids_number","mesenchymal_proportion","epithelial_proportion","number_of_initial_cells"]
-    values = [0.001,0.001,0.005,0.005,1e-4,5e-4,0.0005,0.0005,0.001,0.195,0.1,1,1,180,2000,3000,5e-04,0.025,[0.75, 0.25],0.5,4,8,2,[10, 10],97,200,201,3,0.6,0.4,388]
+    values = [0.001,0.001,0.005,0.005,1e-4,5e-5,0.0005,0.0005,0.001,0.195,0.1,1,1,180,2000,3000,5e-04,0.025,[0.75, 0.25],0.5,4,8,2,[10, 10],97,200,201,3,0.6,0.4,388]
     default_configs = pd.DataFrame({"Names": names, "Values": values})
     default_configs.to_csv("simulations_configs.csv", index=False)
 
