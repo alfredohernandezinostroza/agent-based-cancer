@@ -115,7 +115,7 @@ def plot_histogram(histogram_csv_file_path, all_histogram_images_path, step, rea
         return
     plt.xlabel('Number of cells per grid-point')
     plt.ylabel('Nr. grid-points with\na given nr. of cells')
-    plt.title('Vasculature Cell Counts')
+    plt.title(f'Tumor size at {real_time_at_step/(3600*24):.2f} days ({step} steps) - grid {grid_id}', fontsize = 13)
     plt.bar(histogram['Bins'], histogram['Frequency'])
     plt.xticks(range(metaspread.configs.carrying_capacity + 1))
     plt.xlim([-1, metaspread.configs.carrying_capacity + 1])
@@ -379,15 +379,16 @@ def generate_graphs(name_of_the_simulation, amount_of_pictures=0):
         plot_vasculature_graphs(vasculature_data, vasculature_images_path, step, real_delta_time)
         plt.close()
         fig_counter += 1
+        
     #plotting the radius and diameter history graph
     print(f'Plotting radius and diameter history graph...')
-    folder_path = os.path.join(simulation_path, "Data analysis", "Tumor growth")
-    file_name = [file for file in os.listdir(folder_path) if file.startswith("Tumor radius and diameter history")][0]
-    file_path = os.path.join(folder_path, file_name)
-    radius_history_df = pd.read_csv(file_path)#, header=0)
-    plot_radius_diameter_history(radius_history_df, radius_diameter_images_path, step, real_delta_time)
+    # folder_path = os.path.join(simulation_path, "Data analysis", "Tumor growth")
+    # file_name = [file for file in os.listdir(folder_path) if file.startswith("Tumor radius and diameter history")][0]
+    # file_path = os.path.join(folder_path, file_name)
+    # radius_history_df = pd.read_csv(file_path)#, header=0)
+    # plot_radius_diameter_history(radius_history_df, radius_diameter_images_path, step, real_delta_time)
     plt.close()
-    fig_counter += 1
+    # fig_counter += 1
 
     plt.show()
     plt.close()
