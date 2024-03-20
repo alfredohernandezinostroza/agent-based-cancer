@@ -63,8 +63,7 @@ class CancerCell(mesa.Agent):
                 is_ruptured = agent.ruptured
                 is_vessel=True
                 break
-        if is_vessel and self.grid_id == 1:
-            if is_ruptured or self.phenotype == "mesenchymal":                
+        if is_vessel and self.grid_id == 1 and (is_ruptured or self.phenotype == "mesenchymal"): 
                 x, y = new_position
                 on_left_border    = self.grid.out_of_bounds((x-1,y))
                 on_right_border   = self.grid.out_of_bounds((x+1,y))
