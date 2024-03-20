@@ -115,7 +115,7 @@ def plot_histogram(histogram_csv_file_path, all_histogram_images_path, step, rea
         return
     plt.xlabel('Number of cells per grid-point')
     plt.ylabel('Nr. grid-points with\na given nr. of cells')
-    plt.title(f'Tumor size at {real_time_at_step/(3600*24):.2f} days ({step} steps) - grid {grid_id}', fontsize = 13)
+    plt.title(f'Positions histogram at {real_time_at_step/(3600*24):.2f} days ({step} steps) - grid {grid_id}', fontsize = 13)
     plt.bar(histogram['Bins'], histogram['Frequency'])
     plt.xticks(range(metaspread.configs.carrying_capacity + 1))
     plt.xlim([-1, metaspread.configs.carrying_capacity + 1])
