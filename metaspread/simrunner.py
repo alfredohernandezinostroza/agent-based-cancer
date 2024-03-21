@@ -88,4 +88,4 @@ def run_simulation(max_steps, data_collection_period, loaded_simulation_path="")
     model = metaspread.CancerModel(number_of_initial_cells, width, height, grids_number, max_steps, data_collection_period, new_simulation_folder, loaded_simulation_path)
     for i in range(max_steps):
         model.step()
-    print(f'Finished the simulation!')
+    print(f'Finished the simulation at time step {model.schedule.time}!')
