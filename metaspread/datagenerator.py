@@ -105,9 +105,9 @@ def generate_data(nameOfTheSimulation):
 
     # Get the Ecm and Mmp2 data filenames 
     ecm_path = os.path.join(simulation_path, "Ecm")
-    Mmp2Path = os.path.join(simulation_path, "Mmp2")
+    mmp2_path = os.path.join(simulation_path, "Mmp2")
     ecm_files_name = [f for f in sorted(os.listdir(ecm_path), key=lambda x: int(re.findall(r'\d+(?=step)', x)[0])) if os.path.isfile(os.path.join(ecm_path, f)) and f.endswith(".csv")]
-    mmp2_files_name = [f for f in sorted(os.listdir(Mmp2Path), key=lambda x: int(re.findall(r'\d+(?=step)', x)[0])) if os.path.isfile(os.path.join(Mmp2Path, f)) and f.endswith(".csv")]
+    mmp2_files_name = [f for f in sorted(os.listdir(mmp2_path), key=lambda x: int(re.findall(r'\d+(?=step)', x)[0])) if os.path.isfile(os.path.join(mmp2_path, f)) and f.endswith(".csv")]
 
     # Get the vasculature data filename
     vasculature_path = os.path.join(simulation_path, "Vasculature")
@@ -128,15 +128,13 @@ def generate_data(nameOfTheSimulation):
         return
 
     if mmp2_files_name:
-        mmp2_files_path = [os.path.join(Mmp2Path, p) for p in mmp2_files_name]
-        print("Using Mmp2 data in the folder:", Mmp2Path)
+        mmp2_files_path = [os.path.join(mmp2_path, p) for p in mmp2_files_name]
+        print("Using Mmp2 data in the folder:", mmp2_path)
     else:
-        print("No .csv Mmp2 data found in directory:", Mmp2Path)
+        print("No .csv Mmp2 data found in directory:", mmp2_path)
         return
 
     if vasculature_files_name:
-        # first_vasculature_name = vasculature_files_name[0]
-        # first_vasculature_path = os.path.join(vasculature_path, first_vasculature_name)
         print("Using vasculature data at:", vasculature_path)
     else:
         print("No .json vasculature data found in directory:", simulation_path)
@@ -174,7 +172,6 @@ def generate_data(nameOfTheSimulation):
     for grid_id in range(1, grids_number+1):
         print(f'\nGrid: {grid_id}')
 
-        # Plot the cells graphs
         print(f'\tSaving tumor data...')
         # df_radius_diameter_history = pd.DataFrame(columns=['Centroid x', 'Centroid y', 'Radius', 'Diameter', 'Step', 'Grid Id'])
         for id, step in enumerate(range(step_size,max_step+1,step_size)):
@@ -192,15 +189,12 @@ def generate_data(nameOfTheSimulation):
         #     if not os.path.isfile(path):
         #         df_radius_diameter_history.to_csv(path)
 
-
-        # Plot the growth of ephitelial and mesenchymal cells
         print(f'\tSaving cells numbers graph data...')
         df_csv_last_step = pd.DataFrame()
         for id, step in enumerate(range(step_size,max_step+1,step_size)):
             real_time_at_step = real_delta_time * step
             df_csv_last_step = save_growth_data(all_cells_dataframe, grid_id , cells_data_path, step, real_time_at_step, real_delta_time, df_csv_last_step)
 
-    # Plot the vasculature data
     print(f'Saving vasculature...')
     df_export = pd.DataFrame(columns=["Time", "Mesenchymal cells", "Epithelial cells", "Multicellular clusters", "Total clusters"])
     for step in range(step_size,max_step+1,step_size):

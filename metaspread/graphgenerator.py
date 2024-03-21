@@ -213,16 +213,16 @@ def generate_graphs(name_of_the_simulation, amount_of_pictures=0):
     configs_path = os.path.join(simulation_path, "configs.csv")
     metaspread.configs.load_simulation_configs_for_data_generation(configs_path)
     print(f'Analyzing data in the folder {simulation_path}\n')
-    
+
     # Get the Ecm and Mmp2 data filenames 
-    EcmPath = os.path.join(simulation_path, "Ecm")
-    Mmp2Path = os.path.join(simulation_path, "Mmp2")
-    ecm_files_name = [f for f in sorted(os.listdir(EcmPath), key=lambda x: int(re.findall(r'\d+(?=step)', x)[0])) if os.path.isfile(os.path.join(EcmPath, f)) and f.endswith(".csv")]
-    mmp2_files_name = [f for f in sorted(os.listdir(Mmp2Path), key=lambda x: int(re.findall(r'\d+(?=step)', x)[0])) if os.path.isfile(os.path.join(Mmp2Path, f)) and f.endswith(".csv")]
+    ecm_path = os.path.join(simulation_path, "Ecm")
+    mmp2_path = os.path.join(simulation_path, "Mmp2")
+    ecm_files_name = [f for f in sorted(os.listdir(ecm_path), key=lambda x: int(re.findall(r'\d+(?=step)', x)[0])) if os.path.isfile(os.path.join(ecm_path, f)) and f.endswith(".csv")]
+    mmp2_files_name = [f for f in sorted(os.listdir(mmp2_path), key=lambda x: int(re.findall(r'\d+(?=step)', x)[0])) if os.path.isfile(os.path.join(mmp2_path, f)) and f.endswith(".csv")]
 
     # Get the vasculature data filename
-    vasculture_path = os.path.join(simulation_path, "Vasculature")
-    vasculature_files_name = [f for f in os.listdir(vasculture_path) if os.path.isfile(os.path.join(vasculture_path, f)) and f.endswith(".json")]
+    vasculature_path = os.path.join(simulation_path, "Vasculature")
+    vasculature_files_name = [f for f in os.listdir(vasculature_path) if os.path.isfile(os.path.join(vasculature_path, f)) and f.endswith(".json")]
 
     all_cells_filename = os.path.join(simulation_path, "CellsData.csv")
     if os.path.isfile(all_cells_filename):
@@ -232,21 +232,21 @@ def generate_graphs(name_of_the_simulation, amount_of_pictures=0):
         return
 
     if ecm_files_name:
-        ecm_files_path = [os.path.join(EcmPath, p) for p in ecm_files_name]
-        print("Using Ecm data in the folder:", EcmPath)
+        ecm_files_path = [os.path.join(ecm_path, p) for p in ecm_files_name]
+        print("Using Ecm data in the folder:", ecm_path)
     else:
-        print("No .csv Ecm data found in directory:", EcmPath)
+        print("No .csv Ecm data found in directory:", ecm_path)
         return
 
     if mmp2_files_name:
-        mmp2_files_path = [os.path.join(Mmp2Path, p) for p in mmp2_files_name]
-        print("Using Mmp2 data in the folder:", Mmp2Path)
+        mmp2_files_path = [os.path.join(mmp2_path, p) for p in mmp2_files_name]
+        print("Using Mmp2 data in the folder:", mmp2_path)
     else:
-        print("No .csv Mmp2 data found in directory:", Mmp2Path)
+        print("No .csv Mmp2 data found in directory:", mmp2_path)
         return
 
     if vasculature_files_name:
-        print("Using vasculature data at:", vasculture_path)
+        print("Using vasculature data at:", vasculature_path)
     else:
         print("No .json vasculature data found in directory:", simulation_path)
         return
@@ -268,7 +268,6 @@ def generate_graphs(name_of_the_simulation, amount_of_pictures=0):
     if configs_max_step >= max_step:
         print(f"Warning: the run for this simulation terminated early")
         print(f"Max step reached is {max_step} while {configs_max_step} was expected.")
-    step_size = all_cells_dataframe.iloc[0]['Step']
     maximum_frames = int(max_step / step_size)
     if amount_of_pictures > maximum_frames:
         print(f"There are only {maximum_frames} frames available!")
