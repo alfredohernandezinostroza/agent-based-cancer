@@ -229,9 +229,6 @@ def generate_data_vasculature_only(nameOfTheSimulation):
         print("No CellsData.csv cell data found in directory:", simulation_path)
         return
     if vasculature_files_name:
-        # first_vasculature_name = vasculature_files_name[0]
-        # first_vasculature_path = os.path.join(vasculature_path, first_vasculature_name)
-        # print("Using vasculature data at:", first_vasculature_path)
         print("Using vasculature data at:", vasculature_path)
     else:
         print("No .json vasculature data found in directory:", simulation_path)

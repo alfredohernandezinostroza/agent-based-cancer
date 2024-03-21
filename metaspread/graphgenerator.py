@@ -213,9 +213,6 @@ def generate_graphs(name_of_the_simulation, amount_of_pictures=0):
     configs_path = os.path.join(simulation_path, "configs.csv")
     metaspread.configs.load_simulation_configs_for_data_generation(configs_path)
     print(f'Analyzing data in the folder {simulation_path}\n')
-
-    # Get the agents' data filename 
-    csv_files_name = [f for f in os.listdir(simulation_path) if os.path.isfile(os.path.join(simulation_path, f)) and f.endswith(".csv")]
     
     # Get the Ecm and Mmp2 data filenames 
     EcmPath = os.path.join(simulation_path, "Ecm")
@@ -227,12 +224,11 @@ def generate_graphs(name_of_the_simulation, amount_of_pictures=0):
     vasculture_path = os.path.join(simulation_path, "Vasculature")
     vasculature_files_name = [f for f in os.listdir(vasculture_path) if os.path.isfile(os.path.join(vasculture_path, f)) and f.endswith(".json")]
 
-    if csv_files_name:
-        first_csv_name = csv_files_name[0]
-        first_csv_path = os.path.join(simulation_path, first_csv_name)
-        print("Using cells data at:", first_csv_path)
+    all_cells_filename = os.path.join(simulation_path, "CellsData.csv")
+    if os.path.isfile(all_cells_filename):
+        print("Using cells data at:", all_cells_filename)
     else:
-        print("No .csv cell data found in directory:", simulation_path)
+        print("No CellsData.csv cell data found in directory:", simulation_path)
         return
 
     if ecm_files_name:
@@ -261,17 +257,18 @@ def generate_graphs(name_of_the_simulation, amount_of_pictures=0):
     data_path = os.path.join(simulation_path, data_folder)
 
     tumor_data_path = os.path.join(data_path, "Tumor growth")
+    
     step_size = metaspread.configs.data_collection_period
     real_delta_time = 40 * metaspread.configs.th/0.001 #in seconds (the original ratio is 40 seconds/0.001 non-dimensional time)
     grids_number = metaspread.configs.grids_number
     configs_max_step = metaspread.configs.max_steps
-    df = pd.read_csv(first_csv_path, converters={"Position": ast.literal_eval})
-    df = df[["Step", "Position", "Phenotype", "Grid", "Agent Type", "Ruptured"]]
-    max_step = max(df["Step"])
+    all_cells_dataframe = pd.read_csv(all_cells_filename, converters={"Position": ast.literal_eval})
+    all_cells_dataframe = all_cells_dataframe[["Step", "Position", "Phenotype", "Grid", "Agent Type", "Ruptured"]]
+    max_step = max(all_cells_dataframe["Step"])
     if configs_max_step >= max_step:
         print(f"Warning: the run for this simulation terminated early")
         print(f"Max step reached is {max_step} while {configs_max_step} was expected.")
-    step_size = df.iloc[0]['Step']
+    step_size = all_cells_dataframe.iloc[0]['Step']
     maximum_frames = int(max_step / step_size)
     if amount_of_pictures > maximum_frames:
         print(f"There are only {maximum_frames} frames available!")
