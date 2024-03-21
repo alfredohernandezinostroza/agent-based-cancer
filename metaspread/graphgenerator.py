@@ -25,8 +25,8 @@ def plot_cancer(fig_counter, grid_id, step, real_time_at_step, simulation_path, 
     Xm, Ym, Xe, Ye, Xv, Yv, Xvr, Yvr = coords_list.iloc[0], coords_list.iloc[1], coords_list.iloc[2], coords_list.iloc[3], coords_list.iloc[4], coords_list.iloc[5], coords_list.iloc[6], coords_list.iloc[7]
     plt.figure(fig_counter, figsize=(6, 6), facecolor='white')
     
-    plt.scatter(Xm, Ym, marker='o', color='blue', alpha=0.10, label="Mesenchymal cells")
-    plt.scatter(Xe, Ye, marker='h', color='orange', alpha=0.1, label="Epithelial cells")
+    plt.scatter(Xm, Ym, marker='o', color='blue', alpha=0.5/metaspread.configs.carrying_capacity, label="Mesenchymal cells")
+    plt.scatter(Xe, Ye, marker='h', color='orange', alpha=0.5/metaspread.configs.carrying_capacity, label="Epithelial cells")
     plt.scatter(Xv, Yv, marker='.', color='red', alpha=0.8, label="Vasculature points")
     plt.scatter(Xvr, Yvr, marker='+', color='darkred', alpha=0.8, label="Ruptured vasculature points")
     plt.xlim(0, metaspread.configs.gridsize)
