@@ -29,9 +29,11 @@ def read_coords_for_plot(step, all_cells_dataframe, grid_id):
 
     return [X_position_m, Y_position_m, X_position_e, Y_position_e, X_position_v, Y_position_v, X_position_vr, Y_position_vr]
 
-def save_cancer(coords_list, grid_id, step, real_time_at_step, tumor_data_path):
+def save_cancer(all_cells_dataframe, grid_id, step, real_time_at_step, tumor_data_path):
+    coords_list = False
     path = os.path.join(tumor_data_path, f'Cells-grid{grid_id}-step{step} - Tumor size at {real_time_at_step/(3600*24):.2f} days.csv')
     if not os.path.isfile(path):
+        coords_list = read_coords_for_plot(step, all_cells_dataframe, grid_id)
         Xm, Ym, Xe, Ye, Xv, Yv, Xvr, Yvr = coords_list[0], coords_list[1], coords_list[2], coords_list[3], coords_list[4], coords_list[5], coords_list[6], coords_list[7]
 
         # save the data
@@ -41,7 +43,8 @@ def save_cancer(coords_list, grid_id, step, real_time_at_step, tumor_data_path):
     #create histogram of positions
     path = os.path.join(tumor_data_path, f'Cells-grid{grid_id}-step{step} - Histogram at {real_time_at_step/(3600*24):.2f} days.csv')
     if not os.path.isfile(path):
-        Xm, Ym, Xe, Ye, Xv, Yv, Xvr, Yvr = coords_list[0], coords_list[1], coords_list[2], coords_list[3], coords_list[4], coords_list[5], coords_list[6], coords_list[7]
+        if coords_list:
+            Xm, Ym, Xe, Ye, Xv, Yv, Xvr, Yvr = coords_list[0], coords_list[1], coords_list[2], coords_list[3], coords_list[4], coords_list[5], coords_list[6], coords_list[7]
         df_positions = pd.DataFrame({'Position': zip(Xm + Xe, Ym + Ye)})
         position_repetition_count = df_positions['Position'].value_counts()
         histogram = position_repetition_count.value_counts()
@@ -175,15 +178,14 @@ def generate_data(nameOfTheSimulation):
         print(f'\tSaving tumor data...')
         # df_radius_diameter_history = pd.DataFrame(columns=['Centroid x', 'Centroid y', 'Radius', 'Diameter', 'Step', 'Grid Id'])
         for id, step in enumerate(range(step_size,max_step+1,step_size)):
-            ccells_coords = read_coords_for_plot(step, all_cells_dataframe, grid_id)
             real_time_at_step = real_delta_time * step
             if grid_id == 1:
-                save_cancer(ccells_coords, grid_id, step, real_time_at_step, tumor_data_path)
+                save_cancer(grid_id, step, real_time_at_step, tumor_data_path)
                 # (centroid, radius, diameter) = save_cancer(ccells_coords, grid_id, step, real_time_at_step, tumor_data_path)
                 # new_row = pd.DataFrame({'Centroid x': [centroid[0]], 'Centroid y': [centroid[1]],'Radius': [radius], 'Diameter': [diameter], 'Step': [step], 'Grid Id': [grid_id]})
                 # df_radius_diameter_history = pd.concat([df_radius_diameter_history, new_row])
             else:
-                save_cancer(ccells_coords, grid_id, step, real_time_at_step, tumor_data_path)
+                save_cancer(grid_id, step, real_time_at_step, tumor_data_path)
         # if grid_id == 1:
         #     path = os.path.join(tumor_data_path, f'Tumor radius and diameter history in grid {grid_id}.csv')
         #     if not os.path.isfile(path):
