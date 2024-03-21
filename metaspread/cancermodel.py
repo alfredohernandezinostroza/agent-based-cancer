@@ -221,7 +221,8 @@ class CancerModel(mesa.Model):
         self.doubling_time_counter_E -= 1
         self.doubling_time_counter_M -= 1
 
-        print(f'Step number: {self.schedule.time + self.loaded_max_step}')
+        print(f'Step number: {self.schedule.time + self.loaded_max_step}', end="")
+        print("\r", end="")
         self.schedule.step()
         
         #At the end of each step, check if the grid has been populated, and if it happened, store the time step when it did
