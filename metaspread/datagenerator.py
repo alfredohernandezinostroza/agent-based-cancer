@@ -158,7 +158,7 @@ def generate_data(nameOfTheSimulation):
     data_folder = "Data analysis"
     data_path = os.path.join(simulation_path, data_folder)
 
-    tumor_data_path = os.path.join(data_path, "Tumor growth")
+    tumor_data_path = os.path.join(data_path, "Tumor dynamics")
     cells_data_path = os.path.join(data_path, "Cells growth")
     vasculature_data_path = os.path.join(data_path, "Vasculature dynamics")
 

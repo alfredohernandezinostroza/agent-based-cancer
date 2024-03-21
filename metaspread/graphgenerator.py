@@ -18,7 +18,7 @@ def plot_cancer(fig_counter, grid_id, step, real_time_at_step, simulation_path, 
     if os.path.isfile(figure_path):
         return
     
-    all_coords_data_path = os.path.join(simulation_path, "Data analysis", "Tumor growth")
+    all_coords_data_path = os.path.join(simulation_path, "Data analysis", "Tumor dynamics")
     current_coords_filename = [file for file in os.listdir(all_coords_data_path) if file.startswith(f"Cells-grid{grid_id}-step{step} - Tumor size at")][0]
     current_coords_path = os.path.join(all_coords_data_path, current_coords_filename)
     coords_list = pd.read_csv(current_coords_path, index_col=0)
@@ -256,7 +256,7 @@ def generate_graphs(name_of_the_simulation, amount_of_pictures=0):
     data_folder = "Data analysis"
     data_path = os.path.join(simulation_path, data_folder)
 
-    tumor_data_path = os.path.join(data_path, "Tumor growth")
+    tumor_data_path = os.path.join(data_path, "Tumor dynamics")
     
     step_size = metaspread.configs.data_collection_period
     real_delta_time = 40 * metaspread.configs.th/0.001 #in seconds (the original ratio is 40 seconds/0.001 non-dimensional time)
@@ -278,10 +278,10 @@ def generate_graphs(name_of_the_simulation, amount_of_pictures=0):
     images_folder = "Graphical analysis"
     images_path = os.path.join(simulation_path, images_folder)
 
-    tumor_images_path = os.path.join(images_path, "Tumor growth")
+    tumor_images_path = os.path.join(images_path, "Tumor dynamics")
     cells_images_path = os.path.join(images_path, "Cells growth")
-    ecm_images_path = os.path.join(images_path, "Ecm evolution")
-    mmp2_images_path = os.path.join(images_path, "Mmp2 evolution")
+    ecm_images_path = os.path.join(images_path, "Ecm dynamics")
+    mmp2_images_path = os.path.join(images_path, "Mmp2 dynamics")
     vasculature_images_path = os.path.join(images_path, "Vasculature dynamics")
     all_histogram_images_path = os.path.join(images_path, "Positions histogram")
     radius_diameter_images_path = os.path.join(images_path, "Radius and diameter")
@@ -378,7 +378,7 @@ def generate_graphs(name_of_the_simulation, amount_of_pictures=0):
         
     #plotting the radius and diameter history graph
     print(f'Plotting radius and diameter history graph...')
-    # folder_path = os.path.join(simulation_path, "Data analysis", "Tumor growth")
+    # folder_path = os.path.join(simulation_path, "Data analysis", "Tumor dynamics")
     # file_name = [file for file in os.listdir(folder_path) if file.startswith("Tumor radius and diameter history")][0]
     # file_path = os.path.join(folder_path, file_name)
     # radius_history_df = pd.read_csv(file_path)#, header=0)
