@@ -161,7 +161,7 @@ def generate_videos(nameOfTheSimulation, frameRate):
     for i, images_list in enumerate(CellsImagesByGrid):
         steps = tuple(image[0] for image in images_list)
         imagesPath = tuple(image[1] for image in images_list)
-        output_file = os.path.join(VideosFolderPath, f"Cells Evolution - Grid{i+1}.mp4")
+        output_file = os.path.join(VideosFolderPath, f"Tumor Growth - Grid{i+1}.mp4")
         create_video_from_images(imagesPath, output_file, frameRate)
 
     # Create video for the cell number growth
