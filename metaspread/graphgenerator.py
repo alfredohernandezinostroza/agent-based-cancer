@@ -282,7 +282,7 @@ def generate_graphs(name_of_the_simulation, amount_of_pictures=0):
     cells_images_path = os.path.join(images_path, "Cells growth")
     ecm_images_path = os.path.join(images_path, "Ecm evolution")
     mmp2_images_path = os.path.join(images_path, "Mmp2 evolution")
-    vasculature_images_path = os.path.join(images_path, "Vasculature evolution")
+    vasculature_images_path = os.path.join(images_path, "Vasculature dynamics")
     all_histogram_images_path = os.path.join(images_path, "Positions histogram")
     radius_diameter_images_path = os.path.join(images_path, "Radius and diameter")
 
@@ -364,7 +364,7 @@ def generate_graphs(name_of_the_simulation, amount_of_pictures=0):
     # Plot the vasculature data
     print(f'Plotting vasculature...')
     for id, step in range_of_pictures:
-        folder_path = os.path.join(simulation_path, "Data analysis", "Vasculature evolution")
+        folder_path = os.path.join(simulation_path, "Data analysis", "Vasculature dynamics")
         try:
             file_path = os.path.join(folder_path, f"Vasculature-step{step}.csv")
             vasculature_data = pd.read_csv(file_path, header=0)

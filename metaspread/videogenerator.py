@@ -43,7 +43,7 @@ def group_images_by_grid(images_folder_path):
 def create_video_from_images(images_list, video_path, frameRate):
     """
     creates a video
-    showing the evolution of the images over time.
+    showing the dynamics of the images over time.
     """
     # Initialize video writer
     img = cv2.imread(images_list[0])
@@ -66,7 +66,7 @@ def create_video_from_images(images_list, video_path, frameRate):
 def create_combined_video(images_by_grid_list, video_path, frameRate):
     """
     Given a list of lists of (timestep, image_path) tuples, creates a video
-    showing the evolution of the images over time, with one row for each grid.
+    showing the dynamics of the images over time, with one row for each grid.
     """
     # Initialize video writer
     img = cv2.imread(images_by_grid_list[0][0][1])
@@ -110,11 +110,11 @@ def generate_videos(nameOfTheSimulation, frameRate):
     print(f'\tFrame rate is: {frameRate}')
 
     # Path of the images (.png)
-    EcmImagesPath = os.path.join(ImagesFolderPath, "Ecm evolution")
-    Mmp2ImagesPath = os.path.join(ImagesFolderPath, "Mmp2 evolution")
-    CellsImagesPath = os.path.join(ImagesFolderPath, "Tumor growth")
+    EcmImagesPath = os.path.join(ImagesFolderPath, "Ecm dynamics")
+    Mmp2ImagesPath = os.path.join(ImagesFolderPath, "Mmp2 dynamics")
+    CellsImagesPath = os.path.join(ImagesFolderPath, "Tumor dynamics")
     CellsNumberImagesPath = os.path.join(ImagesFolderPath, "Cells growth")
-    VasculatureImagesPath = os.path.join(ImagesFolderPath, "Vasculature evolution")
+    VasculatureImagesPath = os.path.join(ImagesFolderPath, "Vasculature dynamics")
 
     # Create folder for all the videos
     if not os.path.exists(VideosFolderPath):
@@ -129,7 +129,7 @@ def generate_videos(nameOfTheSimulation, frameRate):
     CellsImagesByGrid = (group_images_by_grid(CellsImagesPath))
     CellsNumberImagesByGrid = (group_images_by_grid(CellsNumberImagesPath))
 
-    # Create video for Vasculature evolution
+    # Create video for Vasculature dynamics
     imagesFileNames = os.listdir(VasculatureImagesPath)
     imagesFileNames.sort()
     images_vasculature_cells = imagesFileNames[:len(imagesFileNames)//2]
@@ -147,21 +147,21 @@ def generate_videos(nameOfTheSimulation, frameRate):
     for i, images_list in enumerate(EcmImagesByGrid):
         steps = tuple(image[0] for image in images_list)
         imagesPath = tuple(image[1] for image in images_list)
-        output_file = os.path.join(VideosFolderPath, f"Ecm Evolution - Grid{i+1}.mp4")
+        output_file = os.path.join(VideosFolderPath, f"Ecm dynamics - Grid{i+1}.mp4")
         create_video_from_images(imagesPath, output_file, frameRate)
 
     # Create videos for the Mmp2 of each grid
     for i, images_list in enumerate(Mmp2ImagesByGrid):
         steps = tuple(image[0] for image in images_list)
         imagesPath = tuple(image[1] for image in images_list)
-        output_file = os.path.join(VideosFolderPath, f"Mmp2 Evolution - Grid{i+1}.mp4")
+        output_file = os.path.join(VideosFolderPath, f"Mmp2 dynamics - Grid{i+1}.mp4")
         create_video_from_images(imagesPath, output_file, frameRate)
 
     # Create videos for the Tumor of each grid
     for i, images_list in enumerate(CellsImagesByGrid):
         steps = tuple(image[0] for image in images_list)
         imagesPath = tuple(image[1] for image in images_list)
-        output_file = os.path.join(VideosFolderPath, f"Tumor Growth - Grid{i+1}.mp4")
+        output_file = os.path.join(VideosFolderPath, f"Tumor dynamics - Grid{i+1}.mp4")
         create_video_from_images(imagesPath, output_file, frameRate)
 
     # Create video for the cell number growth

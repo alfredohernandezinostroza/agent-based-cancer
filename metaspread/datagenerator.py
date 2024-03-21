@@ -160,7 +160,7 @@ def generate_data(nameOfTheSimulation):
 
     tumor_data_path = os.path.join(data_path, "Tumor growth")
     cells_data_path = os.path.join(data_path, "Cells growth")
-    vasculature_data_path = os.path.join(data_path, "Vasculature evolution")
+    vasculature_data_path = os.path.join(data_path, "Vasculature dynamics")
 
     # Create folder for all the data analysis
     os.makedirs(data_path, exist_ok = True)
@@ -243,7 +243,7 @@ def generate_data_vasculature_only(nameOfTheSimulation):
     # Path to save the vasculature data:
     data_folder = "Data analysis"
     data_path = os.path.join(simulation_path, data_folder)
-    vasculature_data_path = os.path.join(data_path, "Vasculature evolution")
+    vasculature_data_path = os.path.join(data_path, "Vasculature dynamics")
 
     print(f'Saving vasculature...')
     df_export = pd.DataFrame(columns=["Time", "Mesenchymal cells", "Epithelial cells", "Multicellular clusters", "Total clusters"])
