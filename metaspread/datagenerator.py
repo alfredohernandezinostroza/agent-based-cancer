@@ -50,6 +50,7 @@ def save_cancer(coords_list, grid_id, step, real_time_at_step, tumor_data_path):
         new_row = pd.DataFrame({'Bins': [0], 'Frequency': [number_of_empty_positions]})
         histogram = pd.concat([histogram, new_row])
         histogram.to_csv(path)
+        return
         #this will return the radius and diameter of the processed tumor
         return get_cluster_centroid_radius_and_diameter(df_positions, grid_id)
     return ([np.nan, np.nan], np.nan, np.nan)
@@ -175,20 +176,21 @@ def generate_data(nameOfTheSimulation):
 
         # Plot the cells graphs
         print(f'\tSaving tumor data...')
-        df_radius_diameter_history = pd.DataFrame(columns=['Centroid x', 'Centroid y', 'Radius', 'Diameter', 'Step', 'Grid Id'])
+        # df_radius_diameter_history = pd.DataFrame(columns=['Centroid x', 'Centroid y', 'Radius', 'Diameter', 'Step', 'Grid Id'])
         for id, step in enumerate(range(step_size,max_step+1,step_size)):
             ccells_coords = read_coords_for_plot(step, all_cells_dataframe, grid_id)
             real_time_at_step = real_delta_time * step
             if grid_id == 1:
-                (centroid, radius, diameter) = save_cancer(ccells_coords, grid_id, step, real_time_at_step, tumor_data_path)
-                new_row = pd.DataFrame({'Centroid x': [centroid[0]], 'Centroid y': [centroid[1]],'Radius': [radius], 'Diameter': [diameter], 'Step': [step], 'Grid Id': [grid_id]})
-                df_radius_diameter_history = pd.concat([df_radius_diameter_history, new_row])
+                save_cancer(ccells_coords, grid_id, step, real_time_at_step, tumor_data_path)
+                # (centroid, radius, diameter) = save_cancer(ccells_coords, grid_id, step, real_time_at_step, tumor_data_path)
+                # new_row = pd.DataFrame({'Centroid x': [centroid[0]], 'Centroid y': [centroid[1]],'Radius': [radius], 'Diameter': [diameter], 'Step': [step], 'Grid Id': [grid_id]})
+                # df_radius_diameter_history = pd.concat([df_radius_diameter_history, new_row])
             else:
                 save_cancer(ccells_coords, grid_id, step, real_time_at_step, tumor_data_path)
-        if grid_id == 1:
-            path = os.path.join(tumor_data_path, f'Tumor radius and diameter history in grid {grid_id}.csv')
-            if not os.path.isfile(path):
-                df_radius_diameter_history.to_csv(path)
+        # if grid_id == 1:
+        #     path = os.path.join(tumor_data_path, f'Tumor radius and diameter history in grid {grid_id}.csv')
+        #     if not os.path.isfile(path):
+        #         df_radius_diameter_history.to_csv(path)
 
 
         # Plot the growth of ephitelial and mesenchymal cells
