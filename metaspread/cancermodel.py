@@ -324,6 +324,8 @@ class CancerModel(mesa.Model):
             ecm_files.sort(key  = lambda file_name: int(file_name.split('step')[0][10:]))
             last_state_of_mmp2_filepath = os.path.join(mmp2_files_path,mmp2_files[-1])
             last_state_of_ecm_filepath  = os.path.join(ecm_files_path,ecm_files[-1])
+            print(f"Loaded MMP2 state in {last_state_of_mmp2_filepath}.")
+            print(f"Loaded MMP2 state in {last_state_of_ecm_filepath}.")
             self.ecm[grid_number][0,:,:]  = pd.read_csv(last_state_of_ecm_filepath, index_col=0).to_numpy(dtype=float)
             self.mmp2[grid_number][0,:,:] = pd.read_csv(last_state_of_mmp2_filepath, index_col=0).to_numpy(dtype=float)
 
