@@ -64,7 +64,6 @@ if __name__ == "__main__":
                 amount_of_pictures = int(sys.argv[4])
                 frame_rate = int(sys.argv[5])
                 datagenerator.generate_data(simulation_folder)
-                datagenerator.generate_data(simulation_folder)
                 graphgenerator.generate_graphs(simulation_folder, amount_of_pictures)
                 videogenerator.generate_videos(simulation_folder, frame_rate)
         else:
