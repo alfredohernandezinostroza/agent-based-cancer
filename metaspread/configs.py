@@ -79,7 +79,5 @@ def generate_default_configs():
 def check_if_configs_are_present():
     """Checks if a configs file is present in the current directory"""
     if not os.path.isfile("simulations_configs.csv"):
-        print("Configs file simulations_configs.csv not found! Creating a configs file with default values.")
+        print("Configs file`for new simulation \"simulations_configs.csv\" not found! Creating a configs file with default values.")
         generate_default_configs()
-    else:
-        print("Configs file for new simulation found!")
