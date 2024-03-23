@@ -180,12 +180,12 @@ def generate_data(nameOfTheSimulation):
         for id, step in enumerate(range(step_size,max_step+1,step_size)):
             real_time_at_step = real_delta_time * step
             if grid_id == 1:
-                save_cancer(grid_id, step, real_time_at_step, tumor_data_path)
-                # (centroid, radius, diameter) = save_cancer(ccells_coords, grid_id, step, real_time_at_step, tumor_data_path)
+                save_cancer(all_cells_dataframe, grid_id, step, real_time_at_step, tumor_data_path)
+                # (centroid, radius, diameter) = save_cancer(all_cells_dataframe, grid_id, step, real_time_at_step, tumor_data_path)
                 # new_row = pd.DataFrame({'Centroid x': [centroid[0]], 'Centroid y': [centroid[1]],'Radius': [radius], 'Diameter': [diameter], 'Step': [step], 'Grid Id': [grid_id]})
                 # df_radius_diameter_history = pd.concat([df_radius_diameter_history, new_row])
             else:
-                save_cancer(grid_id, step, real_time_at_step, tumor_data_path)
+                save_cancer(all_cells_dataframe, grid_id, step, real_time_at_step, tumor_data_path)
         # if grid_id == 1:
         #     path = os.path.join(tumor_data_path, f'Tumor radius and diameter history in grid {grid_id}.csv')
         #     if not os.path.isfile(path):
