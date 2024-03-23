@@ -315,18 +315,18 @@ class CancerModel(mesa.Model):
         Input: The simulation's path to be loaded
         Returns: none
         """
-        #load mmp2 and ecm
+        #load mmp2 and ecm 
+        mmp2_files_path = os.path.join(path_to_simulation, "Mmp2")
+        ecm_files_path  = os.path.join(path_to_simulation, "Ecm")
         for grid_number in range(self.grids_number):
-            mmp2_files_path = os.path.join(path_to_simulation, "Mmp2")
-            ecm_files_path  = os.path.join(path_to_simulation, "Ecm")
-            mmp2_files = os.listdir(mmp2_files_path)
-            ecm_files  = os.listdir(ecm_files_path)
+            mmp2_files = [file for file in os.listdir(mmp2_files_path) if file.startswith(f"Mmp2-{grid_number+1}grid")]
+            ecm_files  = [file for file in os.listdir(ecm_files_path) if file.startswith(f"Ecm-{grid_number+1}grid")]
             mmp2_files.sort(key = lambda file_name: int(file_name.split('step')[0][11:]))
             ecm_files.sort(key  = lambda file_name: int(file_name.split('step')[0][10:]))
             last_state_of_mmp2_filepath = os.path.join(mmp2_files_path,mmp2_files[-1])
             last_state_of_ecm_filepath  = os.path.join(ecm_files_path,ecm_files[-1])
-            print(f"Loaded MMP2 state in {last_state_of_mmp2_filepath}.")
-            print(f"Loaded MMP2 state in {last_state_of_ecm_filepath}.")
+            print(f"Loaded MMP2 state for grid id {grid_number + 1} in {last_state_of_mmp2_filepath}.")
+            print(f"Loaded ECM state for grid id {grid_number + 1} in {last_state_of_ecm_filepath}.")
             self.ecm[grid_number][0,:,:]  = pd.read_csv(last_state_of_ecm_filepath, index_col=0).to_numpy(dtype=float)
             self.mmp2[grid_number][0,:,:] = pd.read_csv(last_state_of_mmp2_filepath, index_col=0).to_numpy(dtype=float)
 
