@@ -4,4 +4,3 @@ init_simulation_configs("simulations_configs.csv")
 from metaspread.cancercell import CancerCell
 from metaspread.cancermodel import CancerModel
 from metaspread.vessel import Vessel
-from metaspread.multiplecanvasgrid import MultipleCanvasGrid
