@@ -1,12 +1,3 @@
 __pycache__/
 Simulations/*
-Main.py.old
-remove.py
-testtt.py
-Classes/teste.py
-tst.py
-Classes/utils.py
-test.py
-hacr.txt
-requirementsold.txt
-pandas_test.py
+dist/*
