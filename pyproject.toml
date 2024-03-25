@@ -1,6 +1,6 @@
 [project]
 name = "metaspread"
-version = "2024.0.1a"
+version = "2024.0.1"
 authors = [
   { name="Alfredo Hernández-Inostroza", email="alfredo.hernandez@ug.uchile.cl" },
 ]
@@ -18,7 +18,26 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Bio-Informatics",
     "Topic :: Scientific/Engineering :: Mathematics",
 ]
-
+dependencies = [
+  "matplotlib==3.8.0",
+  "Mesa==2.1.2",
+  "numpy==1.26.0",
+  "pandas==2.1.1",
+  "pynput==1.7.6",
+  "opencv_python==4.8.1.78"
+]
 [project.urls]
 Homepage = "https://github.com/fredih/MetaSpread"
 Issues = "https://github.com/fredih/MetaSpread/issues"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.sdist]
+include = [
+  "metaspread/*.py",
+  "LICENSE.txt",
+  "README.md",
+  "requirements.txt",
+]
