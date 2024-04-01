@@ -45,6 +45,9 @@ def save_cancer(all_cells_dataframe, grid_id, step, real_time_at_step, tumor_dat
     if not os.path.isfile(path):
         if coords_list:
             Xm, Ym, Xe, Ye, Xv, Yv, Xvr, Yvr = coords_list[0], coords_list[1], coords_list[2], coords_list[3], coords_list[4], coords_list[5], coords_list[6], coords_list[7]
+        else:
+            coords_list = read_coords_for_plot(step, all_cells_dataframe, grid_id)
+            Xm, Ym, Xe, Ye, Xv, Yv, Xvr, Yvr = coords_list[0], coords_list[1], coords_list[2], coords_list[3], coords_list[4], coords_list[5], coords_list[6], coords_list[7]
         df_positions = pd.DataFrame({'Position': zip(Xm + Xe, Ym + Ye)})
         position_repetition_count = df_positions['Position'].value_counts()
         histogram = position_repetition_count.value_counts()
@@ -53,8 +56,17 @@ def save_cancer(all_cells_dataframe, grid_id, step, real_time_at_step, tumor_dat
         new_row = pd.DataFrame({'Bins': [0], 'Frequency': [number_of_empty_positions]})
         histogram = pd.concat([histogram, new_row])
         histogram.to_csv(path)
-        return
+        # return
         #this will return the radius and diameter of the processed tumor
+        return get_cluster_centroid_radius_and_diameter(df_positions, grid_id)
+    path = os.path.join(tumor_data_path, "Tumor radius and diameter history in grid 1.csv")
+    if not os.path.isfile(path):
+        if coords_list:
+            Xm, Ym, Xe, Ye, Xv, Yv, Xvr, Yvr = coords_list[0], coords_list[1], coords_list[2], coords_list[3], coords_list[4], coords_list[5], coords_list[6], coords_list[7]
+        else:
+            coords_list = read_coords_for_plot(step, all_cells_dataframe, grid_id)
+            Xm, Ym, Xe, Ye, Xv, Yv, Xvr, Yvr = coords_list[0], coords_list[1], coords_list[2], coords_list[3], coords_list[4], coords_list[5], coords_list[6], coords_list[7]
+        df_positions = pd.DataFrame({'Position': zip(Xm + Xe, Ym + Ye)})
         return get_cluster_centroid_radius_and_diameter(df_positions, grid_id)
     return ([np.nan, np.nan], np.nan, np.nan)
     
@@ -176,20 +188,20 @@ def generate_data(nameOfTheSimulation):
         print(f'\nGrid: {grid_id}')
 
         print(f'\tSaving tumor data...')
-        # df_radius_diameter_history = pd.DataFrame(columns=['Centroid x', 'Centroid y', 'Radius', 'Diameter', 'Step', 'Grid Id'])
+        df_radius_diameter_history = pd.DataFrame(columns=['Centroid x', 'Centroid y', 'Radius', 'Diameter', 'Step', 'Grid Id'])
         for id, step in enumerate(range(step_size,max_step+1,step_size)):
             real_time_at_step = real_delta_time * step
             if grid_id == 1:
-                save_cancer(all_cells_dataframe, grid_id, step, real_time_at_step, tumor_data_path)
-                # (centroid, radius, diameter) = save_cancer(all_cells_dataframe, grid_id, step, real_time_at_step, tumor_data_path)
-                # new_row = pd.DataFrame({'Centroid x': [centroid[0]], 'Centroid y': [centroid[1]],'Radius': [radius], 'Diameter': [diameter], 'Step': [step], 'Grid Id': [grid_id]})
-                # df_radius_diameter_history = pd.concat([df_radius_diameter_history, new_row])
+                # save_cancer(all_cells_dataframe, grid_id, step, real_time_at_step, tumor_data_path)
+                (centroid, radius, diameter) = save_cancer(all_cells_dataframe, grid_id, step, real_time_at_step, tumor_data_path)
+                new_row = pd.DataFrame({'Centroid x': [centroid[0]], 'Centroid y': [centroid[1]],'Radius': [radius], 'Diameter': [diameter], 'Step': [step], 'Grid Id': [grid_id]})
+                df_radius_diameter_history = pd.concat([df_radius_diameter_history, new_row])
             else:
                 save_cancer(all_cells_dataframe, grid_id, step, real_time_at_step, tumor_data_path)
-        # if grid_id == 1:
-        #     path = os.path.join(tumor_data_path, f'Tumor radius and diameter history in grid {grid_id}.csv')
-        #     if not os.path.isfile(path):
-        #         df_radius_diameter_history.to_csv(path)
+        if grid_id == 1:
+            path = os.path.join(tumor_data_path, f'Tumor radius and diameter history in grid {grid_id}.csv')
+            if not os.path.isfile(path):
+                df_radius_diameter_history.to_csv(path)
 
         print(f'\tSaving cells numbers graph data...')
         df_csv_last_step = pd.DataFrame()

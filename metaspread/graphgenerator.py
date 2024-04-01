@@ -378,13 +378,13 @@ def generate_graphs(name_of_the_simulation, amount_of_pictures=0):
         
     #plotting the radius and diameter history graph
     print(f'Plotting radius and diameter history graph...')
-    # folder_path = os.path.join(simulation_path, "Data analysis", "Tumor dynamics")
-    # file_name = [file for file in os.listdir(folder_path) if file.startswith("Tumor radius and diameter history")][0]
-    # file_path = os.path.join(folder_path, file_name)
-    # radius_history_df = pd.read_csv(file_path)#, header=0)
-    # plot_radius_diameter_history(radius_history_df, radius_diameter_images_path, step, real_delta_time)
+    folder_path = os.path.join(simulation_path, "Data analysis", "Tumor dynamics")
+    file_name = [file for file in os.listdir(folder_path) if file.startswith("Tumor radius and diameter history")][0]
+    file_path = os.path.join(folder_path, file_name)
+    radius_history_df = pd.read_csv(file_path)#, header=0)
+    plot_radius_diameter_history(radius_history_df, radius_diameter_images_path, step, real_delta_time)
     plt.close()
-    # fig_counter += 1
+    fig_counter += 1
 
     plt.show()
     plt.close()
