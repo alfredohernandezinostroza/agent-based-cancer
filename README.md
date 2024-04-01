@@ -4,7 +4,7 @@ MetaSpread is a cancer and metastasis simulator written in Python, based on the 
 
 # Installing the package
 
-MetaSpread it is readily available in the official PyPi repository. To install, simply run:
+MetaSpread is available as an official PyPi package. To install, simply run:
 
 ```
 pip install metaspread
